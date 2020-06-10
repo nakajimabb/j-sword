@@ -1,4 +1,5 @@
 import React, { useState, useEffect, createContext } from 'react';
+import firebase from './firebase';
 import Sword from './sword/Sword';
 
 interface TargetType {
@@ -17,6 +18,8 @@ export interface ContextType {
   bibles: { [key: string]: Sword };
   dictionaries: { [key: string]: Sword };
   morphologies: { [key: string]: Sword };
+  currentUser: firebase.User | null;
+  setCurrentUser: React.Dispatch<firebase.User | null>;
   target: TargetType;
   setTarget: React.Dispatch<TargetType>;
   annotate: AnnotateType;
@@ -27,6 +30,8 @@ const AppContext = createContext({
   bibles: {},
   dictionaries: {},
   morphologies: {},
+  currentUser: null,
+  setCurrentUser: (value: firebase.User | null) => {},
   target: { mod_keys: [], book: '', chapter: '', verse: '' },
   setTarget: (value: TargetType) => {},
   annotate: { content: '', attributes: [] },
@@ -37,6 +42,7 @@ export const AppContextProvider: React.FC = (props) => {
   const [bibles, setBibles] = useState({});
   const [dictionaries, setDictionaries] = useState({});
   const [morphologies, setMorphologies] = useState({});
+  const [currentUser, setCurrentUser] = useState<firebase.User | null>(null);
   const [target, setTarget] = useState<TargetType>({
     mod_keys: [],
     book: 'John',
@@ -66,6 +72,8 @@ export const AppContextProvider: React.FC = (props) => {
         bibles,
         dictionaries,
         morphologies,
+        currentUser,
+        setCurrentUser,
         target,
         setTarget,
         annotate,

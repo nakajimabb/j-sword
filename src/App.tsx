@@ -16,13 +16,18 @@ import {
   makeStyles,
   fade,
 } from '@material-ui/core';
-import { MoreVert } from '@material-ui/icons';
+import { MoreVert, LibraryBooks } from '@material-ui/icons';
+import { LogIn, LogOut, User } from 'react-feather';
 import clsx from 'clsx';
 
 import AppContext from './AppContext';
 import SwordRenderer from './SwordRenderer';
 import Annotate from './Annotate';
+import ArticleDialog from './ArticleDialog';
+import AuthDialog from './AuthDialog';
 import Sword from './sword/Sword';
+import firebase from './firebase';
+import 'firebase/auth';
 import './App.css';
 import './passage.css';
 
@@ -89,7 +94,15 @@ function App() {
   const morph_file = useRef<HTMLInputElement>(null);
   const references = useRef<HTMLInputElement>(null);
   const [anchorEl, setAnchorEl] = useState<Element | null>(null);
-  const { bibles, target, setTarget, annotate } = useContext(AppContext);
+  const [open_auth_dialog, setOpenAuthDialog] = useState<boolean>(false);
+  const {
+    bibles,
+    target,
+    setTarget,
+    annotate,
+    currentUser,
+    setCurrentUser,
+  } = useContext(AppContext);
   const enable_annotate = !!annotate.content || annotate.attributes.length > 0;
   // const enableCreateReferences = false;
   const classes = useStyles();
@@ -203,6 +216,21 @@ function App() {
     }
   };
 
+  const logoout = () => {
+    firebase
+      .auth()
+      .signOut()
+      .then(function () {
+        // Sign-out successful.
+        setCurrentUser(null);
+      })
+      .catch(function (error) {
+        // An error happened.
+        alert('エラーが発生しました。');
+        console.log({ error });
+      });
+  };
+
   return (
     <div className="App">
       <AppBar position="static">
@@ -263,6 +291,30 @@ function App() {
             className={classes.text_field}
           />
           <Typography variant="h6" className={classes.title}></Typography>
+          {currentUser && (
+            <IconButton
+              aria-label="profile"
+              onClick={() => alert(currentUser?.email)}
+            >
+              <User fontSize="small" />
+            </IconButton>
+          )}
+          {currentUser ? (
+            <IconButton aria-label="logout" onClick={logoout}>
+              <LogOut fontSize="small" />
+            </IconButton>
+          ) : (
+            <IconButton
+              aria-label="login"
+              onClick={() => setOpenAuthDialog(true)}
+            >
+              <LogIn fontSize="small" />
+            </IconButton>
+          )}
+          <AuthDialog
+            open={open_auth_dialog}
+            onClose={() => setOpenAuthDialog(false)}
+          />
           <IconButton
             aria-label="display more actions"
             edge="end"
