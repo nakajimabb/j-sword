@@ -95,14 +95,9 @@ function App() {
   const references = useRef<HTMLInputElement>(null);
   const [anchorEl, setAnchorEl] = useState<Element | null>(null);
   const [open_auth_dialog, setOpenAuthDialog] = useState<boolean>(false);
-  const {
-    bibles,
-    target,
-    setTarget,
-    annotate,
-    currentUser,
-    setCurrentUser,
-  } = useContext(AppContext);
+  const { bibles, target, setTarget, annotate, currentUser } = useContext(
+    AppContext
+  );
   const enable_annotate = !!annotate.content || annotate.attributes.length > 0;
   // const enableCreateReferences = false;
   const classes = useStyles();
@@ -222,7 +217,6 @@ function App() {
       .signOut()
       .then(function () {
         // Sign-out successful.
-        setCurrentUser(null);
       })
       .catch(function (error) {
         // An error happened.

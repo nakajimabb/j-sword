@@ -58,24 +58,22 @@ interface AuthEmailProps {
   onClose: () => void;
 }
 
+// メール認証
 const AuthEmail: React.FC<AuthEmailProps> = ({ onClose }) => {
   const [account, setAccount] = useState({ email: '', password: '' });
-  const { setCurrentUser } = useContext(AppContext);
 
   const login = async () => {
     try {
-      // メール認証
       const res = await firebase
         .auth()
         .signInWithEmailAndPassword(account.email, account.password);
-      //状態チェック
       if (res?.user?.emailVerified) {
-        setCurrentUser(firebase.auth().currentUser!);
         onClose();
       } else {
         console.log('Email認証未完了');
       }
     } catch (error) {
+      alert('エラーが発生しました。');
       console.log(error);
     }
   };
@@ -124,6 +122,17 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ open, onClose }) => {
 
   useEffect(() => {}, []);
 
+  const authGoogle = async () => {
+    try {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      firebase.auth().signInWithRedirect(provider);
+      onClose();
+    } catch (error) {
+      alert('エラーが発生しました。');
+      console.log(error);
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -141,15 +150,11 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ open, onClose }) => {
             aria-label="simple tabs example"
           >
             <Tab label="メール / パスワード" />
-            <Tab label="Google" />
-            <Tab label="Item Three" />
+            <Tab label="Google" onClick={authGoogle} />
           </Tabs>
         </AppBar>
         <TabPanel value={tab} index={0}>
           <AuthEmail onClose={onClose} />
-        </TabPanel>
-        <TabPanel value={tab} index={1}>
-          Item Two
         </TabPanel>
       </DialogContent>
     </Dialog>

@@ -19,7 +19,6 @@ export interface ContextType {
   dictionaries: { [key: string]: Sword };
   morphologies: { [key: string]: Sword };
   currentUser: firebase.User | null;
-  setCurrentUser: React.Dispatch<firebase.User | null>;
   target: TargetType;
   setTarget: React.Dispatch<TargetType>;
   annotate: AnnotateType;
@@ -31,7 +30,6 @@ const AppContext = createContext({
   dictionaries: {},
   morphologies: {},
   currentUser: null,
-  setCurrentUser: (value: firebase.User | null) => {},
   target: { mod_keys: [], book: '', chapter: '', verse: '' },
   setTarget: (value: TargetType) => {},
   annotate: { content: '', attributes: [] },
@@ -62,6 +60,7 @@ export const AppContextProvider: React.FC = (props) => {
       setDictionaries(new_dictionaries);
       const new_morphologies = await Sword.load('morphology');
       setMorphologies(new_morphologies);
+      firebase.auth().onAuthStateChanged((user) => setCurrentUser(user));
     };
     f();
   }, []);
@@ -73,7 +72,6 @@ export const AppContextProvider: React.FC = (props) => {
         dictionaries,
         morphologies,
         currentUser,
-        setCurrentUser,
         target,
         setTarget,
         annotate,
