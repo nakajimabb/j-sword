@@ -20,6 +20,8 @@ import './passage.css';
 import clsx from 'clsx';
 import { firestore } from 'firebase';
 
+const str = (text: string | null) => (text ? String(text) : '');
+
 const useStyles = makeStyles((theme) => ({
   container: {
     display: 'flex',
@@ -44,12 +46,12 @@ interface UserDialogProps {
 }
 
 interface User {
-  nickname: string;
-  sex: 'male' | 'female' | '';
+  nickname: string | null;
+  sex: 'male' | 'female' | null;
 }
 
 const UserDialog: React.FC<UserDialogProps> = ({ open, onClose }) => {
-  const [user, setUser] = useState<User>({ nickname: '', sex: '' });
+  const [user, setUser] = useState<User>({ nickname: null, sex: null });
   const { currentUser } = useContext(AppContext);
   const classes = useStyles();
 
@@ -58,13 +60,14 @@ const UserDialog: React.FC<UserDialogProps> = ({ open, onClose }) => {
       if (currentUser) {
         const u = await firebase
           .firestore()
-          .doc(`users/${currentUser.uid}`)
+          .collection('users')
+          .doc(currentUser.uid)
           .get();
         const value = u.data();
         setUser({ ...user, nickname: value?.nickname, sex: value?.sex });
         console.log({ user: value });
       } else {
-        setUser({ nickname: '', sex: '' });
+        setUser({ nickname: null, sex: null });
       }
     };
     f();
@@ -75,7 +78,8 @@ const UserDialog: React.FC<UserDialogProps> = ({ open, onClose }) => {
       if (currentUser) {
         await firebase
           .firestore()
-          .doc(`users/${currentUser.uid}`)
+          .collection('users')
+          .doc(currentUser.uid)
           .set(
             {
               ...user,
@@ -109,14 +113,14 @@ const UserDialog: React.FC<UserDialogProps> = ({ open, onClose }) => {
           <FormControl margin="normal" fullWidth>
             <TextField
               label="ニックネーム"
-              value={user.nickname}
+              value={str(user.nickname)}
               onChange={(e) => setUser({ ...user, nickname: e.target.value })}
             />
           </FormControl>
           <FormControl fullWidth>
             <InputLabel htmlFor="sex">性別</InputLabel>
             <Select
-              value={user.sex}
+              value={str(user.sex)}
               onChange={(e) => {
                 if (e.target.value === 'male' || e.target.value === 'female')
                   setUser({ ...user, sex: e.target.value });

@@ -24,6 +24,7 @@ import AppContext from './AppContext';
 import SwordRenderer from './SwordRenderer';
 import Annotate from './Annotate';
 import UserDialog from './UserDialog';
+import ArticleDialog from './ArticleDialog';
 import AuthDialog from './AuthDialog';
 import Sword from './sword/Sword';
 import firebase from './firebase';
@@ -95,6 +96,7 @@ function App() {
   const references = useRef<HTMLInputElement>(null);
   const [anchorEl, setAnchorEl] = useState<Element | null>(null);
   const [open_user_dialog, setOpenUserDialog] = useState<boolean>(false);
+  const [open_article_dialog, setOpenArticleDialog] = useState<boolean>(false);
   const [open_auth_dialog, setOpenAuthDialog] = useState<boolean>(false);
   const { bibles, target, setTarget, annotate, currentUser } = useContext(
     AppContext
@@ -294,6 +296,14 @@ function App() {
               <User fontSize="small" />
             </IconButton>
           )}
+          {currentUser && (
+            <IconButton
+              aria-label="articles"
+              onClick={() => setOpenArticleDialog(true)}
+            >
+              <LibraryBooks fontSize="small" />
+            </IconButton>
+          )}
           {currentUser ? (
             <IconButton aria-label="logout" onClick={logoout}>
               <LogOut fontSize="small" />
@@ -308,6 +318,12 @@ function App() {
           )}
           {open_user_dialog && (
             <UserDialog open={true} onClose={() => setOpenUserDialog(false)} />
+          )}
+          {open_article_dialog && (
+            <ArticleDialog
+              open={true}
+              onClose={() => setOpenArticleDialog(false)}
+            />
           )}
           {open_auth_dialog && (
             <AuthDialog open={true} onClose={() => setOpenAuthDialog(false)} />
