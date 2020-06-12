@@ -23,7 +23,7 @@ import clsx from 'clsx';
 import AppContext from './AppContext';
 import SwordRenderer from './SwordRenderer';
 import Annotate from './Annotate';
-import ArticleDialog from './ArticleDialog';
+import UserDialog from './UserDialog';
 import AuthDialog from './AuthDialog';
 import Sword from './sword/Sword';
 import firebase from './firebase';
@@ -94,6 +94,7 @@ function App() {
   const morph_file = useRef<HTMLInputElement>(null);
   const references = useRef<HTMLInputElement>(null);
   const [anchorEl, setAnchorEl] = useState<Element | null>(null);
+  const [open_user_dialog, setOpenUserDialog] = useState<boolean>(false);
   const [open_auth_dialog, setOpenAuthDialog] = useState<boolean>(false);
   const { bibles, target, setTarget, annotate, currentUser } = useContext(
     AppContext
@@ -288,7 +289,7 @@ function App() {
           {currentUser && (
             <IconButton
               aria-label="profile"
-              onClick={() => alert(currentUser?.email)}
+              onClick={() => setOpenUserDialog(true)}
             >
               <User fontSize="small" />
             </IconButton>
@@ -305,10 +306,12 @@ function App() {
               <LogIn fontSize="small" />
             </IconButton>
           )}
-          <AuthDialog
-            open={open_auth_dialog}
-            onClose={() => setOpenAuthDialog(false)}
-          />
+          {open_user_dialog && (
+            <UserDialog open={true} onClose={() => setOpenUserDialog(false)} />
+          )}
+          {open_auth_dialog && (
+            <AuthDialog open={true} onClose={() => setOpenAuthDialog(false)} />
+          )}
           <IconButton
             aria-label="display more actions"
             edge="end"

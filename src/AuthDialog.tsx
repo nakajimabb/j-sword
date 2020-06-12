@@ -18,6 +18,7 @@ import 'firebase/auth';
 import AppContext from './AppContext';
 import './passage.css';
 import clsx from 'clsx';
+import { firestore } from 'firebase';
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -124,9 +125,10 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ open, onClose }) => {
 
   const authGoogle = async () => {
     try {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      firebase.auth().signInWithRedirect(provider);
       onClose();
+      setTab(0);
+      const provider = new firebase.auth.GoogleAuthProvider();
+      await firebase.auth().signInWithPopup(provider);
     } catch (error) {
       alert('エラーが発生しました。');
       console.log(error);
@@ -138,7 +140,8 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ open, onClose }) => {
       open={open}
       onClose={onClose}
       className={classes.dialog}
-      maxWidth="xl"
+      maxWidth="sm"
+      fullWidth
       aria-labelledby="simple-modal-title"
       aria-describedby="simple-modal-description"
     >
