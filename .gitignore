@@ -25,3 +25,4 @@ yarn-error.log*
 /src/firebase.ts
 /.firebase
 .firebaserc
+/src/config

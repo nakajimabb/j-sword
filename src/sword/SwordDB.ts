@@ -26,6 +26,10 @@ class SwordDB extends Dexie {
     this.references = this.table('references');
   }
 
+  async getConf(modname: string) {
+    return this.confs.get(modname);
+  }
+
   async getConfs(modtype: ModType) {
     if (modtype) {
       return this.confs

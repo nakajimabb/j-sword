@@ -297,7 +297,7 @@ class Sword {
   blob: BlobsType | null;
   index: IndexesType | null;
   reference: ReferencesType | null;
-  // modtype: 'bible', 'dictionary', 'morph',
+  // modtype: 'bible', 'dictionary', 'morphology',
   constructor(
     modname: string,
     modtype: ModType | null,
@@ -369,6 +369,10 @@ class Sword {
       }
     }
     return verseList;
+  }
+
+  isValid() {
+    return !!this.conf;
   }
 
   async getReference(key: string) {
@@ -459,7 +463,16 @@ class Sword {
     }
   }
 
-  static async load(modtype: ModType) {
+  static async load(modname: string) {
+    const conf = await SwordDB.getConf(modname);
+    if (conf) {
+      const index = null; //await SwordDB.getIndex(conf.modname);
+      const blob = null; //await SwordDB.getBlob(conf.modname);
+      return new Sword(conf.modname, conf.modtype, conf, blob, index);
+    }
+  }
+
+  static async loadAll(modtype: ModType) {
     let modules: { [key: string]: Sword } = {};
     const confs = await SwordDB.getConfs(modtype);
     for (let conf of confs) {

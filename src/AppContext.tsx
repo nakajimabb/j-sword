@@ -1,6 +1,7 @@
 import React, { useState, useEffect, createContext } from 'react';
 import firebase from './firebase';
 import Sword from './sword/Sword';
+import SAMPLE_MODULES from './config/sample_modules';
 
 interface TargetType {
   mod_keys: string[];
@@ -23,6 +24,7 @@ export interface ContextType {
   setTarget: React.Dispatch<TargetType>;
   annotate: AnnotateType;
   setAnnotate: React.Dispatch<AnnotateType>;
+  module_urls: { [modname: string]: { [key: string]: string } };
 }
 
 const AppContext = createContext({
@@ -34,6 +36,7 @@ const AppContext = createContext({
   setTarget: (value: TargetType) => {},
   annotate: { content: '', attributes: [] },
   setAnnotate: (value: AnnotateType) => {},
+  module_urls: {},
 } as ContextType);
 
 export const AppContextProvider: React.FC = (props) => {
@@ -54,11 +57,16 @@ export const AppContextProvider: React.FC = (props) => {
 
   useEffect(() => {
     const f = async () => {
-      const new_bibles = await Sword.load('bible');
+      const new_bibles = await Sword.loadAll('bible');
+      for (const modname in SAMPLE_MODULES) {
+        if (!new_bibles[modname]) {
+          new_bibles[modname] = new Sword(modname, 'bible');
+        }
+      }
       setBibles(new_bibles);
-      const new_dictionaries = await Sword.load('dictionary');
+      const new_dictionaries = await Sword.loadAll('dictionary');
       setDictionaries(new_dictionaries);
-      const new_morphologies = await Sword.load('morphology');
+      const new_morphologies = await Sword.loadAll('morphology');
       setMorphologies(new_morphologies);
       firebase.auth().onAuthStateChanged((user) => setCurrentUser(user));
     };
@@ -76,6 +84,7 @@ export const AppContextProvider: React.FC = (props) => {
         setTarget,
         annotate,
         setAnnotate,
+        module_urls: SAMPLE_MODULES,
       }}
     >
       {props.children}

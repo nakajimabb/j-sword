@@ -82,8 +82,8 @@ const ArticleDialog: React.FC<ArticleDialogProps> = ({ open, onClose }) => {
 
         const articlesRef = await userRef
           .collection('articles')
-          .limit(10)
           .orderBy('createdAt', 'desc')
+          .limit(10)
           .get();
         let new_articles: Article[] = [];
         articlesRef.forEach((doc) => new_articles.push(doc.data() as Article));
