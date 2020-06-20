@@ -54,7 +54,8 @@ const Phrase: React.FC<PhraseProps> = ({
     }
   };
 
-  const onClick = () => {
+  const onClick = (e: React.MouseEvent) => {
+    onMouseOver(e);
     setEnableHover(!enable_hover);
   };
 
