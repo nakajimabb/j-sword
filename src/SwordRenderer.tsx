@@ -3,6 +3,7 @@ import { Box } from '@material-ui/core';
 import clsx from 'clsx';
 
 import firebase from './firebase';
+import 'firebase/firestore';
 import 'firebase/storage';
 import AppContext from './AppContext';
 import Passage from './Passage';
@@ -18,7 +19,9 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
   const [raw_texts, setRawTexts] = useState<Raw[]>([]);
   const [enable_hover, setEnableHover] = useState<boolean>(true);
   const [enabled, setEnabled] = useState<boolean>(false);
-  const { bibles, target, setAnnotate, module_urls } = useContext(AppContext);
+  const { bibles, target, setAnnotate, sample_modules } = useContext(
+    AppContext
+  );
   const { book, chapter, verse } = target;
   const bible = bibles[mod_key];
   const direction = bible?.conf?.Direction === 'RtoL' && 'rtl';
@@ -30,12 +33,21 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
       if (bible.isValid()) {
         setEnabled(true);
       } else {
-        const url = module_urls[bible.modname]?.bible;
-        await installFromUrl(url, 'bible');
-        const sword = await Sword.load(bible.modname);
-        if (sword) bibles[bible.modname] = sword;
-        console.log(`module installed from ${url}`);
-        setEnabled(true);
+        if (bible.modname in sample_modules) {
+          const snapshot = await firebase
+            .firestore()
+            .collection('modules')
+            .doc(bible.modname)
+            .get();
+          const module = snapshot?.data();
+          if (module) {
+            await installFromUrl(module.url, module.modtype);
+            const sword = await Sword.load(bible.modname);
+            if (sword) bibles[bible.modname] = sword;
+            console.log(`${bible.modname} module installed`);
+            setEnabled(true);
+          }
+        }
       }
 
       if (valid_params) {

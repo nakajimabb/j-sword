@@ -24,7 +24,7 @@ export interface ContextType {
   setTarget: React.Dispatch<TargetType>;
   annotate: AnnotateType;
   setAnnotate: React.Dispatch<AnnotateType>;
-  module_urls: { [modname: string]: { [key: string]: string } };
+  sample_modules: { [key: string]: string };
 }
 
 const AppContext = createContext({
@@ -36,7 +36,7 @@ const AppContext = createContext({
   setTarget: (value: TargetType) => {},
   annotate: { content: '', attributes: [] },
   setAnnotate: (value: AnnotateType) => {},
-  module_urls: {},
+  sample_modules: {},
 } as ContextType);
 
 export const AppContextProvider: React.FC = (props) => {
@@ -84,7 +84,7 @@ export const AppContextProvider: React.FC = (props) => {
         setTarget,
         annotate,
         setAnnotate,
-        module_urls: SAMPLE_MODULES,
+        sample_modules: SAMPLE_MODULES,
       }}
     >
       {props.children}
