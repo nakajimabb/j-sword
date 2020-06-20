@@ -660,7 +660,7 @@ class Sword {
       [len, isEnd] = getIntFromUint8Array(start + 4, idxBuf);
       const buf = blobBuf.slice(i1, i1 + len);
       const result = dec.decode(buf);
-      const m = result.match(/^(.+)(\r\n|\r|\n)(.+)$/);
+      const m = result.match(/^(.+)(\r\n|\r|\n)/);
       if (m) {
         const key = m[1];
         const length = m[1].length + m[2].length;
