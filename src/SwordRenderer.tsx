@@ -19,9 +19,13 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
   const [raw_texts, setRawTexts] = useState<Raw[]>([]);
   const [enable_hover, setEnableHover] = useState<boolean>(true);
   const [enabled, setEnabled] = useState<boolean>(false);
-  const { bibles, target, setAnnotate, sample_modules } = useContext(
-    AppContext
-  );
+  const {
+    bibles,
+    setSwordModule,
+    target,
+    setAnnotate,
+    sample_modules,
+  } = useContext(AppContext);
   const { book, chapter, verse } = target;
   const bible = bibles[mod_key];
   const direction = bible?.conf?.Direction === 'RtoL' && 'rtl';
@@ -39,12 +43,29 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
             .collection('modules')
             .doc(bible.modname)
             .get();
-          const module = snapshot?.data();
-          if (module) {
-            await installFromUrl(module.url, module.modtype);
+          const bible_module = snapshot?.data();
+          console.log(`installing ${bible.modname} module...`);
+          if (bible_module) {
+            await installFromUrl(bible_module.url, bible_module.modtype);
             const sword = await Sword.load(bible.modname);
-            if (sword) bibles[bible.modname] = sword;
-            console.log(`${bible.modname} module installed`);
+            if (sword) setSwordModule(sword);
+            const dependencies = bible_module.dependencies || [];
+            for (const modname of dependencies) {
+              let sword_module = await Sword.load(modname);
+              if (sword_module?.isValid()) continue;
+              const snap = await firebase
+                .firestore()
+                .collection('modules')
+                .doc(modname)
+                .get();
+              const module = snap?.data();
+              console.log(`installing ${modname} module...`);
+              if (module) {
+                await installFromUrl(module.url, module.modtype);
+                sword_module = await Sword.load(modname);
+                if (sword_module) setSwordModule(sword_module);
+              }
+            }
             setEnabled(true);
           }
         }

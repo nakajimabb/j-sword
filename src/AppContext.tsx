@@ -19,6 +19,7 @@ export interface ContextType {
   bibles: { [key: string]: Sword };
   dictionaries: { [key: string]: Sword };
   morphologies: { [key: string]: Sword };
+  setSwordModule: (module: Sword) => void;
   currentUser: firebase.User | null;
   target: TargetType;
   setTarget: React.Dispatch<TargetType>;
@@ -31,6 +32,7 @@ const AppContext = createContext({
   bibles: {},
   dictionaries: {},
   morphologies: {},
+  setSwordModule: (module: Sword) => {},
   currentUser: null,
   target: { mod_keys: [], book: '', chapter: '', verse: '' },
   setTarget: (value: TargetType) => {},
@@ -73,12 +75,27 @@ export const AppContextProvider: React.FC = (props) => {
     f();
   }, []);
 
+  const setSwordModule = (module: Sword) => {
+    switch (module.modtype) {
+      case 'bible':
+        setBibles({ ...bibles, [module.modname]: module });
+        break;
+      case 'dictionary':
+        setDictionaries({ ...dictionaries, [module.modname]: module });
+        break;
+      case 'morphology':
+        setMorphologies({ ...morphologies, [module.modname]: module });
+        break;
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
         bibles,
         dictionaries,
         morphologies,
+        setSwordModule,
         currentUser,
         target,
         setTarget,
