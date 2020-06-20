@@ -489,14 +489,14 @@ class Sword {
     return modules;
   }
 
-  async installReference(modname: string, blob: Blob) {
+  async installReference(blob: Blob) {
     const zip = await JSZip.loadAsync(blob);
     for (var name in zip.files) {
       const m = name.match(/^(\w+).json$/);
       if (m) {
         const json_text = await zip.files[name].async('text');
         const indexes = JSON.parse(json_text);
-        await SwordDB.saveReference({ indexes, modname });
+        await SwordDB.saveReference({ indexes, modname: this.modname });
       }
     }
   }

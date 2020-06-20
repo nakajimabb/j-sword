@@ -152,7 +152,7 @@ function App() {
           const name = file.name;
           const m = name.match(/(\w+)./);
           if (m && m[0] && m[1] && bibles[m[1]]) {
-            await bibles[m[1]].installReference(m[1], file);
+            await bibles[m[1]].installReference(file);
           }
         }
       }

@@ -11,6 +11,23 @@ import { Raw, ModType } from './sword/types';
 import Sword from './sword/Sword';
 import './passage.css';
 
+const blobFromUrl = (url: string) => {
+  return new Promise<Blob | null>((resolve, reject) => {
+    if (!url) reject(null);
+    const storage = firebase.storage();
+    var httpsReference = storage.refFromURL(url);
+    httpsReference.getDownloadURL().then(function (url2) {
+      let xhr = new XMLHttpRequest();
+      xhr.responseType = 'blob';
+      xhr.onload = async () => {
+        resolve(xhr.response);
+      };
+      xhr.open('GET', url2);
+      xhr.send();
+    });
+  });
+};
+
 interface Props {
   mod_key: string;
 }
@@ -46,9 +63,16 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
           const bible_module = snapshot?.data();
           console.log(`installing ${bible.modname} module...`);
           if (bible_module) {
-            await installFromUrl(bible_module.url, bible_module.modtype);
+            const blob = await blobFromUrl(bible_module.url);
+            if (blob) await Sword.install(blob, bible_module.modtype);
             const sword = await Sword.load(bible.modname);
             if (sword) setSwordModule(sword);
+            // install reference for hebrew or greek vocabulary
+            if (bible_module.referenceUrl) {
+              const blob = await blobFromUrl(bible_module.referenceUrl);
+              if (blob && sword) await sword.installReference(blob);
+            }
+            // install dependencies
             const dependencies = bible_module.dependencies || [];
             for (const modname of dependencies) {
               let sword_module = await Sword.load(modname);
@@ -61,7 +85,8 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
               const module = snap?.data();
               console.log(`installing ${modname} module...`);
               if (module) {
-                await installFromUrl(module.url, module.modtype);
+                const blob = await blobFromUrl(module.url);
+                if (blob) await Sword.install(blob, module.modtype);
                 sword_module = await Sword.load(modname);
                 if (sword_module) setSwordModule(sword_module);
               }
@@ -94,25 +119,6 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
     };
     f();
   }, [bible, chapter, verse]);
-
-  const installFromUrl = (url: string, modtype: ModType) => {
-    return new Promise<boolean>((resolve, reject) => {
-      if (!url) reject(false);
-      const storage = firebase.storage();
-      var httpsReference = storage.refFromURL(url);
-      httpsReference.getDownloadURL().then(function (url2) {
-        let xhr = new XMLHttpRequest();
-        xhr.responseType = 'blob';
-        xhr.onload = async () => {
-          const blob = xhr.response;
-          await Sword.install(blob, modtype);
-          resolve(true);
-        };
-        xhr.open('GET', url2);
-        xhr.send();
-      });
-    });
-  };
 
   const hoverPassage = (
     event: React.MouseEvent,
