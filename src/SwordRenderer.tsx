@@ -7,7 +7,7 @@ import 'firebase/firestore';
 import 'firebase/storage';
 import AppContext from './AppContext';
 import Passage from './Passage';
-import { Raw, ModType } from './sword/types';
+import { Raw } from './sword/types';
 import Sword from './sword/Sword';
 import './passage.css';
 

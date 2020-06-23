@@ -20,7 +20,7 @@ type BookInfo = {
   maxChapter: number;
 };
 
-var canons: {
+export const canons: {
   [key: string]: {
     ot: BookInfo[];
     nt: BookInfo[];

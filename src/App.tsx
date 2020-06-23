@@ -3,21 +3,22 @@ import {
   AppBar,
   Box,
   Button,
-  Toolbar,
+  Checkbox,
+  Chip,
+  IconButton,
+  InputLabel,
   Menu,
   MenuItem,
   Select,
-  ListItemText,
-  Checkbox,
   Typography,
   TextField,
-  IconButton,
+  Toolbar,
   FormControl,
   makeStyles,
   fade,
 } from '@material-ui/core';
 import { MoreVert, LibraryBooks } from '@material-ui/icons';
-import { LogIn, LogOut, User } from 'react-feather';
+import { LogIn, LogOut, User, Book } from 'react-feather';
 import clsx from 'clsx';
 
 import AppContext from './AppContext';
@@ -26,7 +27,10 @@ import Annotate from './Annotate';
 import UserDialog from './UserDialog';
 import ArticleDialog from './ArticleDialog';
 import AuthDialog from './AuthDialog';
+import SelectBook from './SelectBook';
 import Sword from './sword/Sword';
+import { canons } from './sword/Canon';
+import canon_jp from './sword/canons/locale/ja.json';
 import firebase from './firebase';
 import 'firebase/auth';
 import './App.css';
@@ -38,15 +42,15 @@ let g_scroll: { id: string | null; time: Date | null } = {
 };
 
 const useStyles = makeStyles((theme) => ({
+  chip: {
+    backgroundColor: 'white',
+  },
   container: {
     display: 'flex',
   },
   select: {
     borderRadius: theme.shape.borderRadius,
     backgroundColor: fade(theme.palette.common.white, 1.0),
-    '&:hover': {
-      backgroundColor: fade(theme.palette.common.white, 0.8),
-    },
   },
   logo: {
     width: 40,
@@ -95,13 +99,16 @@ function App() {
   const morph_file = useRef<HTMLInputElement>(null);
   const references = useRef<HTMLInputElement>(null);
   const [anchorEl, setAnchorEl] = useState<Element | null>(null);
+  const [open_select_book, setOpenSelectBook] = useState<boolean>(false);
   const [open_user_dialog, setOpenUserDialog] = useState<boolean>(false);
   const [open_article_dialog, setOpenArticleDialog] = useState<boolean>(false);
   const [open_auth_dialog, setOpenAuthDialog] = useState<boolean>(false);
   const { bibles, target, setTarget, annotate, currentUser } = useContext(
     AppContext
   );
-  const enable_annotate = !!annotate.content || annotate.attributes.length > 0;
+  const canon = canons.nrsv;
+  const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
+  const enable_annotate = true; // !!annotate.content || annotate.attributes.length > 0;
   // const enableCreateReferences = false;
   const classes = useStyles();
 
@@ -235,40 +242,37 @@ function App() {
           <Button variant="outlined" color="primary" className={classes.logo}>
             <span style={{ margin: '-14px 0' }}>J</span>
           </Button>
+          <IconButton onClick={() => setOpenSelectBook(true)}>
+            <Book />
+          </IconButton>
           <FormControl
             size="small"
             variant="outlined"
             className={classes.formControl}
           >
             <Select
-              name="mod_keys"
-              labelId="demo-simple-select-filled-label"
-              multiple
-              value={target.mod_keys}
-              renderValue={(selected: unknown) =>
-                selected instanceof Array ? selected.join(', ') : ''
-              }
+              name="book"
+              value={target.book}
               onChange={onChangeTarget}
               className={classes.select}
-              style={{ width: 200 }}
+              style={{ width: 100 }}
             >
-              {Object.keys(bibles).map((mod_key, index) => (
-                <MenuItem key={index} value={mod_key}>
-                  <Checkbox checked={target.mod_keys.indexOf(mod_key) > -1} />
-                  <ListItemText primary={mod_key} />
+              {canon.ot.map((info) => (
+                <MenuItem value={info.abbrev}>
+                  {canonjp.hasOwnProperty(info.abbrev)
+                    ? canonjp[info.abbrev].abbrev
+                    : info.abbrev}
+                </MenuItem>
+              ))}
+              {canon.nt.map((info) => (
+                <MenuItem value={info.abbrev}>
+                  {canonjp.hasOwnProperty(info.abbrev)
+                    ? canonjp[info.abbrev].abbrev
+                    : info.abbrev}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
-          <TextField
-            name="book"
-            variant="outlined"
-            size="small"
-            value={target.book}
-            onChange={onChangeTarget}
-            className={classes.text_field}
-            style={{ width: 100 }}
-          />
           <TextField
             name="chapter"
             type="number"
@@ -315,6 +319,9 @@ function App() {
             >
               <LogIn fontSize="small" />
             </IconButton>
+          )}
+          {open_select_book && (
+            <SelectBook open={true} onClose={() => setOpenSelectBook(false)} />
           )}
           {open_user_dialog && (
             <UserDialog open={true} onClose={() => setOpenUserDialog(false)} />
