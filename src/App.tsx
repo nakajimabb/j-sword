@@ -27,7 +27,7 @@ import Annotate from './Annotate';
 import UserDialog from './UserDialog';
 import ArticleDialog from './ArticleDialog';
 import AuthDialog from './AuthDialog';
-import SelectBook from './SelectBook';
+import SelectTarget from './SelectTarget';
 import Sword from './sword/Sword';
 import { canons } from './sword/Canon';
 import canon_jp from './sword/canons/locale/ja.json';
@@ -43,7 +43,10 @@ let g_scroll: { id: string | null; time: Date | null } = {
 
 const useStyles = makeStyles((theme) => ({
   chip: {
-    backgroundColor: 'white',
+    backgroundColor: fade(theme.palette.common.white, 1.0),
+    '&:hover': {
+      backgroundColor: fade(theme.palette.common.white, 0.8),
+    },
   },
   container: {
     display: 'flex',
@@ -99,15 +102,17 @@ function App() {
   const morph_file = useRef<HTMLInputElement>(null);
   const references = useRef<HTMLInputElement>(null);
   const [anchorEl, setAnchorEl] = useState<Element | null>(null);
-  const [open_select_book, setOpenSelectBook] = useState<boolean>(false);
+  const [open_select_target, setOpenSelectTarget] = useState<boolean>(false);
   const [open_user_dialog, setOpenUserDialog] = useState<boolean>(false);
   const [open_article_dialog, setOpenArticleDialog] = useState<boolean>(false);
   const [open_auth_dialog, setOpenAuthDialog] = useState<boolean>(false);
   const { bibles, target, setTarget, annotate, currentUser } = useContext(
     AppContext
   );
-  const canon = canons.nrsv;
   const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
+  const bookName = canonjp.hasOwnProperty(target.book)
+    ? canonjp[target.book].abbrev
+    : target.book;
   const enable_annotate = true; // !!annotate.content || annotate.attributes.length > 0;
   // const enableCreateReferences = false;
   const classes = useStyles();
@@ -242,55 +247,14 @@ function App() {
           <Button variant="outlined" color="primary" className={classes.logo}>
             <span style={{ margin: '-14px 0' }}>J</span>
           </Button>
-          <IconButton onClick={() => setOpenSelectBook(true)}>
-            <Book />
-          </IconButton>
-          <FormControl
-            size="small"
+          <Button
             variant="outlined"
-            className={classes.formControl}
+            color="primary"
+            onClick={() => setOpenSelectTarget(true)}
+            className={classes.chip}
           >
-            <Select
-              name="book"
-              value={target.book}
-              onChange={onChangeTarget}
-              className={classes.select}
-              style={{ width: 100 }}
-            >
-              {canon.ot.map((info) => (
-                <MenuItem value={info.abbrev}>
-                  {canonjp.hasOwnProperty(info.abbrev)
-                    ? canonjp[info.abbrev].abbrev
-                    : info.abbrev}
-                </MenuItem>
-              ))}
-              {canon.nt.map((info) => (
-                <MenuItem value={info.abbrev}>
-                  {canonjp.hasOwnProperty(info.abbrev)
-                    ? canonjp[info.abbrev].abbrev
-                    : info.abbrev}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <TextField
-            name="chapter"
-            type="number"
-            variant="outlined"
-            size="small"
-            value={target.chapter}
-            onChange={onChangeTarget}
-            className={classes.text_field}
-          />
-          <TextField
-            name="verse"
-            type="number"
-            variant="outlined"
-            size="small"
-            value={target.verse}
-            onChange={onChangeTarget}
-            className={classes.text_field}
-          />
+            {`${bookName} ${target.chapter}章`}
+          </Button>
           <Typography variant="h6" className={classes.title}></Typography>
           {currentUser && (
             <IconButton
@@ -320,9 +284,10 @@ function App() {
               <LogIn fontSize="small" />
             </IconButton>
           )}
-          {open_select_book && (
-            <SelectBook open={true} onClose={() => setOpenSelectBook(false)} />
-          )}
+          <SelectTarget
+            open={open_select_target}
+            onClose={() => setOpenSelectTarget(false)}
+          />
           {open_user_dialog && (
             <UserDialog open={true} onClose={() => setOpenUserDialog(false)} />
           )}

@@ -48,9 +48,9 @@ export const AppContextProvider: React.FC = (props) => {
   const [currentUser, setCurrentUser] = useState<firebase.User | null>(null);
   const [target, setTarget] = useState<TargetType>({
     mod_keys: [],
-    book: 'John',
+    book: 'Gen',
     chapter: '1',
-    verse: '1',
+    verse: '',
   });
   const [annotate, setAnnotate] = useState<AnnotateType>({
     content: '',
