@@ -62,7 +62,11 @@ export const AppContextProvider: React.FC = (props) => {
       const new_bibles = await Sword.loadAll('bible');
       for (const modname in SAMPLE_MODULES) {
         if (!new_bibles[modname]) {
-          new_bibles[modname] = new Sword(modname, 'bible');
+          new_bibles[modname] = new Sword(
+            modname,
+            'bible',
+            SAMPLE_MODULES[modname]
+          );
         }
       }
       setBibles(new_bibles);

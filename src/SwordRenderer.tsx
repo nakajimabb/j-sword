@@ -64,7 +64,12 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
           console.log(`installing ${bible.modname} module...`);
           if (bible_module) {
             const blob = await blobFromUrl(bible_module.url);
-            if (blob) await Sword.install(blob, bible_module.modtype);
+            if (blob)
+              await Sword.install(
+                blob,
+                bible_module.modtype,
+                bible_module.title
+              );
             const sword = await Sword.load(bible.modname);
             if (sword) setSwordModule(sword);
             // install reference for hebrew or greek vocabulary
@@ -86,7 +91,8 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
               console.log(`installing ${modname} module...`);
               if (module) {
                 const blob = await blobFromUrl(module.url);
-                if (blob) await Sword.install(blob, module.modtype);
+                if (blob)
+                  await Sword.install(blob, module.modtype, module.title);
                 sword_module = await Sword.load(modname);
                 if (sword_module) setSwordModule(sword_module);
               }

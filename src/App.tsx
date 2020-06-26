@@ -120,7 +120,7 @@ function App() {
       if (e.target && e.target.files) {
         const files = Array.from(e.target.files);
         for (const file of files) {
-          await Sword.install(file, 'bible');
+          await Sword.install(file, 'bible', 'dummy');
         }
       }
     } catch (error) {
@@ -133,7 +133,7 @@ function App() {
       if (e.target && e.target.files) {
         const files = Array.from(e.target.files);
         for (const file of files) {
-          await Sword.install(file, 'dictionary');
+          await Sword.install(file, 'dictionary', 'dummy');
         }
       }
     } catch (error) {
@@ -146,7 +146,7 @@ function App() {
       if (e.target && e.target.files) {
         const files = Array.from(e.target.files);
         for (const file of files) {
-          await Sword.install(file, 'morphology');
+          await Sword.install(file, 'morphology', 'dummy');
         }
       }
     } catch (error) {

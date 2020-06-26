@@ -48,6 +48,7 @@ export type ModType = 'bible' | 'dictionary' | 'morphology';
 export interface ConfType {
   [key: string]: unknown;
   modname: string;
+  title: string;
   modtype: ModType | null;
   ModDrv: string;
   GlobalOptionFilter: string[];

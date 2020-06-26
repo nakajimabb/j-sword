@@ -137,13 +137,13 @@ const SelectBook: React.FC<SelectBookProps> = ({ open, onClose }) => {
                     checked={target.mod_keys.includes(modname)}
                     onChange={(e) => {
                       let modnames = target.mod_keys;
-                      console.log({ e, modname, modnames });
+                      // console.log({ e, modname, modnames });
                       if (target.mod_keys.includes(modname))
                         modnames = target.mod_keys.filter(
                           (name) => name !== modname
                         );
                       else modnames.push(modname);
-                      console.log({ e, modname, modnames });
+                      // console.log({ e, modname, modnames });
                       setTarget({
                         ...target,
                         mod_keys: modnames,
@@ -151,7 +151,7 @@ const SelectBook: React.FC<SelectBookProps> = ({ open, onClose }) => {
                     }}
                   />
                 }
-                label={modname}
+                label={bibles[modname].title}
               />
             ))}
           </FormGroup>

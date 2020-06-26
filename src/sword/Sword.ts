@@ -19,6 +19,7 @@ function parseConf(str: string) {
   let conf: ConfType = {
     modname: '',
     modtype: null,
+    title: '',
     ModDrv: '',
     GlobalOptionFilter: [],
     Feature: [],
@@ -293,6 +294,7 @@ function getChapterVersePositions(
 class Sword {
   modname: string;
   modtype: ModType | null;
+  title: string;
   conf: ConfType | null;
   blob: BlobsType | null;
   index: IndexesType | null;
@@ -301,6 +303,7 @@ class Sword {
   constructor(
     modname: string,
     modtype: ModType | null,
+    title: string,
     conf: ConfType | null = null,
     blob: BlobsType | null = null,
     index: IndexesType | null = null,
@@ -308,6 +311,7 @@ class Sword {
   ) {
     this.modname = modname;
     this.modtype = modtype;
+    this.title = title;
     this.conf = conf;
     this.blob = blob;
     this.index = index;
@@ -468,7 +472,14 @@ class Sword {
     if (conf) {
       const index = null; //await SwordDB.getIndex(conf.modname);
       const blob = null; //await SwordDB.getBlob(conf.modname);
-      return new Sword(conf.modname, conf.modtype, conf, blob, index);
+      return new Sword(
+        conf.modname,
+        conf.modtype,
+        conf.title,
+        conf,
+        blob,
+        index
+      );
     }
   }
 
@@ -481,6 +492,7 @@ class Sword {
       modules[conf.modname] = new Sword(
         conf.modname,
         conf.modtype,
+        conf.title,
         conf,
         blob,
         index
@@ -501,15 +513,15 @@ class Sword {
     }
   }
 
-  static async install(blob: Blob, modtype: ModType) {
+  static async install(blob: Blob, modtype: ModType, title: string) {
     if (modtype === 'bible') {
-      return Sword.installBible(blob);
+      return Sword.installBible(blob, title);
     } else {
-      return Sword.installModule(blob, modtype);
+      return Sword.installModule(blob, modtype, title);
     }
   }
 
-  static async installBible(blob: Blob) {
+  static async installBible(blob: Blob, title: string) {
     const zip = await JSZip.loadAsync(blob);
     // first read config file
     const conf_name = Object.keys(zip.files).find(
@@ -562,7 +574,11 @@ class Sword {
         conf.Versification
       );
       // save stores
-      const modname = await SwordDB.saveConf({ ...conf, modtype: 'bible' });
+      const modname = await SwordDB.saveConf({
+        ...conf,
+        modtype: 'bible',
+        title,
+      });
       await SwordDB.saveBlob({ ...blobs, modname });
       await SwordDB.saveIndex({ ...indexes, modname });
     }
@@ -616,7 +632,7 @@ class Sword {
     };
   }
 
-  static async installModule(blob: Blob, modtype: ModType) {
+  static async installModule(blob: Blob, modtype: ModType, title: string) {
     const zip = await JSZip.loadAsync(blob);
     // first read config file
     const conf_name = Object.keys(zip.files).find(
@@ -640,7 +656,7 @@ class Sword {
       // create indexes
       const indexes = await Sword.createIndexes(files.indexes, files.blobs);
       // save stores
-      const modname = await SwordDB.saveConf({ ...conf, modtype });
+      const modname = await SwordDB.saveConf({ ...conf, modtype, title });
       await SwordDB.saveIndex({ modname, dict: indexes });
       await SwordDB.saveBlob({
         modname,
