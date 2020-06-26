@@ -3,17 +3,12 @@ import {
   AppBar,
   Box,
   Button,
-  Checkbox,
-  Chip,
   IconButton,
-  InputLabel,
   Menu,
   MenuItem,
-  Select,
+  Grid,
   Typography,
-  TextField,
   Toolbar,
-  FormControl,
   makeStyles,
   fade,
 } from '@material-ui/core';
@@ -29,10 +24,11 @@ import ArticleDialog from './ArticleDialog';
 import AuthDialog from './AuthDialog';
 import SelectTarget from './SelectTarget';
 import Sword from './sword/Sword';
-import { canons } from './sword/Canon';
 import canon_jp from './sword/canons/locale/ja.json';
 import firebase from './firebase';
 import 'firebase/auth';
+import * as firebaseui from 'firebaseui';
+import 'firebaseui/dist/firebaseui.css';
 import './App.css';
 import './passage.css';
 
@@ -93,7 +89,9 @@ const useStyles = makeStyles((theme) => ({
     dislay: 'flex',
     flexDirection: 'column',
   },
-  formControl: {},
+  hide: {
+    display: 'none',
+  },
 }));
 
 function App() {
@@ -105,7 +103,7 @@ function App() {
   const [open_select_target, setOpenSelectTarget] = useState<boolean>(false);
   const [open_user_dialog, setOpenUserDialog] = useState<boolean>(false);
   const [open_article_dialog, setOpenArticleDialog] = useState<boolean>(false);
-  const [open_auth_dialog, setOpenAuthDialog] = useState<boolean>(false);
+  const [startAuth, setStartAuth] = useState<boolean>(false);
   const { bibles, target, setTarget, annotate, currentUser } = useContext(
     AppContext
   );
@@ -240,6 +238,39 @@ function App() {
       });
   };
 
+  const login = () => {
+    firebase.auth().languageCode = 'jp';
+    const ui = new firebaseui.auth.AuthUI(firebase.auth());
+    var uiConfig = {
+      callbacks: {
+        signInSuccess: function () {
+          // サインイン成功時のコールバック関数
+          // 戻り値で自動的にリダイレクトするかどうかを指定
+          setStartAuth(false);
+          return true;
+        },
+        uiShown: function () {
+          // FirebaseUIウィジェット描画完了時のコールバック関数
+        },
+      },
+      signInFlow: 'redirect',
+      signInSuccessUrl: '.',
+      signInOptions: [
+        // サポートするプロバイダを指定
+        firebase.auth.EmailAuthProvider.PROVIDER_ID,
+        firebase.auth.PhoneAuthProvider.PROVIDER_ID,
+        firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+      ],
+      // Terms of service url.(サービス利用規約ページの)
+      //アカウント選択を行う画面の防止
+      // credentialHelper: firebaseui.auth.CredentialHelper.NONE,
+    };
+
+    // FirebaseUI描画開始
+    ui.start('#firebaseui-auth-container', uiConfig);
+    setStartAuth(true);
+  };
+
   return (
     <div className="App">
       <AppBar position="static">
@@ -277,11 +308,8 @@ function App() {
               <LogOut fontSize="small" />
             </IconButton>
           ) : (
-            <IconButton
-              aria-label="login"
-              onClick={() => setOpenAuthDialog(true)}
-            >
-              <LogIn fontSize="small" />
+            <IconButton aria-label="login" onClick={login}>
+              <LogIn id="login" fontSize="small" />
             </IconButton>
           )}
           <SelectTarget
@@ -296,9 +324,6 @@ function App() {
               open={true}
               onClose={() => setOpenArticleDialog(false)}
             />
-          )}
-          {open_auth_dialog && (
-            <AuthDialog open={true} onClose={() => setOpenAuthDialog(false)} />
           )}
           <IconButton
             aria-label="display more actions"
@@ -338,55 +363,68 @@ function App() {
           </Menu>
         </Toolbar>
       </AppBar>
-
+      <input
+        type="file"
+        id="bible_file"
+        name="bible_file"
+        ref={bible_file}
+        multiple={true}
+        style={{ display: 'none' }}
+        onChange={onChangeBibleFile}
+      />
+      <input
+        type="file"
+        id="dict_file"
+        name="dict_file"
+        ref={dict_file}
+        multiple={true}
+        style={{ display: 'none' }}
+        onChange={onChangeDictFile}
+      />
+      <input
+        type="file"
+        id="morph_file"
+        name="morph_file"
+        ref={morph_file}
+        multiple={true}
+        style={{ display: 'none' }}
+        onChange={onChangeMorphFile}
+      />
+      <input
+        type="file"
+        id="references"
+        name="references"
+        ref={references}
+        multiple={true}
+        style={{ display: 'none' }}
+        onChange={onChangeReferences}
+      />
       <div className={classes.container}>
-        <input
-          type="file"
-          id="bible_file"
-          name="bible_file"
-          ref={bible_file}
-          multiple={true}
-          style={{ display: 'none' }}
-          onChange={onChangeBibleFile}
-        />
-        <input
-          type="file"
-          id="dict_file"
-          name="dict_file"
-          ref={dict_file}
-          multiple={true}
-          style={{ display: 'none' }}
-          onChange={onChangeDictFile}
-        />
-        <input
-          type="file"
-          id="morph_file"
-          name="morph_file"
-          ref={morph_file}
-          multiple={true}
-          style={{ display: 'none' }}
-          onChange={onChangeMorphFile}
-        />
-        <input
-          type="file"
-          id="references"
-          name="references"
-          ref={references}
-          multiple={true}
-          style={{ display: 'none' }}
-          onChange={onChangeReferences}
-        />
-        {target.mod_keys.map((mod_key: string, index: number) => (
-          <Box
-            key={index}
-            id={`pane-${mod_key}`}
-            className={clsx('pane', classes.pane)}
-            onScroll={onScroll}
-          >
-            <SwordRenderer key={index} mod_key={mod_key} />
-          </Box>
-        ))}
-        {enable_annotate && (
+        <Grid
+          id="firebaseui-auth-container"
+          container
+          spacing={0}
+          direction="column"
+          alignItems="center"
+          justify="center"
+          className={clsx(!startAuth && classes.hide)}
+          style={{
+            minHeight: '100vh',
+            backgroundColor: '#fafafa',
+          }}
+        ></Grid>
+        {!startAuth &&
+          target.mod_keys.map((mod_key: string, index: number) => (
+            <Box
+              key={index}
+              id={`pane-${mod_key}`}
+              className={clsx('pane', classes.pane)}
+              onScroll={onScroll}
+            >
+              <SwordRenderer key={index} mod_key={mod_key} />
+            </Box>
+          ))}
+        {!startAuth && enable_annotate && (
           <Box className={classes.pane}>
             <Annotate annotate={annotate} />
           </Box>
