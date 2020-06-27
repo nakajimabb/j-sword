@@ -386,19 +386,29 @@ class Sword {
       return reference.indexes[key];
     }
   }
+
   async getRawText(key: string) {
     const dec = new TextDecoder();
     const index = this.index || (await SwordDB.getIndex(this.modname));
     const blob = this.blob || (await SwordDB.getBlob(this.modname));
-    if (index && index.dict && key in index.dict) {
-      const pos = index.dict[key];
-      if (pos && blob && blob.dict) {
-        const ab = await blob.dict.arrayBuffer();
-        const ab2 = ab.slice(pos.startPos, pos.startPos + pos.length);
-        const raw_text = dec.decode(ab2);
-        return raw_text;
+    return new Promise<string>((resolve) => {
+      if (index && index.dict && key in index.dict) {
+        const pos = index.dict[key];
+        if (pos && blob && blob.dict) {
+          let raeder = new FileReader();
+          raeder.readAsArrayBuffer(blob.dict);
+          raeder.onload = async function (e: any) {
+            const ab = new Uint8Array(e.target.result);
+            const ab2 = ab.slice(pos.startPos, pos.startPos + pos.length);
+            const raw_text = dec.decode(ab2);
+          };
+        } else {
+          resolve('');
+        }
+      } else {
+        resolve('');
       }
-    }
+    });
   }
 
   async renderText(inVKey: string, inOptions: { [key: string]: boolean }) {

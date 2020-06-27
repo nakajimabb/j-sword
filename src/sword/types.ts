@@ -58,7 +58,6 @@ export interface ConfType {
 
 // merge Interfaces
 export interface Blob {
-  arrayBuffer: () => Promise<ArrayBuffer>;
   slice: (start: number, end: number, contentType: string) => Blob;
   size: number;
   type: string;
