@@ -3,6 +3,7 @@ import {
   AppBar,
   Box,
   Checkbox,
+  Chip,
   Dialog,
   DialogContent,
   FormControlLabel,
@@ -94,7 +95,7 @@ const SelectBook: React.FC<SelectBookProps> = ({ open, onClose }) => {
   const canon = canons.nrsv;
   const [tab, setTab] = useState(0);
   const [maxChapter, setMaxChapter] = useState<number>(canon.ot[0].maxChapter);
-  const { bibles, target, setTarget } = useContext(AppContext);
+  const { bibles, dictionaries, target, setTarget } = useContext(AppContext);
   const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
   const classes = useStyles();
 
@@ -127,6 +128,7 @@ const SelectBook: React.FC<SelectBookProps> = ({ open, onClose }) => {
           </Tabs>
         </AppBar>
         <TabPanel value={tab} index={0}>
+          <Chip variant="outlined" size="small" label="聖書" />
           <FormGroup row>
             {Object.keys(bibles).map((modname, index) => (
               <FormControlLabel
@@ -152,6 +154,16 @@ const SelectBook: React.FC<SelectBookProps> = ({ open, onClose }) => {
                   />
                 }
                 label={bibles[modname].title}
+              />
+            ))}
+          </FormGroup>
+          <Chip variant="outlined" size="small" label="辞書" />
+          <FormGroup row>
+            {Object.keys(dictionaries).map((modname, index) => (
+              <FormControlLabel
+                key={index}
+                control={<Checkbox name={modname} checked={true} />}
+                label={dictionaries[modname].title}
               />
             ))}
           </FormGroup>

@@ -140,7 +140,8 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
             array: false,
           });
           if (new_raw_texts) setRawTexts(new_raw_texts);
-        } catch (e) {
+        } catch (error) {
+          console.log({ error });
           setRawTexts([]);
         }
       } else {
