@@ -32,11 +32,6 @@ import 'firebaseui/dist/firebaseui.css';
 import './App.css';
 import './passage.css';
 
-let g_scroll: { id: string | null; time: Date | null } = {
-  id: null,
-  time: null,
-};
-
 const useStyles = makeStyles((theme) => ({
   chip: {
     backgroundColor: fade(theme.palette.common.white, 1.0),
@@ -204,26 +199,6 @@ function App() {
   //   link.click();
   // };
 
-  const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const now = new Date();
-    const target = e.currentTarget;
-    if (!g_scroll.id || !g_scroll.time || +now - +g_scroll.time > 100) {
-      g_scroll = { id: target.id, time: new Date() };
-    }
-    if (g_scroll.id && target.id && g_scroll.id === target.id) {
-      const scroll_pos =
-        target.scrollTop / (target.scrollHeight - target.clientHeight);
-      const contents = document.querySelectorAll('.pane');
-      contents.forEach((content) => {
-        if (content.id !== target.id) {
-          content.scrollTop =
-            scroll_pos * (content.scrollHeight - content.clientHeight);
-        }
-      });
-      g_scroll = { id: target.id, time: new Date() };
-    }
-  };
-
   const logoout = () => {
     firebase
       .auth()
@@ -340,7 +315,7 @@ function App() {
             open={!!anchorEl}
             onClose={() => setAnchorEl(null)}
           >
-            <MenuItem onClick={loadFile(bible_file)}>load module</MenuItem>
+            <MenuItem onClick={loadFile(bible_file)}>load bible</MenuItem>
             <MenuItem onClick={loadFile(dict_file)}>load dictionary</MenuItem>
             <MenuItem onClick={loadFile(morph_file)}>load morphology</MenuItem>
             <MenuItem onClick={loadReferences}>load references</MenuItem>
@@ -415,14 +390,7 @@ function App() {
         ></Grid>
         {!startAuth &&
           target.mod_keys.map((mod_key: string, index: number) => (
-            <Box
-              key={index}
-              id={`pane-${mod_key}`}
-              className={clsx('pane', classes.pane)}
-              onScroll={onScroll}
-            >
-              <SwordRenderer key={index} mod_key={mod_key} />
-            </Box>
+            <SwordRenderer key={index} mod_key={mod_key} />
           ))}
         {!startAuth && enable_annotate && (
           <Box className={classes.pane}>

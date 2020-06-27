@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Box } from '@material-ui/core';
+import { Box, Chip, makeStyles } from '@material-ui/core';
 import clsx from 'clsx';
 
 import firebase from './firebase';
@@ -10,6 +10,29 @@ import Passage from './Passage';
 import { Raw } from './sword/types';
 import Sword from './sword/Sword';
 import './passage.css';
+
+let g_scroll: { id: string | null; time: Date | null } = {
+  id: null,
+  time: null,
+};
+
+const useStyles = makeStyles((theme) => ({
+  pane: {
+    overflow: 'scroll',
+    padding: theme.spacing(1),
+    textAlign: 'left',
+    width: '100%',
+    height: 'calc(100vh - 90px)',
+    dislay: 'flex',
+    flexDirection: 'column',
+  },
+  title: {
+    backgroundColor: 'lightyellow',
+  },
+  hide: {
+    display: 'none',
+  },
+}));
 
 const blobFromUrl = (url: string) => {
   return new Promise<Blob | null>((resolve, reject) => {
@@ -48,6 +71,7 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
   const direction = bible?.conf?.Direction === 'RtoL' && 'rtl';
   const lang = String(bible?.conf?.Lang);
   const valid_params = bible && book && chapter;
+  const classes = useStyles();
 
   useEffect(() => {
     const f = async () => {
@@ -153,29 +177,61 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
     hoverPassage(e, 'remove');
   };
 
+  const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const now = new Date();
+    const target = e.currentTarget;
+    if (!g_scroll.id || !g_scroll.time || +now - +g_scroll.time > 100) {
+      g_scroll = { id: target.id, time: new Date() };
+    }
+    if (g_scroll.id && target.id && g_scroll.id === target.id) {
+      const scroll_pos =
+        target.scrollTop / (target.scrollHeight - target.clientHeight);
+      const contents = document.querySelectorAll('.pane');
+      contents.forEach((content) => {
+        if (content.id !== target.id) {
+          content.scrollTop =
+            scroll_pos * (content.scrollHeight - content.clientHeight);
+        }
+      });
+      g_scroll = { id: target.id, time: new Date() };
+    }
+  };
+
   if (!enabled || raw_texts.length === 0) return null;
 
   return (
     <>
       {valid_params && (
-        <Box className={clsx(direction, lang)}>
-          {raw_texts.map((raw, index: number) => (
-            <Box
-              key={index}
-              className="passage"
-              data-pos={`${book}-${chapter}-${raw.verse}`}
-              onMouseOver={onMouseOver}
-              onMouseLeave={onMouseLeave}
-            >
-              <Passage
-                raw={raw}
-                setAnnotate={setAnnotate}
-                enable_hover={enable_hover}
-                setEnableHover={setEnableHover}
-                show_verse={true}
-              />
-            </Box>
-          ))}
+        <Box
+          id={`pane-${mod_key}`}
+          className={clsx('pane', classes.pane)}
+          onScroll={onScroll}
+        >
+          <Chip
+            variant="outlined"
+            size="small"
+            label={bible.title}
+            className={classes.title}
+          />
+          <Box className={clsx(direction, lang)}>
+            {raw_texts.map((raw, index: number) => (
+              <Box
+                key={index}
+                className="passage"
+                data-pos={`${book}-${chapter}-${raw.verse}`}
+                onMouseOver={onMouseOver}
+                onMouseLeave={onMouseLeave}
+              >
+                <Passage
+                  raw={raw}
+                  setAnnotate={setAnnotate}
+                  enable_hover={enable_hover}
+                  setEnableHover={setEnableHover}
+                  show_verse={true}
+                />
+              </Box>
+            ))}
+          </Box>
         </Box>
       )}
     </>
