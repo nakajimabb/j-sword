@@ -401,6 +401,7 @@ class Sword {
             const ab = new Uint8Array(e.target.result);
             const ab2 = ab.slice(pos.startPos, pos.startPos + pos.length);
             const raw_text = dec.decode(ab2);
+            resolve(raw_text);
           };
         } else {
           resolve('');

@@ -100,7 +100,7 @@ const SelectBook: React.FC<SelectBookProps> = ({ open, onClose }) => {
   const classes = useStyles();
 
   const bookChanged = (book: string, maxChap: number) => () => {
-    setTarget({ ...target, book });
+    setTarget({ ...target, book, chapter: '' });
     setMaxChapter(maxChap);
     setTab(2);
   };

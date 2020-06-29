@@ -106,7 +106,9 @@ function App() {
   const bookName = canonjp.hasOwnProperty(target.book)
     ? canonjp[target.book].abbrev
     : target.book;
-  const enable_annotate = true; // !!annotate.content || annotate.attributes.length > 0;
+  const enable_annotate =
+    (!!target.book && !!target.chapter && !!annotate.content) ||
+    annotate.attributes.length > 0;
   // const enableCreateReferences = false;
   const classes = useStyles();
 
