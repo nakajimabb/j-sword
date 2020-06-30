@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Box, makeStyles } from '@material-ui/core';
 import clsx from 'clsx';
 import BibleReference from './BibleReference';
+import DictPassage from './DictPassage';
 import AppContext, { AnnotateType } from './AppContext';
 import { References } from './sword/types';
 
@@ -48,10 +49,16 @@ interface AnnotateProps {
   annotate: AnnotateType;
 }
 
+interface DictProp {
+  modname: string;
+  title: string;
+  rawText: string;
+}
+
 const Annotate: React.FC<AnnotateProps> = ({
   annotate: { content, attributes },
 }) => {
-  const [dict_items, setDictItems] = useState<string[]>([]);
+  const [dict_items, setDictItems] = useState<DictProp[]>([]);
   const [references, setReferences] = useState<References>({});
   const [morph, setMorph] = useState<string>('');
   const [infos, setInfos] = useState<{ morph: string; lemma: string }>({
@@ -73,10 +80,15 @@ const Annotate: React.FC<AnnotateProps> = ({
             const m = value?.match(reg);
             if (m && m[1] && m[2]) {
               const lemma = m[1] + ('0000' + +m[2]).slice(-4); // ４桁
-              let items = [];
+              let items: DictProp[] = [];
               for (let modname in dictionaries) {
                 const raw_text = await dictionaries[modname].getRawText(lemma);
-                if (raw_text) items.push(raw_text);
+                if (raw_text)
+                  items.push({
+                    modname: modname,
+                    title: dictionaries[modname].title,
+                    rawText: raw_text,
+                  });
               }
               setDictItems(items);
               setInfos((prev) => ({ ...prev, lemma }));
@@ -136,7 +148,7 @@ const Annotate: React.FC<AnnotateProps> = ({
       {morph && <div className={classes.morph}>{morph}</div>}
       {dict_items.map((dict, index: number) => (
         <div key={index} className={classes.dict}>
-          <div className={classes.meaning}>{dict}</div>
+          <DictPassage rawText={dict.rawText} title={dict.title} />
         </div>
       ))}
     </Box>
