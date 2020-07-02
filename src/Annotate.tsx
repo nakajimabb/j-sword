@@ -3,6 +3,7 @@ import { Box, makeStyles } from '@material-ui/core';
 import clsx from 'clsx';
 import BibleReference from './BibleReference';
 import DictPassage from './DictPassage';
+import MorphPassage from './MorphPassage';
 import AppContext, { AnnotateType } from './AppContext';
 import { References } from './sword/types';
 
@@ -145,7 +146,11 @@ const Annotate: React.FC<AnnotateProps> = ({
           />
         </div>
       </div>
-      {morph && <div className={classes.morph}>{morph}</div>}
+      {morph && (
+        <div className={classes.morph}>
+          <MorphPassage rawText={morph} />
+        </div>
+      )}
       {dict_items.map((dict, index: number) => (
         <div key={index} className={classes.dict}>
           <DictPassage rawText={dict.rawText} title={dict.title} />
