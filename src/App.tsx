@@ -117,7 +117,9 @@ function App() {
       if (e.target && e.target.files) {
         const files = Array.from(e.target.files);
         for (const file of files) {
-          await Sword.install(file, 'bible', 'dummy');
+          const m = file.name.match(/^(.+)\.\w+$/);
+          const fileName = m && m[1] ? m[1] : 'dummy';
+          await Sword.install(file, 'bible', fileName);
         }
       }
     } catch (error) {
@@ -130,7 +132,9 @@ function App() {
       if (e.target && e.target.files) {
         const files = Array.from(e.target.files);
         for (const file of files) {
-          await Sword.install(file, 'dictionary', 'dummy');
+          const m = file.name.match(/^(.+)\.\w+$/);
+          const fileName = m && m[1] ? m[1] : 'dummy';
+          await Sword.install(file, 'dictionary', fileName);
         }
       }
     } catch (error) {
@@ -143,7 +147,9 @@ function App() {
       if (e.target && e.target.files) {
         const files = Array.from(e.target.files);
         for (const file of files) {
-          await Sword.install(file, 'morphology', 'dummy');
+          const m = file.name.match(/^(.+)\.\w+$/);
+          const fileName = m && m[1] ? m[1] : 'dummy';
+          await Sword.install(file, 'morphology', fileName);
         }
       }
     } catch (error) {

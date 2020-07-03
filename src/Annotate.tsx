@@ -30,11 +30,6 @@ const useStyles = makeStyles((theme) => ({
   meaning: {
     fontSize: '85%',
   },
-  content: {
-    // height: 'calc(100vh - 68px)',
-    // height: 'calc(100vh - 120px)',
-    // overflow: 'scroll',
-  },
   pane: {
     overflow: 'scroll',
     padding: theme.spacing(2),
@@ -44,6 +39,10 @@ const useStyles = makeStyles((theme) => ({
     dislay: 'flex',
     flexDirection: 'column',
   },
+  bibleRef: {
+    marginBottom: 10,
+  },
+  content: {},
 }));
 
 interface AnnotateProps {
@@ -138,19 +137,20 @@ const Annotate: React.FC<AnnotateProps> = ({
           {infos.lemma && '(' + infos.lemma + ')'}
         </div>
         <div className={classes.item}>{infos.morph && ' ' + infos.morph}</div>
-        <div className={classes.item}>
-          <BibleReference
-            word={content}
-            lemma={infos.lemma}
-            references={references}
-          />
-        </div>
       </div>
       {morph && (
         <div className={classes.morph}>
           <MorphPassage rawText={morph} />
         </div>
       )}
+      <div className={classes.bibleRef}>
+        <BibleReference
+          word={content}
+          lemma={infos.lemma}
+          references={references}
+        />
+      </div>
+
       {dict_items.map((dict, index: number) => (
         <div key={index} className={classes.dict}>
           <DictPassage rawText={dict.rawText} title={dict.title} />
