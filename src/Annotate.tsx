@@ -26,6 +26,7 @@ const useStyles = makeStyles((theme) => ({
   },
   dict: {
     marginBottom: 10,
+    whiteSpace: 'pre-wrap',
   },
   meaning: {
     fontSize: '85%',
