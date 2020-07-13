@@ -15,6 +15,7 @@ interface PhraseProps {
   setAnnotate: React.Dispatch<AnnotateType>;
   enable_hover: boolean;
   setEnableHover: React.Dispatch<boolean>;
+  lang: string;
 }
 
 const Phrase: React.FC<PhraseProps> = ({
@@ -25,6 +26,7 @@ const Phrase: React.FC<PhraseProps> = ({
   setAnnotate,
   enable_hover,
   setEnableHover,
+  lang,
 }) => {
   const [lemma, setLemma] = useState<string | null>(null);
   const excepts = ['note'];
@@ -68,7 +70,7 @@ const Phrase: React.FC<PhraseProps> = ({
 
       if (attrs && attrs.length > 0 && node.textContent) {
         e.currentTarget.classList.add('highlight2');
-        setAnnotate({ content: node.textContent, attributes });
+        setAnnotate({ content: node.textContent, attributes, lang });
       }
     }
   };
@@ -110,6 +112,7 @@ const Phrase: React.FC<PhraseProps> = ({
           enable_hover={enable_hover}
           setEnableHover={setEnableHover}
           target_lemma={target_lemma}
+          lang={lang}
         />
       ))}
     </>
@@ -139,6 +142,7 @@ interface PassageProps {
   setEnableHover: React.Dispatch<boolean>;
   show_verse: boolean;
   target_lemma?: string;
+  lang: string;
 }
 
 const Passage: React.FC<PassageProps> = ({
@@ -148,6 +152,7 @@ const Passage: React.FC<PassageProps> = ({
   setEnableHover,
   show_verse = true,
   target_lemma,
+  lang,
 }) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(
@@ -167,6 +172,7 @@ const Passage: React.FC<PassageProps> = ({
           setEnableHover={setEnableHover}
           target_lemma={target_lemma}
           root
+          lang={lang}
         />
       ))}
     </>

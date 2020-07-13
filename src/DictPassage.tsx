@@ -18,9 +18,10 @@ const useStyles = makeStyles((theme) => ({
 interface PhraseProps {
   node: Node; // Text or Element
   root: boolean;
+  lang: string;
 }
 
-const Phrase: React.FC<PhraseProps> = ({ node, root }) => {
+const Phrase: React.FC<PhraseProps> = ({ node, root, lang }) => {
   const classes = useStyles();
 
   const header = () => {
@@ -29,7 +30,7 @@ const Phrase: React.FC<PhraseProps> = ({ node, root }) => {
         Array.from(node.attributes).map((attr) => [attr.name, attr.nodeValue])
       );
       return (
-        <div>
+        <div className={lang}>
           <span className={classes.spell}>{attrs.spell}</span>
           --
           <span className={classes.pronunciation}>{attrs.pronunciation}</span>
@@ -41,9 +42,11 @@ const Phrase: React.FC<PhraseProps> = ({ node, root }) => {
   return (
     <>
       {header()}
-      {str(node.nodeValue)}
+      <span className={lang} style={{ fontSize: '100%' }}>
+        {str(node.nodeValue)}
+      </span>
       {Array.from(node.childNodes).map((child_node, index) => (
-        <Phrase key={index} node={child_node} root={false} />
+        <Phrase key={index} node={child_node} root={false} lang={lang} />
       ))}
     </>
   );
@@ -52,9 +55,10 @@ const Phrase: React.FC<PhraseProps> = ({ node, root }) => {
 interface DictPassageProps {
   title: string;
   rawText: string;
+  lang: string;
 }
 
-const DictPassage: React.FC<DictPassageProps> = ({ title, rawText }) => {
+const DictPassage: React.FC<DictPassageProps> = ({ title, rawText, lang }) => {
   const classes = useStyles();
   const parser = new DOMParser();
   const doc = parser.parseFromString(
@@ -72,7 +76,7 @@ const DictPassage: React.FC<DictPassageProps> = ({ title, rawText }) => {
       />
       <br />
       {Array.from(doc.childNodes).map((node, index) => (
-        <Phrase key={index} node={node} root />
+        <Phrase key={index} node={node} root lang={lang} />
       ))}
     </>
   );

@@ -112,7 +112,9 @@ const RefPassage: React.FC<RefPassageProps> = ({
   const classes = useStyles();
   const conf = bible.conf;
   const direction = conf?.Direction === 'RtoL' && 'rtl';
-  const lang = String(conf?.language);
+  const lang = String(conf?.Lang);
+  console.log({ bible, lang });
+
   return (
     <Box className={clsx(direction, lang, classes.passage)}>
       <Passage
@@ -122,6 +124,7 @@ const RefPassage: React.FC<RefPassageProps> = ({
         setAnnotate={setAnnotate}
         enable_hover={enable_hover}
         setEnableHover={setEnableHover}
+        lang={lang}
       />
     </Box>
   );
@@ -235,6 +238,7 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
   const [annotate, setAnnotate] = useState<AnnotateType>({
     content: '',
     attributes: [],
+    lang: '',
   });
   const [page, setPage] = useState<number>(1);
   const counts = countByModKey(references);

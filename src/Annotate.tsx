@@ -57,7 +57,7 @@ interface DictProp {
 }
 
 const Annotate: React.FC<AnnotateProps> = ({
-  annotate: { content, attributes },
+  annotate: { content, attributes, lang },
 }) => {
   const [dict_items, setDictItems] = useState<DictProp[]>([]);
   const [references, setReferences] = useState<References>({});
@@ -154,7 +154,7 @@ const Annotate: React.FC<AnnotateProps> = ({
 
       {dict_items.map((dict, index: number) => (
         <div key={index} className={classes.dict}>
-          <DictPassage rawText={dict.rawText} title={dict.title} />
+          <DictPassage rawText={dict.rawText} title={dict.title} lang={lang} />
         </div>
       ))}
     </Box>

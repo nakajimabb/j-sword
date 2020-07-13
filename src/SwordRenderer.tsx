@@ -224,6 +224,7 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
                 onMouseLeave={onMouseLeave}
               >
                 <Passage
+                  lang={lang}
                   raw={raw}
                   setAnnotate={setAnnotate}
                   enable_hover={enable_hover}

@@ -13,6 +13,7 @@ interface TargetType {
 export interface AnnotateType {
   content: string;
   attributes: Attr[];
+  lang: string;
 }
 
 export interface ContextType {
@@ -36,7 +37,7 @@ const AppContext = createContext({
   currentUser: null,
   target: { mod_keys: [], book: '', chapter: '', verse: '' },
   setTarget: (value: TargetType) => {},
-  annotate: { content: '', attributes: [] },
+  annotate: { content: '', attributes: [], lang: '' },
   setAnnotate: (value: AnnotateType) => {},
   sample_modules: {},
 } as ContextType);
@@ -55,6 +56,7 @@ export const AppContextProvider: React.FC = (props) => {
   const [annotate, setAnnotate] = useState<AnnotateType>({
     content: '',
     attributes: [],
+    lang: '',
   });
 
   useEffect(() => {
