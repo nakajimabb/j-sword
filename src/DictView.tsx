@@ -68,7 +68,6 @@ const DictView: React.FC<DictViewProp> = ({ depth }) => {
 
   useEffect(() => {
     // 次の要素が存在しなければ前もって追加しておく
-    console.log({ targetWords, length: targetWords.length, depth });
     if (targetWords.length <= depth + 1) {
       setTargetWords([...targetWords, targetWords[targetWords.length - 1]]);
     }
@@ -107,7 +106,7 @@ const DictView: React.FC<DictViewProp> = ({ depth }) => {
         setReferences(new_references);
       }
       if (morph) {
-        const reg = /(\w+):([\w-.]+)/;
+        const reg = /(\w+):([\w/]+)/;
         const values = morph.split(' ');
         const value = values?.find((s: string) => s.match(reg));
         const m = value?.match(reg);

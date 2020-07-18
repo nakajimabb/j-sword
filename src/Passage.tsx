@@ -102,7 +102,7 @@ const MuiPhrase: React.FC<PhraseProps> = ({
       (attrs.hasOwnProperty('lemma') || attrs.hasOwnProperty('morph'))
     ) {
       e.currentTarget.classList.add('highlight2');
-      let lemma: string = attrs.lemma.split(':').pop() || '';
+      let lemma: string = str(attrs.lemma).split(':').pop() || '';
       if (lemma) lemma = shapeLemma(lemma);
       let morph = str(attrs.morph);
 
