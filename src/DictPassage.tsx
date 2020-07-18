@@ -9,9 +9,7 @@ const useStyles = makeStyles((theme) => ({
     marginTop: 5,
     backgroundColor: 'lightyellow',
   },
-  spell: {
-    fontSize: '135%',
-  },
+  spell: {},
   pronunciation: {},
 }));
 

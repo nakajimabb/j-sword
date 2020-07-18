@@ -17,8 +17,8 @@ import {
 import Pagination from '@material-ui/lab/Pagination';
 import Sword from './sword/Sword';
 import Passage from './Passage';
-import Annotate from './Annotate';
-import AppContext, { AnnotateType } from './AppContext';
+import DictView from './DictView';
+import AppContext from './AppContext';
 import { Raw, References } from './sword/types';
 import './passage.css';
 import clsx from 'clsx';
@@ -93,27 +93,22 @@ const countByBook = (modKey: string, references: References) => {
 };
 
 interface RefPassageProps {
+  depth: number;
   bible: Sword;
   raw: Raw;
   target_lemma: string;
-  setAnnotate: React.Dispatch<AnnotateType>;
-  enable_hover: boolean;
-  setEnableHover: React.Dispatch<boolean>;
 }
 
 const RefPassage: React.FC<RefPassageProps> = ({
+  depth,
   bible,
   raw,
   target_lemma,
-  setAnnotate,
-  enable_hover,
-  setEnableHover,
 }) => {
   const classes = useStyles();
   const conf = bible.conf;
   const direction = conf?.Direction === 'RtoL' && 'rtl';
   const lang = String(conf?.Lang);
-  console.log({ bible, lang });
 
   return (
     <Box className={clsx(direction, lang, classes.passage)}>
@@ -121,10 +116,8 @@ const RefPassage: React.FC<RefPassageProps> = ({
         raw={raw}
         show_verse={false}
         target_lemma={target_lemma}
-        setAnnotate={setAnnotate}
-        enable_hover={enable_hover}
-        setEnableHover={setEnableHover}
         lang={lang}
+        depth={depth}
       />
     </Box>
   );
@@ -133,20 +126,19 @@ const RefPassage: React.FC<RefPassageProps> = ({
 type RawTexts = { [pos: string]: { [modname: string]: Raw[] } };
 
 interface RefPassagesProps {
+  depth: number;
   indexes: string[];
   mod_key: string;
   lemma: string;
-  setAnnotate: React.Dispatch<AnnotateType>;
 }
 
 const RefPassages: React.FC<RefPassagesProps> = ({
+  depth,
   indexes,
   mod_key,
   lemma,
-  setAnnotate,
 }) => {
   const [raw_texts, setRawTexts] = useState<RawTexts>({});
-  const [enable_hover, setEnableHover] = useState<boolean>(true);
   const { bibles, target } = useContext(AppContext);
   const mod_keys = Array.from(new Set([mod_key].concat(target.mod_keys)));
   const classes = useStyles();
@@ -194,12 +186,10 @@ const RefPassages: React.FC<RefPassagesProps> = ({
                   raw_texts[book_pos][modKey].map((raw) => {
                     return (
                       <RefPassage
+                        depth={depth}
                         bible={bibles[modKey]}
                         raw={raw}
                         target_lemma={lemma}
-                        setAnnotate={setAnnotate}
-                        enable_hover={enable_hover}
-                        setEnableHover={setEnableHover}
                       />
                     );
                   })
@@ -213,7 +203,7 @@ const RefPassages: React.FC<RefPassagesProps> = ({
 };
 
 interface ModalDictIndexProps {
-  word: string;
+  depth: number;
   lemma: string;
   references: References;
   open: boolean;
@@ -221,7 +211,7 @@ interface ModalDictIndexProps {
 }
 
 const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
-  word,
+  depth,
   lemma,
   references,
   open,
@@ -234,11 +224,6 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
   }>({
     mod_key: null,
     book: null,
-  });
-  const [annotate, setAnnotate] = useState<AnnotateType>({
-    content: '',
-    attributes: [],
-    lang: '',
   });
   const [page, setPage] = useState<number>(1);
   const counts = countByModKey(references);
@@ -309,8 +294,7 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
         component="h6"
         style={{ margin: 10, marginLeft: 20 }}
       >
-        {word}
-        <small>{'(' + str(lemma) + ')'}</small>
+        <small>{lemma}</small>
         <FormControl>
           <Select
             labelId="demo-simple-select-helper-label"
@@ -343,10 +327,10 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
           )}
           {target.mod_key && (
             <RefPassages
+              depth={depth}
               indexes={target_indexes}
               mod_key={target.mod_key}
               lemma={lemma}
-              setAnnotate={setAnnotate}
             />
           )}
 
@@ -361,7 +345,7 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
           )}
         </Box>
         <Box className={classes.pane}>
-          <Annotate annotate={annotate} />
+          <DictView depth={depth} />
         </Box>
       </div>
     </Dialog>
@@ -369,13 +353,13 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
 };
 
 interface BibleReferenceProps {
-  word: string;
+  depth: number;
   lemma: string;
   references: References;
 }
 
 const BibleReference: React.FC<BibleReferenceProps> = ({
-  word,
+  depth,
   lemma,
   references,
 }) => {
@@ -401,7 +385,7 @@ const BibleReference: React.FC<BibleReferenceProps> = ({
       />
       {open && (
         <ModalDictIndex
-          word={word}
+          depth={depth}
           lemma={lemma}
           references={references}
           open={open}

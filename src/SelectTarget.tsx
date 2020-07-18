@@ -170,8 +170,9 @@ const SelectBook: React.FC<SelectBookProps> = ({ open, onClose }) => {
         </TabPanel>
         <TabPanel value={tab} index={1}>
           <Grid container spacing={1}>
-            {canon.ot.map((info) => (
+            {canon.ot.map((info, index) => (
               <Grid
+                key={index}
                 item
                 xs={2}
                 onClick={bookChanged(info.abbrev, info.maxChapter)}
@@ -182,8 +183,9 @@ const SelectBook: React.FC<SelectBookProps> = ({ open, onClose }) => {
                   : info.abbrev}
               </Grid>
             ))}
-            {canon.nt.map((info) => (
+            {canon.nt.map((info, index) => (
               <Grid
+                key={index}
                 item
                 xs={2}
                 onClick={bookChanged(info.abbrev, info.maxChapter)}
@@ -200,8 +202,9 @@ const SelectBook: React.FC<SelectBookProps> = ({ open, onClose }) => {
           <Grid container spacing={1}>
             {[...Array(maxChapter)]
               .map((_, i) => i + 1)
-              .map((chapter) => (
+              .map((chapter, index) => (
                 <Grid
+                  key={index}
                   item
                   onClick={() => {
                     setTarget({

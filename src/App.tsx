@@ -13,15 +13,14 @@ import {
   fade,
 } from '@material-ui/core';
 import { MoreVert, LibraryBooks } from '@material-ui/icons';
-import { LogIn, LogOut, User, Book } from 'react-feather';
+import { LogIn, LogOut, User } from 'react-feather';
 import clsx from 'clsx';
 
 import AppContext from './AppContext';
 import SwordRenderer from './SwordRenderer';
-import Annotate from './Annotate';
 import UserDialog from './UserDialog';
 import ArticleDialog from './ArticleDialog';
-import AuthDialog from './AuthDialog';
+import DictView from './DictView';
 import SelectTarget from './SelectTarget';
 import Sword from './sword/Sword';
 import canon_jp from './sword/canons/locale/ja.json';
@@ -99,17 +98,11 @@ function App() {
   const [open_user_dialog, setOpenUserDialog] = useState<boolean>(false);
   const [open_article_dialog, setOpenArticleDialog] = useState<boolean>(false);
   const [startAuth, setStartAuth] = useState<boolean>(false);
-  const { bibles, target, setTarget, annotate, currentUser } = useContext(
-    AppContext
-  );
+  const { bibles, target, setTarget, currentUser } = useContext(AppContext);
   const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
   const bookName = canonjp.hasOwnProperty(target.book)
     ? canonjp[target.book].abbrev
     : target.book;
-  const enable_annotate =
-    (!!target.book && !!target.chapter && !!annotate.content) ||
-    annotate.attributes.length > 0;
-  // const enableCreateReferences = false;
   const classes = useStyles();
 
   const onChangeBibleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -400,11 +393,11 @@ function App() {
           target.mod_keys.map((mod_key: string, index: number) => (
             <SwordRenderer key={index} mod_key={mod_key} />
           ))}
-        {!startAuth && enable_annotate && (
+        {
           <Box className={classes.pane}>
-            <Annotate annotate={annotate} />
+            <DictView depth={0} />
           </Box>
-        )}
+        }
       </div>
     </div>
   );

@@ -1,53 +1,73 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import clsx from 'clsx';
-import { parseLemma } from './attr';
+import { str, zeroPadding } from './tools';
 import { Raw } from './sword/types';
-import { AnnotateType } from './AppContext';
+import AppContext from './AppContext';
 import './passage.css';
 
-const str = (text: string | null) => (text ? String(text) : '');
+const shapeLemma = (lemma: string) => {
+  const reg = /([GH])(\d+)/;
+  const m = lemma.match(reg);
+  return m && m[1] && m[2] ? m[1] + zeroPadding(+m[2], 4) : '';
+};
 
-interface PhraseProps {
-  node: Node; // Text or Element
-  parent?: Node; // Text or Element
-  root: boolean;
-  target_lemma?: string;
-  setAnnotate: React.Dispatch<AnnotateType>;
-  enable_hover: boolean;
-  setEnableHover: React.Dispatch<boolean>;
-  lang: string;
+interface NodeObj {
+  tag: string;
+  value: string;
+  attrs: { [key: string]: string };
+  children: NodeObj[];
 }
 
-const Phrase: React.FC<PhraseProps> = ({
-  node,
-  parent,
-  root,
-  target_lemma,
-  setAnnotate,
-  enable_hover,
-  setEnableHover,
-  lang,
-}) => {
-  const [lemma, setLemma] = useState<string | null>(null);
-  const excepts = ['note'];
+interface PhraseProps {
+  nodeObj: NodeObj; // Text or Element
+  target_lemma?: string;
+  lang: string;
+  depth: number;
+}
 
-  useEffect(() => {
-    if (
-      target_lemma &&
-      parent &&
-      parent instanceof Element &&
-      parent.attributes
-    ) {
-      const attrs: Attr[] = Array.from(parent.attributes);
-      const attr_lemma: Attr | undefined = attrs.find(
-        (attr: Attr) => attr.name === 'lemma'
-      );
-      if (attr_lemma) {
-        const lemma = parseLemma(attr_lemma);
-        if (lemma) setLemma(lemma);
-      }
-    }
-  }, [parent]);
+const MuiPhrase: React.FC<PhraseProps> = ({
+  nodeObj,
+  target_lemma,
+  lang,
+  depth,
+}) => {
+  const { targetWords, setTargetWords } = useContext(AppContext);
+  const excepts = ['note'];
+  const word = targetWords[depth];
+  const attrs = nodeObj.attrs;
+
+  if (excepts.includes(nodeObj.tag)) return null;
+
+  const textValue = (node_obj: NodeObj) => {
+    let text = node_obj.value;
+    node_obj.children.forEach((child) => (text += textValue(child)));
+    return text;
+  };
+
+  // useEffect(() => {
+  //   if (
+  //     target_lemma &&
+  //     parent &&
+  //     parent instanceof Element &&
+  //     parent.attributes
+  //   ) {
+  //     const attrs: Attr[] = Array.from(parent.attributes);
+  //     const attr_lemma: Attr | undefined = attrs.find(
+  //       (attr: Attr) => attr.name === 'lemma'
+  //     );
+  //     if (attr_lemma) {
+  //       const lemma = parseLemma(attr_lemma);
+  //       if (lemma) {
+  //         console.log({ lemma });
+  //         setLemma(lemma);
+  //         setTargetWords([
+  //           { ...targetDictItem[0], lemma },
+  //           ...targetDictItem,
+  //         ]);
+  //       }
+  //     }
+  //   }
+  // }, [parent]);
 
   const clearHighlight = (class_name: string) => {
     const elems = document.getElementsByClassName(class_name);
@@ -58,125 +78,205 @@ const Phrase: React.FC<PhraseProps> = ({
 
   const onClick = (e: React.MouseEvent) => {
     onMouseOver(e);
-    setEnableHover(!enable_hover);
+    if (word.lemma) {
+      let words = [...targetWords];
+      words[depth] = { ...word, fixed: !word.fixed };
+      setTargetWords(words);
+    }
+  };
+
+  const currentLemma = () => {
+    if (attrs.hasOwnProperty('lemma') && attrs.lemma) {
+      let lemma: string = attrs.lemma.split(':').pop() || '';
+      if (lemma) lemma = shapeLemma(lemma);
+      return lemma;
+    } else {
+      return '';
+    }
   };
 
   const onMouseOver = async (e: React.MouseEvent) => {
-    const excepts = ['type', 'subType', 'gloss'];
-    if (enable_hover && node instanceof Element) {
-      if (!node.attributes || node.attributes.length === 0) return;
-      const attrs: Attr[] = Array.from(node.attributes);
-      let attributes = attrs.filter((attr) => !excepts.includes(attr.name));
+    // const excepts = ['type', 'subType', 'gloss'];
+    if (
+      !word.fixed &&
+      (attrs.hasOwnProperty('lemma') || attrs.hasOwnProperty('morph'))
+    ) {
+      e.currentTarget.classList.add('highlight2');
+      let lemma: string = attrs.lemma.split(':').pop() || '';
+      if (lemma) lemma = shapeLemma(lemma);
+      let morph = str(attrs.morph);
 
-      if (attrs && attrs.length > 0 && node.textContent) {
-        e.currentTarget.classList.add('highlight2');
-        setAnnotate({ content: node.textContent, attributes, lang });
+      let words = [...targetWords];
+      const cur_word = {
+        ...word,
+        morph,
+        lemma,
+        lang,
+        text: textValue(nodeObj),
+      };
+      const next_word = { ...cur_word, targetLemma: lemma };
+      words[depth] = cur_word;
+      if (words.length > depth) {
+        words[depth + 1] = next_word;
+      } else {
+        words.push(next_word);
       }
+      setTargetWords(words);
     }
   };
 
   const onMouseLeave = () => {
-    if (enable_hover) {
-      clearHighlight('highlight2');
-    }
+    clearHighlight('highlight2');
   };
 
-  const renderData = () => {
-    const attributes =
-      parent instanceof Element ? Array.from(parent.attributes) : [];
-    const gloss = attributes.find((attr: Attr) => attr.name === 'gloss');
-    if (gloss) {
-      return (
-        <ruby>
-          {str(node.nodeValue)}
-          <rp>（</rp>
-          <rt>{gloss.value}</rt>
-          <rp>）</rp>
-        </ruby>
-      );
-    } else {
-      return <>{str(node.nodeValue)}</>;
-    }
-  };
+  // const renderData = () => {
+  //   const attributes =
+  //     parent instanceof Element ? Array.from(parent.attributes) : [];
+  //   const gloss = attributes.find((attr: Attr) => attr.name === 'gloss');
+  //   if (gloss) {
+  //     return (
+  //       <ruby>
+  //         {str(node.nodeValue)}
+  //         <rp>（</rp>
+  //         <rt>{gloss.value}</rt>
+  //         <rp>）</rp>
+  //       </ruby>
+  //     );
+  //   } else {
+  //     return <>{str(node.nodeValue)}</>;
+  //   }
+  // };
+
+  const curLemma = currentLemma();
 
   const contents = () => (
-    <>
-      {renderData()}
-      {Array.from(node.childNodes).map((child_node, index) => (
-        <Phrase
-          key={index}
-          node={child_node}
-          parent={node}
-          root={false}
-          setAnnotate={setAnnotate}
-          enable_hover={enable_hover}
-          setEnableHover={setEnableHover}
-          target_lemma={target_lemma}
-          lang={lang}
-        />
-      ))}
-    </>
+    // <span style={lemma === word.targetLemma ? { color: 'red' } : {}}>
+    <span>
+      {/* {renderData()} */}
+      {nodeObj.value}
+      {nodeObj.children.map((childObj, index) =>
+        childObj.tag !== '#text' ? (
+          <Phrase
+            key={index}
+            nodeObj={childObj}
+            target_lemma={target_lemma}
+            lang={lang}
+            depth={depth}
+          />
+        ) : (
+          <>{childObj.value}</>
+        )
+      )}
+    </span>
   );
 
-  if (node instanceof Element && excepts.includes(node.tagName)) return null;
-
-  return root ? (
+  return nodeObj.tag === 'root' ? (
     contents()
   ) : (
     <div
-      className={clsx('phrase', node instanceof Element && node.tagName)}
+      className={clsx('phrase', nodeObj.tag)}
       onClick={onClick}
       onMouseOver={onMouseOver}
       onMouseLeave={onMouseLeave}
-      style={target_lemma && lemma === target_lemma ? { color: 'red' } : {}}
+      style={
+        word.targetLemma && curLemma === word.targetLemma
+          ? { color: 'red' }
+          : {}
+      }
     >
       {contents()}
     </div>
   );
 };
 
+const Phrase = React.memo(
+  MuiPhrase,
+  ({ nodeObj: prevObj }, { nodeObj: nextObj }) => {
+    return prevObj.value === nextObj.value && prevObj.attrs === nextObj.attrs;
+  }
+);
+
 interface PassageProps {
   raw: Raw;
-  setAnnotate: React.Dispatch<AnnotateType>;
-  enable_hover: boolean;
-  setEnableHover: React.Dispatch<boolean>;
   show_verse: boolean;
   target_lemma?: string;
   lang: string;
+  depth: number;
 }
 
-const Passage: React.FC<PassageProps> = ({
+const MuiPassage: React.FC<PassageProps> = ({
   raw,
-  setAnnotate,
-  enable_hover,
-  setEnableHover,
   show_verse = true,
   target_lemma,
   lang,
+  depth,
 }) => {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(
-    '<root>' + raw.text + '</root>',
-    'text/xml'
-  );
+  const [nodeObj, setNodeObj] = useState<NodeObj>({
+    tag: 'root',
+    value: '',
+    attrs: {},
+    children: [],
+  });
+
+  useEffect(() => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(
+      '<root>' + raw.text + '</root>',
+      'text/xml'
+    );
+    if (doc.childNodes.length > 0) {
+      setNodeObj(createNodeObj(doc.childNodes[0]));
+    } else {
+      setNodeObj({
+        tag: 'root',
+        value: '',
+        attrs: {},
+        children: [],
+      });
+    }
+  }, [raw.text]);
+
+  const createNodeObj = (node: Node): NodeObj => {
+    let obj = createSelfNodeObj(node);
+    node.childNodes.forEach((child) => {
+      obj.children.push(createNodeObj(child));
+    });
+    return obj;
+  };
+
+  const createSelfNodeObj = (node: Node): NodeObj => {
+    const attrs =
+      node instanceof Element && node.attributes
+        ? Object.assign(
+            {},
+            ...Array.from(node.attributes).map((attr) => ({
+              [attr.name]: attr.nodeValue,
+            }))
+          )
+        : {};
+    return {
+      tag: node.nodeName,
+      value: str(node.nodeValue),
+      attrs: attrs,
+      children: [],
+    };
+  };
 
   return (
     <>
       {show_verse && raw.verse > 0 && <div className="verse">{raw.verse}.</div>}
-      {Array.from(doc.childNodes).map((node, index) => (
-        <Phrase
-          key={index}
-          node={node}
-          setAnnotate={setAnnotate}
-          enable_hover={enable_hover}
-          setEnableHover={setEnableHover}
-          target_lemma={target_lemma}
-          root
-          lang={lang}
-        />
-      ))}
+      <Phrase
+        nodeObj={nodeObj}
+        target_lemma={target_lemma}
+        lang={lang}
+        depth={depth}
+      />
     </>
   );
 };
+
+const Passage = React.memo(MuiPassage, ({ raw: prevRaw }, { raw: nextRaw }) => {
+  return prevRaw.text === nextRaw.text;
+});
 
 export default Passage;

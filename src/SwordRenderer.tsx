@@ -57,15 +57,10 @@ interface Props {
 
 const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
   const [raw_texts, setRawTexts] = useState<Raw[]>([]);
-  const [enable_hover, setEnableHover] = useState<boolean>(true);
   const [enabled, setEnabled] = useState<boolean>(false);
-  const {
-    bibles,
-    setSwordModule,
-    target,
-    setAnnotate,
-    sample_modules,
-  } = useContext(AppContext);
+  const { bibles, setSwordModule, target, sample_modules } = useContext(
+    AppContext
+  );
   const { book, chapter, verse } = target;
   const bible = bibles[mod_key];
   const direction = bible?.conf?.Direction === 'RtoL' && 'rtl';
@@ -127,7 +122,7 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
       }
 
       if (valid_params) {
-        let book_pos = book + '.' + chapter;
+        let book_pos = book + '.' + chapter; // + ':1';
         if (verse) book_pos += ':' + verse;
         try {
           const new_raw_texts = await bible.renderText(book_pos, {
@@ -223,14 +218,7 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
                 onMouseOver={onMouseOver}
                 onMouseLeave={onMouseLeave}
               >
-                <Passage
-                  lang={lang}
-                  raw={raw}
-                  setAnnotate={setAnnotate}
-                  enable_hover={enable_hover}
-                  setEnableHover={setEnableHover}
-                  show_verse={true}
-                />
+                <Passage depth={0} lang={lang} raw={raw} show_verse={true} />
               </Box>
             ))}
           </Box>

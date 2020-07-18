@@ -10,10 +10,13 @@ interface TargetType {
   verse?: string;
 }
 
-export interface AnnotateType {
-  content: string;
-  attributes: Attr[];
+export interface Word {
+  lemma: string;
+  morph: string;
+  text: string;
   lang: string;
+  targetLemma: string;
+  fixed: boolean;
 }
 
 export interface ContextType {
@@ -24,8 +27,8 @@ export interface ContextType {
   currentUser: firebase.User | null;
   target: TargetType;
   setTarget: React.Dispatch<TargetType>;
-  annotate: AnnotateType;
-  setAnnotate: React.Dispatch<AnnotateType>;
+  targetWords: Word[];
+  setTargetWords: React.Dispatch<Word[]>;
   sample_modules: { [key: string]: string };
 }
 
@@ -37,8 +40,8 @@ const AppContext = createContext({
   currentUser: null,
   target: { mod_keys: [], book: '', chapter: '', verse: '' },
   setTarget: (value: TargetType) => {},
-  annotate: { content: '', attributes: [], lang: '' },
-  setAnnotate: (value: AnnotateType) => {},
+  targetWords: [],
+  setTargetWords: (value: Word[]) => {},
   sample_modules: {},
 } as ContextType);
 
@@ -53,11 +56,10 @@ export const AppContextProvider: React.FC = (props) => {
     chapter: '1',
     verse: '',
   });
-  const [annotate, setAnnotate] = useState<AnnotateType>({
-    content: '',
-    attributes: [],
-    lang: '',
-  });
+
+  const [targetWords, setTargetWords] = useState<Word[]>([
+    { lemma: '', morph: '', text: '', lang: '', targetLemma: '', fixed: false },
+  ]);
 
   useEffect(() => {
     const f = async () => {
@@ -105,8 +107,8 @@ export const AppContextProvider: React.FC = (props) => {
         currentUser,
         target,
         setTarget,
-        annotate,
-        setAnnotate,
+        targetWords,
+        setTargetWords,
         sample_modules: SAMPLE_MODULES,
       }}
     >
