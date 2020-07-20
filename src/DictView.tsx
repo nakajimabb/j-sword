@@ -104,6 +104,9 @@ const DictView: React.FC<DictViewProp> = ({ depth }) => {
           if (reference) new_references[modname] = reference;
         });
         setReferences(new_references);
+      } else {
+        setReferences({});
+        setMorphs([]);
       }
       if (morph) {
         const reg = /(\w+):([\w/]+)/;
@@ -123,6 +126,8 @@ const DictView: React.FC<DictViewProp> = ({ depth }) => {
             .filter((raw_text) => !!raw_text);
           setMorphs(new_morphs);
         }
+      } else {
+        setMorphs([]);
       }
     };
     f();
