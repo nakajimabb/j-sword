@@ -29,6 +29,7 @@ export interface ContextType {
   setTarget: React.Dispatch<TargetType>;
   targetWords: Word[];
   setTargetWords: React.Dispatch<Word[]>;
+  touchDevice: boolean;
   sample_modules: { [key: string]: string };
 }
 
@@ -42,6 +43,7 @@ const AppContext = createContext({
   setTarget: (value: TargetType) => {},
   targetWords: [],
   setTargetWords: (value: Word[]) => {},
+  touchDevice: false,
   sample_modules: {},
 } as ContextType);
 
@@ -50,6 +52,7 @@ export const AppContextProvider: React.FC = (props) => {
   const [dictionaries, setDictionaries] = useState({});
   const [morphologies, setMorphologies] = useState({});
   const [currentUser, setCurrentUser] = useState<firebase.User | null>(null);
+  const [touchDevice, SetTouchDevice] = useState<boolean>(false);
   const [target, setTarget] = useState<TargetType>({
     mod_keys: [],
     book: 'Gen',
@@ -60,6 +63,10 @@ export const AppContextProvider: React.FC = (props) => {
   const [targetWords, setTargetWords] = useState<Word[]>([
     { lemma: '', morph: '', text: '', lang: '', targetLemma: '', fixed: false },
   ]);
+
+  useEffect(() => {
+    SetTouchDevice(window.ontouchstart === null);
+  }, []);
 
   useEffect(() => {
     const f = async () => {
@@ -109,6 +116,7 @@ export const AppContextProvider: React.FC = (props) => {
         setTarget,
         targetWords,
         setTargetWords,
+        touchDevice,
         sample_modules: SAMPLE_MODULES,
       }}
     >

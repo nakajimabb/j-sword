@@ -31,7 +31,7 @@ const MuiPhrase: React.FC<PhraseProps> = ({
   lang,
   depth,
 }) => {
-  const { targetWords, setTargetWords } = useContext(AppContext);
+  const { targetWords, setTargetWords, touchDevice } = useContext(AppContext);
   const excepts = ['note'];
   const word = targetWords[depth];
   const attrs = nodeObj.attrs;
@@ -78,7 +78,7 @@ const MuiPhrase: React.FC<PhraseProps> = ({
 
   const onClick = (e: React.MouseEvent) => {
     onMouseOver(e);
-    if (word.lemma) {
+    if (word.lemma && !touchDevice) {
       let words = [...targetWords];
       words[depth] = { ...word, fixed: !word.fixed };
       setTargetWords(words);
