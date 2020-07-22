@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import clsx from 'clsx';
 import { str, zeroPadding } from './tools';
 import { Raw } from './sword/types';
+import { NodeObj, createNodeObj } from './NodeObj';
 import AppContext from './AppContext';
 import './passage.css';
 
@@ -10,13 +11,6 @@ const shapeLemma = (lemma: string) => {
   const m = lemma.match(reg);
   return m && m[1] && m[2] ? m[1] + zeroPadding(+m[2], 4) : '';
 };
-
-interface NodeObj {
-  tag: string;
-  value: string;
-  attrs: { [key: string]: string };
-  children: NodeObj[];
-}
 
 interface PhraseProps {
   nodeObj: NodeObj; // Text or Element
@@ -235,32 +229,6 @@ const MuiPassage: React.FC<PassageProps> = ({
       });
     }
   }, [raw.text]);
-
-  const createNodeObj = (node: Node): NodeObj => {
-    let obj = createSelfNodeObj(node);
-    node.childNodes.forEach((child) => {
-      obj.children.push(createNodeObj(child));
-    });
-    return obj;
-  };
-
-  const createSelfNodeObj = (node: Node): NodeObj => {
-    const attrs =
-      node instanceof Element && node.attributes
-        ? Object.assign(
-            {},
-            ...Array.from(node.attributes).map((attr) => ({
-              [attr.name]: attr.nodeValue,
-            }))
-          )
-        : {};
-    return {
-      tag: node.nodeName,
-      value: str(node.nodeValue),
-      attrs: attrs,
-      children: [],
-    };
-  };
 
   return (
     <>

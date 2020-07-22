@@ -54,14 +54,9 @@ interface DictViewProp {
 const DictView: React.FC<DictViewProp> = ({ depth }) => {
   const [dictItems, setDictItems] = useState<DictItem[]>([]);
   const [references, setReferences] = useState<References>({});
-  const [morphs, setMorphs] = useState<string[]>([]);
-  const {
-    bibles,
-    dictionaries,
-    morphologies,
-    targetWords,
-    setTargetWords,
-  } = useContext(AppContext);
+  const { bibles, dictionaries, targetWords, setTargetWords } = useContext(
+    AppContext
+  );
   const word = targetWords[depth];
   const { text: wordText, lang, lemma, morph, fixed } = word;
   const classes = useStyles();
@@ -106,28 +101,6 @@ const DictView: React.FC<DictViewProp> = ({ depth }) => {
         setReferences(new_references);
       } else {
         setReferences({});
-        setMorphs([]);
-      }
-      if (morph) {
-        const reg = /(\w+):([\w/]+)/;
-        const values = morph.split(' ');
-        const value = values?.find((s: string) => s.match(reg));
-        const m = value?.match(reg);
-        if (m && m[1] && m[2]) {
-          const tasks3 = Object.entries(morphologies).map(
-            async ([modname, morphology]) => {
-              const raw_text = await morphology.getRawText(m[2]);
-              return { modname, raw_text };
-            }
-          );
-          const result3 = await Promise.all(tasks3);
-          const new_morphs = result3
-            .map(({ modname, raw_text }) => raw_text)
-            .filter((raw_text) => !!raw_text);
-          setMorphs(new_morphs);
-        }
-      } else {
-        setMorphs([]);
       }
     };
     f();
@@ -166,12 +139,9 @@ const DictView: React.FC<DictViewProp> = ({ depth }) => {
           </Grid>
         </Grid>
       )}
-      {morphs.length > 0 && (
-        <Box mb={1}>
-          [{morph}]
-          <MorphPassage rawText={morphs[0]} />
-        </Box>
-      )}
+      <Box mb={1}>
+        <MorphPassage morph={morph} />
+      </Box>
       {lemma && (
         <Box mb={1}>
           <BibleReference
