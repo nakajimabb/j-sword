@@ -1,16 +1,10 @@
 import React, { useEffect, useState, useContext } from 'react';
 import clsx from 'clsx';
-import { str, zeroPadding } from './tools';
+import { str } from './tools';
 import { Raw } from './sword/types';
-import { NodeObj, createNodeObj } from './NodeObj';
+import { NodeObj, createNodeObj, shapeLemma } from './NodeObj';
 import AppContext from './AppContext';
 import './passage.css';
-
-const shapeLemma = (lemma: string) => {
-  const reg = /([GH])(\d+)/;
-  const m = lemma.match(reg);
-  return m && m[1] && m[2] ? m[1] + zeroPadding(+m[2], 4) : '';
-};
 
 interface PhraseProps {
   nodeObj: NodeObj;
@@ -57,7 +51,7 @@ const MuiPhrase: React.FC<PhraseProps> = ({
   const currentLemma = () => {
     if (attrs.hasOwnProperty('lemma') && attrs.lemma) {
       let lemma: string = attrs.lemma.split(':').pop() || '';
-      if (lemma) lemma = shapeLemma(lemma);
+      if (lemma) lemma = shapeLemma(lemma, lang);
       return lemma;
     } else {
       return '';
@@ -72,7 +66,8 @@ const MuiPhrase: React.FC<PhraseProps> = ({
     ) {
       e.currentTarget.classList.add('highlight2');
       let lemma: string = str(attrs.lemma).split(':').pop() || '';
-      if (lemma) lemma = shapeLemma(lemma);
+      console.log(lemma);
+      if (lemma) lemma = shapeLemma(lemma, lang);
       let morph = str(attrs.morph);
 
       let words = [...targetWords];
