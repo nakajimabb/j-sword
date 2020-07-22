@@ -13,7 +13,7 @@ const shapeLemma = (lemma: string) => {
 };
 
 interface PhraseProps {
-  nodeObj: NodeObj; // Text or Element
+  nodeObj: NodeObj;
   target_lemma?: string;
   lang: string;
   depth: number;
@@ -37,31 +37,6 @@ const MuiPhrase: React.FC<PhraseProps> = ({
     node_obj.children.forEach((child) => (text += textValue(child)));
     return text;
   };
-
-  // useEffect(() => {
-  //   if (
-  //     target_lemma &&
-  //     parent &&
-  //     parent instanceof Element &&
-  //     parent.attributes
-  //   ) {
-  //     const attrs: Attr[] = Array.from(parent.attributes);
-  //     const attr_lemma: Attr | undefined = attrs.find(
-  //       (attr: Attr) => attr.name === 'lemma'
-  //     );
-  //     if (attr_lemma) {
-  //       const lemma = parseLemma(attr_lemma);
-  //       if (lemma) {
-  //         console.log({ lemma });
-  //         setLemma(lemma);
-  //         setTargetWords([
-  //           { ...targetDictItem[0], lemma },
-  //           ...targetDictItem,
-  //         ]);
-  //       }
-  //     }
-  //   }
-  // }, [parent]);
 
   const clearHighlight = (class_name: string) => {
     const elems = document.getElementsByClassName(class_name);

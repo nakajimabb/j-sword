@@ -6,7 +6,6 @@ import DictPassage from './DictPassage';
 import MorphPassage from './MorphPassage';
 import AppContext from './AppContext';
 import { References } from './sword/types';
-import clsx from 'clsx';
 
 const useStyles = makeStyles((theme) => ({
   header: {
@@ -41,22 +40,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-interface DictItem {
-  modname: string;
-  title: string;
-  rawText: string;
-}
-
 interface DictViewProp {
   depth: number;
 }
 
 const DictView: React.FC<DictViewProp> = ({ depth }) => {
-  const [dictItems, setDictItems] = useState<DictItem[]>([]);
   const [references, setReferences] = useState<References>({});
-  const { bibles, dictionaries, targetWords, setTargetWords } = useContext(
-    AppContext
-  );
+  const { bibles, targetWords, setTargetWords } = useContext(AppContext);
   const word = targetWords[depth];
   const { text: wordText, lang, lemma, morph, fixed } = word;
   const classes = useStyles();
@@ -71,24 +61,6 @@ const DictView: React.FC<DictViewProp> = ({ depth }) => {
   useEffect(() => {
     const f = async () => {
       if (lemma) {
-        const tasks = Object.entries(dictionaries).map(
-          async ([modname, dictionary]) => {
-            const rawText = await dictionary.getRawText(lemma);
-            if (rawText) {
-              return {
-                modname: modname,
-                title: dictionary.title,
-                rawText: rawText,
-              };
-            } else {
-              return null;
-            }
-          }
-        );
-        const result = await Promise.all(tasks);
-        const dict_items = result.filter((item): item is DictItem => !!item);
-        setDictItems(dict_items);
-
         const tasks2 = Object.entries(bibles).map(async ([modname, bible]) => {
           const reference = await bible.getReference(lemma);
           return { modname, reference };
@@ -151,11 +123,9 @@ const DictView: React.FC<DictViewProp> = ({ depth }) => {
           />
         </Box>
       )}
-      {dictItems.map((item, index: number) => (
-        <Box key={index} mb={1} className={classes.dict}>
-          <DictPassage rawText={item.rawText} title={item.title} lang={lang} />
-        </Box>
-      ))}
+      <Box mb={1} className={classes.dict}>
+        <DictPassage lemma={lemma} lang={lang} />
+      </Box>
     </Box>
   );
 };
