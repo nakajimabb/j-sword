@@ -92,8 +92,8 @@ const DictPassage: React.FC<DictPassageProps> = ({ lemma, lang }) => {
 
   return (
     <>
-      {Object.entries(nodeObjs).map(([modname, nodeObj]) => (
-        <>
+      {Object.entries(nodeObjs).map(([modname, nodeObj], index) => (
+        <React.Fragment key={index}>
           <Chip
             variant="outlined"
             size="small"
@@ -102,7 +102,7 @@ const DictPassage: React.FC<DictPassageProps> = ({ lemma, lang }) => {
           />
           <br />
           <Phrase nodeObj={nodeObj} lang={lang} />
-        </>
+        </React.Fragment>
       ))}
     </>
   );

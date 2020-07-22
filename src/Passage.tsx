@@ -66,9 +66,9 @@ const MuiPhrase: React.FC<PhraseProps> = ({
     ) {
       e.currentTarget.classList.add('highlight2');
       let lemma: string = str(attrs.lemma).split(':').pop() || '';
-      console.log(lemma);
       if (lemma) lemma = shapeLemma(lemma, lang);
-      let morph = str(attrs.morph);
+      let morph: string = str(attrs.morph).split(' ').shift() || '';
+      morph = str(morph).split(':').pop() || '';
 
       let words = [...targetWords];
       const cur_word = {
@@ -128,7 +128,7 @@ const MuiPhrase: React.FC<PhraseProps> = ({
             depth={depth}
           />
         ) : (
-          <>{childObj.value}</>
+          <React.Fragment key={index}>{childObj.value}</React.Fragment>
         )
       )}
     </span>

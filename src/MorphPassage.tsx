@@ -36,38 +36,30 @@ const MorphPassage: React.FC<MorphPassageProps> = ({ morph }) => {
   useEffect(() => {
     const f = async () => {
       if (morph) {
-        const reg = /(\w+):([\w/]+)/;
-        const values = morph.split(' ');
-        const value = values?.find((s: string) => s.match(reg));
-        const m = value?.match(reg);
-        if (m && m[1] && m[2]) {
-          const tasks = Object.entries(morphologies).map(
-            async ([modname, morphology]) => {
-              const raw_text = await morphology.getRawText(m[2]);
-              return { modname, raw_text };
-            }
+        const tasks = Object.entries(morphologies).map(
+          async ([modname, morphology]) => {
+            const raw_text = await morphology.getRawText(morph);
+            return { modname, raw_text };
+          }
+        );
+        const result = await Promise.all(tasks);
+        const raw_texts = result
+          .map(({ modname, raw_text }) => raw_text)
+          .filter((raw_text) => !!raw_text);
+        if (raw_texts.length > 0) {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(
+            '<root>' + raw_texts[0] + '</root>',
+            'text/xml'
           );
-          const result = await Promise.all(tasks);
-          const raw_texts = result
-            .map(({ modname, raw_text }) => raw_text)
-            .filter((raw_text) => !!raw_text);
-          if (raw_texts.length > 0) {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(
-              '<root>' + raw_texts[0] + '</root>',
-              'text/xml'
-            );
-            if (doc.childNodes.length > 0) {
-              setNodeObj(createNodeObj(doc.childNodes[0]));
-            } else {
-              setNodeObj(initNodeObj);
-            }
+          if (doc.childNodes.length > 0) {
+            setNodeObj(createNodeObj(doc.childNodes[0]));
           } else {
             setNodeObj(initNodeObj);
           }
+        } else {
+          setNodeObj(initNodeObj);
         }
-      } else {
-        setNodeObj(initNodeObj);
       }
     };
     f();
