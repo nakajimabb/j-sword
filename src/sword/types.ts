@@ -56,13 +56,6 @@ export interface ConfType {
   Versification: string;
 }
 
-// merge Interfaces
-export interface Blob {
-  slice: (start: number, end: number, contentType: string) => Blob;
-  size: number;
-  type: string;
-}
-
 export interface BlobsType {
   modname: string;
   ot?: Blob;
