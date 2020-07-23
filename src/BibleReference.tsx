@@ -23,8 +23,6 @@ import { Raw, References } from './sword/types';
 import './passage.css';
 import clsx from 'clsx';
 
-const str = (text: string | null) => (text ? String(text) : '');
-
 const useStyles = makeStyles((theme) => ({
   container: {
     display: 'flex',
@@ -353,27 +351,49 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
 };
 
 interface BibleReferenceProps {
-  depth: number;
   lemma: string;
-  references: References;
+  depth: number;
 }
 
-const BibleReference: React.FC<BibleReferenceProps> = ({
-  depth,
-  lemma,
-  references,
-}) => {
+const BibleReference: React.FC<BibleReferenceProps> = ({ lemma, depth }) => {
+  const [references, setReferences] = useState<References>({});
+  const [label, setLabel] = useState<string>('');
   const [open, setOpen] = useState<boolean>(false);
-  const counts = countByModKey(references);
-  const label = Object.keys(counts)
-    .map(
-      (modname) =>
-        `${modname}(${Object.values(counts[modname]).reduce(
-          (i, j) => i + j,
-          0
-        )})`
-    )
-    .join(' ');
+  const { bibles } = useContext(AppContext);
+
+  useEffect(() => {
+    const f = async () => {
+      if (lemma) {
+        const tasks = Object.entries(bibles).map(async ([modname, bible]) => {
+          const reference = await bible.getReference(lemma);
+          return { modname, reference };
+        });
+        const result = await Promise.all(tasks);
+        let new_references: References = {};
+        result.forEach(({ modname, reference }) => {
+          if (reference) new_references[modname] = reference;
+        });
+        setReferences(new_references);
+        const counts = countByModKey(new_references);
+        const new_label = Object.keys(counts)
+          .map(
+            (modname) =>
+              `${modname}(${Object.values(counts[modname]).reduce(
+                (i, j) => i + j,
+                0
+              )})`
+          )
+          .join(' ');
+        setLabel(new_label);
+      } else {
+        setReferences({});
+        setLabel('');
+      }
+    };
+    f();
+  }, [lemma]);
+
+  if (!lemma) return null;
 
   return (
     <>

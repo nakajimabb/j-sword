@@ -5,7 +5,6 @@ import BibleReference from './BibleReference';
 import DictPassage from './DictPassage';
 import MorphPassage from './MorphPassage';
 import AppContext from './AppContext';
-import { References } from './sword/types';
 
 const useStyles = makeStyles((theme) => ({
   header: {
@@ -45,8 +44,7 @@ interface DictViewProp {
 }
 
 const DictView: React.FC<DictViewProp> = ({ depth }) => {
-  const [references, setReferences] = useState<References>({});
-  const { bibles, targetWords, setTargetWords } = useContext(AppContext);
+  const { targetWords, setTargetWords } = useContext(AppContext);
   const word = targetWords[depth];
   const { text: wordText, lang, lemma, morph, fixed } = word;
   const classes = useStyles();
@@ -57,26 +55,6 @@ const DictView: React.FC<DictViewProp> = ({ depth }) => {
       setTargetWords([...targetWords, targetWords[targetWords.length - 1]]);
     }
   }, []);
-
-  useEffect(() => {
-    const f = async () => {
-      if (lemma) {
-        const tasks2 = Object.entries(bibles).map(async ([modname, bible]) => {
-          const reference = await bible.getReference(lemma);
-          return { modname, reference };
-        });
-        const result2 = await Promise.all(tasks2);
-        let new_references: References = {};
-        result2.forEach(({ modname, reference }) => {
-          if (reference) new_references[modname] = reference;
-        });
-        setReferences(new_references);
-      } else {
-        setReferences({});
-      }
-    };
-    f();
-  }, [targetWords[depth]?.lemma]);
 
   const reverseFixed = () => {
     let words = [...targetWords];
@@ -114,15 +92,9 @@ const DictView: React.FC<DictViewProp> = ({ depth }) => {
       <Box mb={1}>
         <MorphPassage morph={morph} />
       </Box>
-      {lemma && (
-        <Box mb={1}>
-          <BibleReference
-            depth={depth + 1}
-            lemma={lemma}
-            references={references}
-          />
-        </Box>
-      )}
+      <Box mb={1}>
+        <BibleReference lemma={lemma} depth={depth + 1} />
+      </Box>
       <Box mb={1} className={classes.dict}>
         <DictPassage lemma={lemma} lang={lang} />
       </Box>
