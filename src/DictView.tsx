@@ -78,24 +78,33 @@ const DictView: React.FC<DictViewProp> = ({ depth }) => {
     setTargetWords(words);
   };
 
-  const incLemma = (inc: number) => () => {
+  const changeLemma = (newLemma: string) => {
     let words = [...targetWords];
+    const new_word = { ...word, lemma: newLemma, text: '', morph: '' };
+    const next_word = { ...new_word, targetLemma: newLemma };
+    words[depth] = new_word;
+    if (words.length > depth) {
+      words[depth + 1] = next_word;
+    } else {
+      words.push(next_word);
+    }
+    setTargetWords(words);
+  };
+
+  const incrementLemma = (inc: number) => () => {
     const m = lemma.match(/(\d+)/);
     if (m && m[1]) {
       const number = +m[1] + inc;
       if (number > 0) {
         const newLemma = shapeLemma(String(number), lang);
-        words[depth] = { ...word, lemma: newLemma, text: '', morph: '' };
-        setTargetWords(words);
+        changeLemma(newLemma);
       }
     }
   };
 
-  const changeLemma = (e: React.ChangeEvent<{ value: unknown }>) => {
-    let words = [...targetWords];
+  const onChangeLemma = (e: React.ChangeEvent<{ value: unknown }>) => {
     const newLemma = shapeLemma(String(e.currentTarget.value), lang);
-    words[depth] = { ...word, lemma: newLemma, text: '', morph: '' };
-    setTargetWords(words);
+    changeLemma(newLemma);
   };
 
   return (
@@ -109,16 +118,16 @@ const DictView: React.FC<DictViewProp> = ({ depth }) => {
             alignItems="center"
           >
             <Grid item>
-              <IconButton size="small" onClick={incLemma(-1)}>
+              <IconButton size="small" onClick={incrementLemma(-1)}>
                 <ChevronLeft />
               </IconButton>
               <TextField
                 value={lemma}
                 size="small"
-                onChange={changeLemma}
+                onChange={onChangeLemma}
                 className={classes.input}
               />
-              <IconButton size="small" onClick={incLemma(1)}>
+              <IconButton size="small" onClick={incrementLemma(1)}>
                 <ChevronRight />
               </IconButton>
             </Grid>
