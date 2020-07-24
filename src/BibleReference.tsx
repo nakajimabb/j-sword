@@ -15,11 +15,13 @@ import {
   makeStyles,
 } from '@material-ui/core';
 import Pagination from '@material-ui/lab/Pagination';
+
 import Sword from './sword/Sword';
 import Passage from './Passage';
 import DictView from './DictView';
 import AppContext from './AppContext';
 import { Raw, References } from './sword/types';
+import canon_jp from './sword/canons/locale/ja.json';
 import './passage.css';
 import clsx from 'clsx';
 
@@ -232,7 +234,9 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
     start_index,
     start_index + count_per_page
   );
+  const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
   const classes = useStyles();
+
   const references_options = Object.keys(references)
     .map((modKey: string) =>
       Object.keys(references[modKey]).map((book) => ({
@@ -287,42 +291,67 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
       aria-labelledby="simple-modal-title"
       aria-describedby="simple-modal-description"
     >
-      <Typography
-        variant="h5"
-        component="h6"
-        style={{ margin: 10, marginLeft: 20 }}
-      >
-        <small>{lemma}</small>
-        <FormControl>
-          <Select
-            labelId="demo-simple-select-helper-label"
-            id="age-native-simple"
-            value={`${target.mod_key}:${target.book}`}
-            style={{ width: 200, marginLeft: 50 }}
-            onChange={onChangeTarget}
+      <Grid container style={{ margin: 5 }}>
+        <Grid item xs={6}>
+          <Box style={{ textAlign: 'center', margin: 5 }}>語彙＆参照箇所</Box>
+        </Grid>
+        <Grid item xs={6}>
+          <Grid
+            container
+            direction="row"
+            justify="space-between"
+            alignItems="center"
           >
-            {references_options.map((option) => (
-              <MenuItem value={`${option.mod_key}:${option.book}`}>
-                {`[${option.mod_key}] ${option.book} (x${
-                  counts[option.mod_key][option.book]
-                })`}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Typography>
+            <Grid item>
+              <FormControl>
+                <Select
+                  labelId="demo-simple-select-helper-label"
+                  id="age-native-simple"
+                  value={`${target.mod_key}:${target.book}`}
+                  style={{ width: 150 }}
+                  onChange={onChangeTarget}
+                >
+                  {references_options.map((option) => (
+                    <MenuItem value={`${option.mod_key}:${option.book}`}>
+                      <Grid
+                        container
+                        direction="row"
+                        justify="space-between"
+                        alignItems="center"
+                      >
+                        <Grid item>
+                          {canonjp[option.book].abbrev}
+                          <small style={{ textAlign: 'right' }}>
+                            &nbsp;({option.mod_key})
+                          </small>
+                        </Grid>
+                        <Grid item>x{counts[option.mod_key][option.book]}</Grid>
+                      </Grid>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item>
+              {page_count > 1 && (
+                <Pagination
+                  size="small"
+                  count={page_count}
+                  page={page}
+                  onChange={onChangePage}
+                  style={{ marginRight: 30 }}
+                />
+              )}
+            </Grid>
+          </Grid>
+        </Grid>
+      </Grid>
       <Divider />
       <div className={classes.container}>
         <Box className={classes.pane}>
-          {page_count > 1 && (
-            <Grid container justify="center">
-              <Pagination
-                count={page_count}
-                page={page}
-                onChange={onChangePage}
-              />
-            </Grid>
-          )}
+          <DictView depth={depth} />
+        </Box>
+        <Box className={classes.pane}>
           {target.mod_key && (
             <RefPassages
               depth={depth}
@@ -331,19 +360,6 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
               lemma={lemma}
             />
           )}
-
-          {page_count > 1 && (
-            <Grid container justify="center">
-              <Pagination
-                count={page_count}
-                page={page}
-                onChange={onChangePage}
-              />
-            </Grid>
-          )}
-        </Box>
-        <Box className={classes.pane}>
-          <DictView depth={depth} />
         </Box>
       </div>
     </Dialog>
