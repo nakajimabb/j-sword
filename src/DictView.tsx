@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   Box,
   Checkbox,
@@ -60,6 +60,7 @@ interface DictViewProp {
 }
 
 const DictView: React.FC<DictViewProp> = ({ depth }) => {
+  const [shapedLemma, setShapedLemma] = useState<string>('');
   const { targetWords, setTargetWords } = useContext(AppContext);
   const word = targetWords[depth];
   const { text: wordText, lang, lemma, morph, fixed } = word;
@@ -71,6 +72,14 @@ const DictView: React.FC<DictViewProp> = ({ depth }) => {
       setTargetWords([...targetWords, targetWords[targetWords.length - 1]]);
     }
   }, []);
+
+  useEffect(() => {
+    const m = lemma.match(/(\d+)/);
+    if (m && m[1]) {
+      const newLemma = shapeLemma(m[1], lang);
+      setShapedLemma(newLemma);
+    }
+  }, [lemma]);
 
   const reverseFixed = () => {
     let words = [...targetWords];
@@ -103,8 +112,7 @@ const DictView: React.FC<DictViewProp> = ({ depth }) => {
   };
 
   const onChangeLemma = (e: React.ChangeEvent<{ value: unknown }>) => {
-    const newLemma = shapeLemma(String(e.currentTarget.value), lang);
-    changeLemma(newLemma);
+    changeLemma(String(e.currentTarget.value));
   };
 
   return (
@@ -132,7 +140,7 @@ const DictView: React.FC<DictViewProp> = ({ depth }) => {
               </IconButton>
             </Grid>
             <Grid item>
-              <BibleReference lemma={lemma} depth={depth + 1} />
+              <BibleReference lemma={shapedLemma} depth={depth + 1} />
               <Checkbox
                 checked={fixed}
                 icon={<PinDropOutlined />}
@@ -159,7 +167,7 @@ const DictView: React.FC<DictViewProp> = ({ depth }) => {
       </Box>
 
       <Box mb={1} className={classes.dict}>
-        <DictPassage lemma={lemma} lang={lang} />
+        <DictPassage lemma={shapedLemma} lang={lang} />
       </Box>
     </Box>
   );
