@@ -170,13 +170,29 @@ const RefPassages: React.FC<RefPassagesProps> = ({
     f();
   }, [indexes, target.mod_keys, mod_key]);
 
+  const localizeBookPos = (book_pos: string) => {
+    const canonjp: {
+      [key: string]: { abbrev: string; name: string };
+    } = canon_jp;
+    const reg = /^(\w+).(\d+:\d+)$/;
+    const m = book_pos.match(reg);
+
+    if (m && m[1] && m[2]) {
+      console.log(m);
+      const name = canonjp[m[1]]?.abbrev;
+      return !!name ? name + m[2] : book_pos;
+    } else {
+      return book_pos;
+    }
+  };
+
   return (
     <Container className={classes.card_container}>
       {indexes.map((book_pos: string, key: number) => (
         <Card key={key} className={classes.card}>
           <CardContent className={classes.card_content}>
             <Box>
-              <b>{book_pos}</b>
+              <b>{localizeBookPos(book_pos)}</b>
             </Box>
             <Box>
               {mod_keys.map(
