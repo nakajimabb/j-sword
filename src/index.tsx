@@ -1,14 +1,19 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
 import { AppContextProvider } from './AppContext';
+import App from './App';
+import SignIn from './SignIn';
+import './index.css';
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
   <React.StrictMode>
     <AppContextProvider>
-      <App />
+      <Router>
+        <Route exact path="/" component={App}></Route>
+        <Route exact path="/sign_in" component={SignIn}></Route>
+      </Router>
     </AppContextProvider>
   </React.StrictMode>,
   document.getElementById('root')

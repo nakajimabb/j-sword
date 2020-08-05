@@ -19,6 +19,13 @@ export interface Word {
   fixed: boolean;
 }
 
+export type MenuMode =
+  | 'bible'
+  | 'truth'
+  | 'kirishitan'
+  | 'worship'
+  | 'ministry';
+
 export interface ContextType {
   bibles: { [key: string]: Sword };
   dictionaries: { [key: string]: Sword };
@@ -30,6 +37,8 @@ export interface ContextType {
   targetWords: Word[];
   setTargetWords: React.Dispatch<Word[]>;
   touchDevice: boolean;
+  currentMode: MenuMode;
+  setCurrentMode: React.Dispatch<MenuMode>;
   sample_modules: { [key: string]: string };
 }
 
@@ -44,6 +53,8 @@ const AppContext = createContext({
   targetWords: [],
   setTargetWords: (value: Word[]) => {},
   touchDevice: false,
+  currentMode: 'bible',
+  setCurrentMode: (value: MenuMode) => {},
   sample_modules: {},
 } as ContextType);
 
@@ -53,6 +64,7 @@ export const AppContextProvider: React.FC = (props) => {
   const [morphologies, setMorphologies] = useState({});
   const [currentUser, setCurrentUser] = useState<firebase.User | null>(null);
   const [touchDevice, SetTouchDevice] = useState<boolean>(false);
+  const [currentMode, setCurrentMode] = useState<MenuMode>('bible');
   const [target, setTarget] = useState<TargetType>({
     mod_keys: [],
     book: 'Gen',
@@ -117,6 +129,8 @@ export const AppContextProvider: React.FC = (props) => {
         targetWords,
         setTargetWords,
         touchDevice,
+        currentMode,
+        setCurrentMode,
         sample_modules: SAMPLE_MODULES,
       }}
     >
