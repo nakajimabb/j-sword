@@ -20,6 +20,7 @@ import Sword from './sword/Sword';
 import canon_jp from './sword/canons/locale/ja.json';
 import firebase from './firebase';
 import 'firebase/auth';
+import 'firebase/functions';
 import './App.css';
 
 const useStyles = makeStyles((theme) => ({
@@ -62,7 +63,7 @@ const TopBar: React.FC<TopBarProps> = () => {
   const references = useRef<HTMLInputElement>(null);
   const [anchorEl, setAnchorEl] = useState<Element | null>(null);
   const [open_select_target, setOpenSelectTarget] = useState<boolean>(false);
-  const { bibles, target, currentUser } = useContext(AppContext);
+  const { bibles, target, currentUser, customClaims } = useContext(AppContext);
   const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
   const bookName = canonjp.hasOwnProperty(target.book)
     ? canonjp[target.book].abbrev
@@ -172,12 +173,30 @@ const TopBar: React.FC<TopBarProps> = () => {
   const showUserInfo = () => {
     if (currentUser) {
       let messages: string[] = [];
-      if (currentUser.email) messages.push('メール: ' + currentUser.email);
+      if (currentUser.email) messages.push('email: ' + currentUser.email);
       if (currentUser.phoneNumber)
-        messages.push('電話番号: ' + currentUser.phoneNumber);
+        messages.push('phoneNumber: ' + currentUser.phoneNumber);
       if (currentUser.displayName)
-        messages.push('名前: ' + currentUser.displayName);
+        messages.push('displayName: ' + currentUser.displayName);
       alert(messages.join('\n'));
+    }
+  };
+
+  const getUsers = () => {
+    if (currentUser) {
+      const func = firebase
+        .app()
+        .functions('asia-northeast1')
+        .httpsCallable('getAuthUserList');
+      func()
+        .then((result) => {
+          console.log({ result });
+          alert('データを取得しました。');
+        })
+        .catch((error) => {
+          console.log({ error });
+          alert(error.message || 'エラーが発生しました。');
+        });
     }
   };
 
@@ -216,42 +235,35 @@ const TopBar: React.FC<TopBarProps> = () => {
           open={open_select_target}
           onClose={() => setOpenSelectTarget(false)}
         />
-        <IconButton
-          aria-label="display more actions"
-          edge="end"
-          color="inherit"
-          onClick={(e: React.MouseEvent) => setAnchorEl(e.currentTarget)}
-        >
-          <MoreVert />
-        </IconButton>
-        <Menu
-          id="simple-menu"
-          anchorEl={anchorEl}
-          keepMounted
-          open={!!anchorEl}
-          onClose={() => setAnchorEl(null)}
-        >
-          <MenuItem onClick={loadFile(bible_file)}>load bible</MenuItem>
-          <MenuItem onClick={loadFile(dict_file)}>load dictionary</MenuItem>
-          <MenuItem onClick={loadFile(morph_file)}>load morphology</MenuItem>
-          <MenuItem onClick={loadReferences}>load references</MenuItem>
-          {/* {enableCreateReferences && (
-              <>
-                <MenuItem onClick={createReferences("WHNU")}>
-                  create dictionary references from WHNU
-                </MenuItem>
-                <MenuItem onClick={createReferences("Byz")}>
-                  create dictionary references from Byz
-                </MenuItem>
-                <MenuItem onClick={createReferences("LXX")}>
-                  create dictionary references from LXX
-                </MenuItem>
-                <MenuItem onClick={createReferences("OSHB")}>
-                  create dictionary references from OSHB
-                </MenuItem>
-              </>
-            )} */}
-        </Menu>
+        {currentUser && (
+          <>
+            <IconButton
+              aria-label="display more actions"
+              edge="end"
+              color="inherit"
+              onClick={(e: React.MouseEvent) => setAnchorEl(e.currentTarget)}
+            >
+              <MoreVert />
+            </IconButton>
+            <Menu
+              id="simple-menu"
+              anchorEl={anchorEl}
+              keepMounted
+              open={!!anchorEl}
+              onClose={() => setAnchorEl(null)}
+            >
+              <MenuItem onClick={loadFile(bible_file)}>load bible</MenuItem>
+              <MenuItem onClick={loadFile(dict_file)}>load dictionary</MenuItem>
+              <MenuItem onClick={loadFile(morph_file)}>
+                load morphology
+              </MenuItem>
+              <MenuItem onClick={loadReferences}>load references</MenuItem>
+              {customClaims.admin && (
+                <MenuItem onClick={getUsers}>get users</MenuItem>
+              )}
+            </Menu>
+          </>
+        )}
       </Toolbar>
       <input
         type="file"

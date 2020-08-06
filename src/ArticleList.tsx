@@ -33,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
 const ArticleList: React.FC = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [open, setOpen] = useState<boolean>(false);
-  const { currentUser } = useContext(AppContext);
+  const { currentUser, customClaims } = useContext(AppContext);
   const classes = useStyles();
   console.log({ articles });
 
@@ -53,7 +53,7 @@ const ArticleList: React.FC = () => {
   return (
     <Container maxWidth="lg">
       <Box m={2}>
-        {currentUser && (
+        {customClaims.admin && (
           <Grid
             container
             direction="column-reverse"

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, createContext } from 'react';
+
 import firebase from './firebase';
+import { CustomClaims } from './types';
 import Sword from './sword/Sword';
 import SAMPLE_MODULES from './config/sample_modules';
 
@@ -32,6 +34,7 @@ export interface ContextType {
   morphologies: { [key: string]: Sword };
   setSwordModule: (module: Sword) => void;
   currentUser: firebase.User | null;
+  customClaims: CustomClaims;
   target: TargetType;
   setTarget: React.Dispatch<TargetType>;
   targetWords: Word[];
@@ -48,6 +51,7 @@ const AppContext = createContext({
   morphologies: {},
   setSwordModule: (module: Sword) => {},
   currentUser: null,
+  customClaims: {},
   target: { mod_keys: [], book: '', chapter: '', verse: '' },
   setTarget: (value: TargetType) => {},
   targetWords: [],
@@ -63,6 +67,7 @@ export const AppContextProvider: React.FC = (props) => {
   const [dictionaries, setDictionaries] = useState({});
   const [morphologies, setMorphologies] = useState({});
   const [currentUser, setCurrentUser] = useState<firebase.User | null>(null);
+  const [customClaims, setCustomClaims] = useState<CustomClaims>({});
   const [touchDevice, SetTouchDevice] = useState<boolean>(false);
   const [currentMode, setCurrentMode] = useState<MenuMode>('bible');
   const [target, setTarget] = useState<TargetType>({
@@ -97,7 +102,21 @@ export const AppContextProvider: React.FC = (props) => {
       setDictionaries(new_dictionaries);
       const new_morphologies = await Sword.loadAll('morphology');
       setMorphologies(new_morphologies);
-      firebase.auth().onAuthStateChanged((user) => setCurrentUser(user));
+      firebase.auth().onAuthStateChanged((user) => {
+        setCurrentUser(user);
+        if (user) {
+          user
+            .getIdTokenResult()
+            .then((token) => {
+              setCustomClaims(token.claims || {});
+            })
+            .catch((error) => {
+              setCustomClaims({});
+            });
+        } else {
+          setCustomClaims({});
+        }
+      });
     };
     f();
   }, []);
@@ -124,6 +143,7 @@ export const AppContextProvider: React.FC = (props) => {
         morphologies,
         setSwordModule,
         currentUser,
+        customClaims,
         target,
         setTarget,
         targetWords,
