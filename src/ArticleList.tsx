@@ -6,9 +6,11 @@ import {
   CardContent,
   Container,
   Grid,
+  IconButton,
   Typography,
   makeStyles,
 } from '@material-ui/core';
+import { Edit, Delete } from '@material-ui/icons';
 
 import { Article } from './types';
 import AppContext from './AppContext';
@@ -31,22 +33,23 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const ArticleList: React.FC = () => {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [open, setOpen] = useState<boolean>(false);
-  const { currentUser, customClaims } = useContext(AppContext);
+  const [articles, setArticles] = useState<
+    firebase.firestore.QueryDocumentSnapshot[]
+  >([]);
+  const [target, setTarget] = useState<{
+    action: 'new' | 'edit' | null;
+    snapshot: firebase.firestore.QueryDocumentSnapshot | null;
+  }>({ action: null, snapshot: null });
+  const { customClaims } = useContext(AppContext);
   const classes = useStyles();
-  console.log({ articles });
 
   useEffect(() => {
     firebase
       .firestore()
       .collectionGroup('articles')
-      // .orderBy('updatedAt', 'desc')
-      .get()
-      .then((snapshot) => {
-        let new_articles: Article[] = [];
-        snapshot.forEach((doc) => new_articles.push(doc.data() as Article));
-        setArticles(new_articles);
+      .orderBy('createdAt', 'desc')
+      .onSnapshot((snapshot) => {
+        setArticles(snapshot.docs);
       });
   }, []);
 
@@ -64,19 +67,53 @@ const ArticleList: React.FC = () => {
               size="small"
               variant="contained"
               color="primary"
-              onClick={() => setOpen(true)}
+              onClick={() => setTarget({ action: 'new', snapshot: null })}
             >
               記事を投稿する
             </Button>
           </Grid>
         )}
-        <ArticleDialog open={open} onClose={() => setOpen(false)} />
-        {articles.map((doc) => {
+        <ArticleDialog
+          open={!!target.action}
+          snapshot={target.snapshot}
+          onClose={() => setTarget({ ...target, action: null })}
+        />
+        {articles.map((snapshot) => {
+          const article = snapshot.data() as Article;
           return (
             <Card className={classes.card}>
               <CardContent>
-                <Typography>{doc.subject}</Typography>
-                <div dangerouslySetInnerHTML={{ __html: doc.body }} />
+                <Grid
+                  container
+                  direction="row"
+                  justify="space-between"
+                  alignItems="center"
+                >
+                  <Grid item>
+                    <b>{article.subject}</b>
+                  </Grid>
+                  <Grid item>
+                    {customClaims.admin && (
+                      <>
+                        <IconButton
+                          color="primary"
+                          onClick={() =>
+                            setTarget({ action: 'edit', snapshot })
+                          }
+                        >
+                          <Edit />
+                        </IconButton>
+                        <IconButton
+                          color="primary"
+                          onClick={() => snapshot.ref.delete()}
+                        >
+                          <Delete />
+                        </IconButton>
+                      </>
+                    )}
+                  </Grid>
+                </Grid>
+                <div dangerouslySetInnerHTML={{ __html: article.body }} />
               </CardContent>
             </Card>
           );

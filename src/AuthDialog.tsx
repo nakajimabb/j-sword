@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AppBar,
   Dialog,
@@ -15,10 +15,7 @@ import {
 } from '@material-ui/core';
 import firebase from './firebase';
 import 'firebase/auth';
-import AppContext from './AppContext';
 import './passage.css';
-import clsx from 'clsx';
-import { firestore } from 'firebase';
 
 const useStyles = makeStyles((theme) => ({
   container: {

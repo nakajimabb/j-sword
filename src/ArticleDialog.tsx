@@ -51,6 +51,7 @@ const useStyles = makeStyles((theme) => ({
 interface ArticleDialogProps {
   open: boolean;
   onClose: () => void;
+  snapshot: firebase.firestore.QueryDocumentSnapshot | null;
 }
 
 interface Article {
@@ -58,31 +59,59 @@ interface Article {
   body: string;
 }
 
-const ArticleDialog: React.FC<ArticleDialogProps> = ({ open, onClose }) => {
+const ArticleDialog: React.FC<ArticleDialogProps> = ({
+  open,
+  onClose,
+  snapshot,
+}) => {
   const [article, setArticle] = useState<Article>({ subject: '', body: '' });
   const { currentUser } = useContext(AppContext);
   const classes = useStyles();
 
-  const createArticle = async () => {
+  useEffect(() => {
+    if (snapshot) {
+      setArticle(snapshot.data() as Article);
+    } else {
+      setArticle({ subject: '', body: '' });
+    }
+  }, [snapshot]);
+
+  const saveArticle = () => {
     if (currentUser) {
-      await firebase
-        .firestore()
-        .collection('users')
-        .doc(currentUser.uid)
-        .collection('articles')
-        .add({
-          ...article,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        })
-        .then((result) => {
-          setArticle({ subject: '', body: '' });
-          onClose();
-        })
-        .catch((error) => {
-          console.log({ error });
-          alert(error.message || 'エラーが発生しました。');
-        });
+      if (snapshot) {
+        snapshot.ref
+          .update({
+            ...article,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          })
+          .then((result) => {
+            setArticle({ subject: '', body: '' });
+            onClose();
+          })
+          .catch((error) => {
+            console.log({ error });
+            alert(error.message || 'エラーが発生しました。');
+          });
+      } else {
+        firebase
+          .firestore()
+          .collection('users')
+          .doc(currentUser.uid)
+          .collection('articles')
+          .add({
+            ...article,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          })
+          .then((result) => {
+            setArticle({ subject: '', body: '' });
+            onClose();
+          })
+          .catch((error) => {
+            console.log({ error });
+            alert(error.message || 'エラーが発生しました。');
+          });
+      }
     }
   };
 
@@ -120,7 +149,7 @@ const ArticleDialog: React.FC<ArticleDialogProps> = ({ open, onClose }) => {
         </FormControl>
         <FormControl margin="normal" fullWidth>
           <RichEditor.EditorConvertToHTML
-            html=""
+            html={article.body}
             setHtml={(html: string) => setArticle({ ...article, body: html })}
           />
         </FormControl>
@@ -130,7 +159,7 @@ const ArticleDialog: React.FC<ArticleDialogProps> = ({ open, onClose }) => {
           justify="space-around"
           alignItems="flex-end"
         >
-          <Button variant="contained" color="primary" onClick={createArticle}>
+          <Button variant="contained" color="primary" onClick={saveArticle}>
             投稿
           </Button>
         </Grid>
