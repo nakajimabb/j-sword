@@ -3,6 +3,7 @@ import {
   AppBar,
   Button,
   IconButton,
+  Grid,
   Menu,
   MenuItem,
   Typography,
@@ -24,6 +25,9 @@ import 'firebase/functions';
 import './App.css';
 
 const useStyles = makeStyles((theme) => ({
+  appbar: {
+    backgroundColor: 'black',
+  },
   chip: {
     backgroundColor: fade(theme.palette.common.white, 1.0),
     '&:hover': {
@@ -49,6 +53,9 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
     textAlign: 'left',
   },
+  icon: {
+    color: 'white',
+  },
   hide: {
     display: 'none',
   },
@@ -63,7 +70,9 @@ const TopBar: React.FC<TopBarProps> = () => {
   const references = useRef<HTMLInputElement>(null);
   const [anchorEl, setAnchorEl] = useState<Element | null>(null);
   const [open_select_target, setOpenSelectTarget] = useState<boolean>(false);
-  const { bibles, target, currentUser, customClaims } = useContext(AppContext);
+  const { bibles, target, currentUser, customClaims, currentMode } = useContext(
+    AppContext
+  );
   const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
   const bookName = canonjp.hasOwnProperty(target.book)
     ? canonjp[target.book].abbrev
@@ -201,69 +210,91 @@ const TopBar: React.FC<TopBarProps> = () => {
   };
 
   return (
-    <AppBar position="static">
+    <AppBar position="static" className={classes.appbar}>
       <Toolbar variant="dense">
-        <Button variant="outlined" color="primary" className={classes.logo}>
-          <span style={{ margin: '-14px 0' }}>J</span>
-        </Button>
-        <Button
-          variant="outlined"
-          color="primary"
-          onClick={() => setOpenSelectTarget(true)}
-          className={classes.chip}
+        <Grid
+          container
+          direction="row"
+          justify="space-between"
+          alignItems="center"
         >
-          {`${bookName} ${target.chapter}章`}
-        </Button>
-        <Typography variant="h6" className={classes.title}></Typography>
-        {currentUser && (
-          <IconButton aria-label="profile" onClick={showUserInfo}>
-            <User fontSize="small" />
-          </IconButton>
-        )}
-        {currentUser ? (
-          <IconButton aria-label="logout" onClick={logoout}>
-            <LogOut fontSize="small" />
-          </IconButton>
-        ) : (
-          <Link to="/sign_in">
-            <IconButton aria-label="login">
-              <LogIn id="login" fontSize="small" />
-            </IconButton>
-          </Link>
-        )}
-        <SelectTarget
-          open={open_select_target}
-          onClose={() => setOpenSelectTarget(false)}
-        />
-        {currentUser && (
-          <>
-            <IconButton
-              aria-label="display more actions"
-              edge="end"
-              color="inherit"
-              onClick={(e: React.MouseEvent) => setAnchorEl(e.currentTarget)}
-            >
-              <MoreVert />
-            </IconButton>
-            <Menu
-              id="simple-menu"
-              anchorEl={anchorEl}
-              keepMounted
-              open={!!anchorEl}
-              onClose={() => setAnchorEl(null)}
-            >
-              <MenuItem onClick={loadFile(bible_file)}>load bible</MenuItem>
-              <MenuItem onClick={loadFile(dict_file)}>load dictionary</MenuItem>
-              <MenuItem onClick={loadFile(morph_file)}>
-                load morphology
-              </MenuItem>
-              <MenuItem onClick={loadReferences}>load references</MenuItem>
-              {customClaims.admin && (
-                <MenuItem onClick={getUsers}>get users</MenuItem>
-              )}
-            </Menu>
-          </>
-        )}
+          <Grid item>
+            {currentMode === 'bible' && (
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={() => setOpenSelectTarget(true)}
+                className={classes.chip}
+              >
+                {`${bookName} ${target.chapter}章`}
+              </Button>
+            )}
+          </Grid>
+          <Grid item>{<img src="sword.png" style={{ height: 48 }} />}</Grid>
+          <Grid item>
+            {currentUser && (
+              <IconButton
+                aria-label="profile"
+                onClick={showUserInfo}
+                className={classes.icon}
+              >
+                <User fontSize="small" />
+              </IconButton>
+            )}
+            {currentUser ? (
+              <IconButton
+                aria-label="logout"
+                onClick={logoout}
+                className={classes.icon}
+              >
+                <LogOut fontSize="small" />
+              </IconButton>
+            ) : (
+              <Link to="/sign_in">
+                <IconButton aria-label="login" className={classes.icon}>
+                  <LogIn id="login" fontSize="small" />
+                </IconButton>
+              </Link>
+            )}
+            <SelectTarget
+              open={open_select_target}
+              onClose={() => setOpenSelectTarget(false)}
+            />
+            {currentUser && (
+              <>
+                <IconButton
+                  aria-label="display more actions"
+                  edge="end"
+                  color="inherit"
+                  onClick={(e: React.MouseEvent) =>
+                    setAnchorEl(e.currentTarget)
+                  }
+                >
+                  <MoreVert />
+                </IconButton>
+                <Menu
+                  id="simple-menu"
+                  anchorEl={anchorEl}
+                  keepMounted
+                  open={!!anchorEl}
+                  onClose={() => setAnchorEl(null)}
+                >
+                  <MenuItem onClick={loadFile(bible_file)}>load bible</MenuItem>
+                  <MenuItem onClick={loadFile(dict_file)}>
+                    load dictionary
+                  </MenuItem>
+                  <MenuItem onClick={loadFile(morph_file)}>
+                    load morphology
+                  </MenuItem>
+                  <MenuItem onClick={loadReferences}>load references</MenuItem>
+                  {customClaims.admin && (
+                    <MenuItem onClick={getUsers}>get users</MenuItem>
+                  )}
+                </Menu>
+              </>
+            )}
+          </Grid>
+        </Grid>
       </Toolbar>
       <input
         type="file"
