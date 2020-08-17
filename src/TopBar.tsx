@@ -6,7 +6,6 @@ import {
   Grid,
   Menu,
   MenuItem,
-  Typography,
   Toolbar,
   makeStyles,
   fade,
@@ -27,6 +26,10 @@ import './App.css';
 const useStyles = makeStyles((theme) => ({
   appbar: {
     backgroundColor: 'black',
+    backgroundSize: 'auto 48px',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'center',
+    backgroundImage: 'url("sword.png")',
   },
   chip: {
     backgroundColor: fade(theme.palette.common.white, 1.0),
@@ -230,7 +233,6 @@ const TopBar: React.FC<TopBarProps> = () => {
               </Button>
             )}
           </Grid>
-          <Grid item>{<img src="sword.png" style={{ height: 48 }} />}</Grid>
           <Grid item>
             {currentUser && (
               <IconButton
