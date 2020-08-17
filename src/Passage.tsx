@@ -43,7 +43,12 @@ const MuiPhrase: React.FC<PhraseProps> = ({
     onMouseOver(e);
     if (word.lemma && !touchDevice) {
       let words = [...targetWords];
-      words[depth] = { ...word, fixed: !word.fixed };
+      words[depth] = {
+        ...word,
+        fixed: !word.fixed,
+      };
+      if (!target_lemma)
+        words[depth].targetLemma = word.fixed ? '' : word.lemma;
       setTargetWords(words);
     }
   };
@@ -78,6 +83,8 @@ const MuiPhrase: React.FC<PhraseProps> = ({
         lang,
         text: textValue(nodeObj),
       };
+      if (!target_lemma) cur_word.targetLemma = lemma;
+
       const next_word = { ...cur_word, targetLemma: lemma };
       words[depth] = cur_word;
       if (words.length > depth) {
