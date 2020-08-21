@@ -5,6 +5,8 @@ import AppContext from './AppContext';
 import './passage.css';
 import clsx from 'clsx';
 
+const INVALID_CHAR = /[^\x09\x0A\x0D\x20-\xFF\x85\xA0-\uD7FF\uE000-\uFDCF\uFDE0-\uFFFD]/gm;
+
 const useStyles = makeStyles((theme) => ({
   title: {
     marginTop: 5,
@@ -34,6 +36,7 @@ const Phrase: React.FC<PhraseProps> = ({ nodeObj, lang }) => {
       );
     }
   };
+
   return (
     <>
       {header()}
@@ -63,7 +66,7 @@ const DictPassage: React.FC<DictPassageProps> = ({ lemma, lang }) => {
         const tasks = Object.entries(dictionaries).map(
           async ([modname, dictionary]) => {
             const rawText = await dictionary.getRawText(lemma);
-            return { modname, rawText };
+            return { modname, rawText: rawText.replace(INVALID_CHAR, '') };
           }
         );
         let node_objs: { [modname: string]: NodeObj } = {};
