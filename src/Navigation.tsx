@@ -48,18 +48,6 @@ const Navigation: React.FC = () => {
         disabled
         icon={<img src="cross.png" alt="" style={{ height: 32 }} />}
       />
-      <BottomNavigationAction
-        label="Worship"
-        value="worship"
-        disabled
-        icon={<img src="holyspilit.png" alt="" style={{ height: 32 }} />}
-      />
-      <BottomNavigationAction
-        label="Ministry"
-        value="ministry"
-        disabled
-        icon={<img src="candle.png" alt="" style={{ height: 32 }} />}
-      />
     </BottomNavigation>
   );
 };

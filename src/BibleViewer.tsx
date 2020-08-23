@@ -13,10 +13,11 @@ const useStyles = makeStyles((theme) => ({
   },
   pane: {
     overflow: 'scroll',
-    padding: theme.spacing(2),
+    padding: theme.spacing(1),
+    paddingBottom: 30,
     textAlign: 'left',
     width: '100%',
-    height: 'calc(100vh - 150px)',
+    height: 'calc(100vh - 125px)',
     dislay: 'flex',
     flexDirection: 'column',
   },

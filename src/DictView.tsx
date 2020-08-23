@@ -41,15 +41,6 @@ const useStyles = makeStyles((theme) => ({
   meaning: {
     fontSize: '85%',
   },
-  pane: {
-    overflow: 'scroll',
-    padding: theme.spacing(2),
-    textAlign: 'left',
-    width: '100%',
-    height: 'calc(100vh - 120px)',
-    dislay: 'flex',
-    flexDirection: 'column',
-  },
   input: {
     width: 70,
   },
