@@ -7,7 +7,6 @@ import {
   Container,
   Grid,
   IconButton,
-  Typography,
   makeStyles,
 } from '@material-ui/core';
 import { Edit, Delete } from '@material-ui/icons';

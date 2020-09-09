@@ -4,6 +4,7 @@ import Canon from './Canon';
 import zText from './zText';
 import rawCom from './rawCom';
 import {
+  Raw,
   ModType,
   ConfType,
   BlobsType,
@@ -13,6 +14,13 @@ import {
   BookIndex,
   DictIndex,
 } from './types';
+import { shapeLemma } from '../NodeObj';
+
+type References = {
+  [lemma: string]: {
+    [book: string]: { [chapter: number]: { [verse: number]: number } };
+  };
+};
 
 function parseConf(str: string) {
   const lines = str.split(/[\r\n]+/g);
@@ -696,6 +704,91 @@ class Sword {
     }
     return indexes;
   }
+
+  async createReference() {
+    const lang = String(this.conf?.Lang);
+    const index = this.index || (await SwordDB.getIndex(this.modname));
+    if (index) {
+      const all_book_indexes = Object.assign(
+        {},
+        index.ot || {},
+        index.nt || {}
+      );
+      const book_poses: string[] = [];
+      for (const book in all_book_indexes) {
+        const book_indexes = all_book_indexes[book];
+        for (let chapter = 1; chapter <= book_indexes.length; ++chapter) {
+          book_poses.push(book + '.' + chapter);
+        }
+      }
+      const references: References = {};
+      for await (let book_pos of book_poses) {
+        const raws = await this.renderText(book_pos, {
+          footnotes: false,
+          crossReferences: true,
+          oneVersePerLine: true,
+          headings: true,
+          wordsOfChristInRed: true,
+          intro: true,
+          array: false,
+        });
+        if (raws) raws.forEach((raw) => countLemma(raw, references, lang));
+      }
+      return references;
+    }
+  }
 }
+
+export const extractLemma = (
+  node: Node,
+  pos: { book: string; chapter: number; verse: number },
+  references: References,
+  lang: string
+) => {
+  const attrs =
+    node instanceof Element && node.attributes
+      ? Object.assign(
+          {},
+          ...Array.from(node.attributes).map((attr) => ({
+            [attr.name]: attr.nodeValue,
+          }))
+        )
+      : {};
+  if (attrs.lemma) {
+    let lemma: string = attrs.lemma.split(':').pop() || '';
+    if (lemma) {
+      lemma = shapeLemma(lemma, lang);
+      if (!references[lemma]) references[lemma] = {};
+      if (!references[lemma][pos.book]) references[lemma][pos.book] = {};
+      if (!references[lemma][pos.book][pos.chapter])
+        references[lemma][pos.book][pos.chapter] = {};
+      if (!references[lemma][pos.book][pos.chapter][pos.verse])
+        references[lemma][pos.book][pos.chapter][pos.verse] = 0;
+      references[lemma][pos.book][pos.chapter][pos.verse] += 1;
+    }
+  }
+  node.childNodes.forEach((child) => {
+    extractLemma(child, pos, references, lang);
+  });
+};
+
+const countLemma = (raw_text: Raw, references: References, lang: string) => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(
+    '<root>' + raw_text.text + '</root>',
+    'text/xml'
+  );
+  const root = doc.childNodes[0];
+  const m = raw_text.osisRef.match(/^(\w+).(\d+).(\d+)$/);
+  if (m) {
+    extractLemma(
+      root,
+      { book: m[1], chapter: +m[2], verse: +m[3] },
+      references,
+      lang
+    );
+  }
+  return references;
+};
 
 export default Sword;

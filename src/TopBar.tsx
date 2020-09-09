@@ -155,18 +155,21 @@ const TopBar: React.FC<TopBarProps> = () => {
     if (references && references.current) references.current.click();
   };
 
-  // const createReferences = (moduleKey: string) => async () => {
-  //   const module = bibles[moduleKey];
-  //   const count_lemma = await module.createReferences();
+  const createReferences = async () => {
+    const modkey = window.prompt('modkey');
+    if (modkey) {
+      const references = await bibles[modkey].createReference();
+      console.log({ references });
 
-  //   let blob = new Blob([JSON.stringify(count_lemma)], {
-  //     type: "application/json",
-  //   });
-  //   let link = document.createElement("a");
-  //   link.href = URL.createObjectURL(blob);
-  //   link.download = `${moduleKey}.json`;
-  //   link.click();
-  // };
+      let blob = new Blob([JSON.stringify(references)], {
+        type: 'application/json',
+      });
+      let link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${modkey}.json`;
+      link.click();
+    }
+  };
 
   const logoout = () => {
     firebase
@@ -292,6 +295,7 @@ const TopBar: React.FC<TopBarProps> = () => {
                   {customClaims.admin && (
                     <MenuItem onClick={getUsers}>get users</MenuItem>
                   )}
+                  <MenuItem onClick={createReferences}>create indexes</MenuItem>
                 </Menu>
               </>
             )}
