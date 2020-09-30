@@ -51,7 +51,7 @@ const useStyles = makeStyles((theme) => ({
 interface ArticleDialogProps {
   open: boolean;
   onClose: () => void;
-  snapshot: firebase.firestore.QueryDocumentSnapshot | null;
+  docId: string | null;
 }
 
 interface Article {
@@ -62,55 +62,67 @@ interface Article {
 const ArticleDialog: React.FC<ArticleDialogProps> = ({
   open,
   onClose,
-  snapshot,
+  docId,
 }) => {
   const [article, setArticle] = useState<Article>({ subject: '', body: '' });
   const { currentUser } = useContext(AppContext);
   const classes = useStyles();
+  const db = firebase.firestore();
 
   useEffect(() => {
-    if (snapshot) {
-      setArticle(snapshot.data() as Article);
+    if (docId && currentUser) {
+      db.collection('users')
+        .doc(currentUser.uid)
+        .collection('articles')
+        .doc(docId)
+        .get()
+        .then((snapshot) => {
+          const data = snapshot.data() as Article;
+          console.log({ docId, data });
+          if (data) setArticle(data);
+          else resetArticle();
+        })
+        .catch(() => {
+          resetArticle();
+        });
     } else {
-      setArticle({ subject: '', body: '' });
+      resetArticle();
     }
-  }, [snapshot]);
+  }, [docId]);
 
-  const saveArticle = () => {
+  const resetArticle = () => {
+    setArticle({ subject: '', body: '' });
+  };
+
+  const saveArticle = async () => {
     if (currentUser) {
-      if (snapshot) {
-        snapshot.ref
-          .update({
-            ...article,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          })
-          .then((result) => {
-            setArticle({ subject: '', body: '' });
-            onClose();
-          })
-          .catch((error) => {
-            console.log({ error });
-            alert(error.message || 'エラーが発生しました。');
-          });
-      } else {
-        firebase
-          .firestore()
-          .collection('users')
-          .doc(currentUser.uid)
-          .collection('articles')
-          .add({
-            ...article,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          })
-          .then((result) => {
-            setArticle({ subject: '', body: '' });
-            onClose();
-          })
-          .catch((error) => {
-            console.log({ error });
-            alert(error.message || 'エラーが発生しました。');
-          });
+      try {
+        if (docId) {
+          await db
+            .collection('users')
+            .doc(currentUser.uid)
+            .collection('articles')
+            .doc(docId)
+            .update({
+              ...article,
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+          onClose();
+        } else {
+          await db
+            .collection('users')
+            .doc(currentUser.uid)
+            .collection('articles')
+            .add({
+              ...article,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+          onClose();
+        }
+      } catch (error) {
+        console.log({ error });
+        alert(error.message || 'エラーが発生しました。');
       }
     }
   };

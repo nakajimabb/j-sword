@@ -28,17 +28,18 @@ const useStyles = makeStyles((theme) => ({
     marginTop: 10,
     marginBottom: 10,
     paddingBottom: 5,
+    height: 400,
   },
 }));
 
+const LIMIT = 10;
+
 const ArticleList: React.FC = () => {
-  const [articles, setArticles] = useState<
-    firebase.firestore.QueryDocumentSnapshot[]
-  >([]);
-  const [target, setTarget] = useState<{
-    action: 'new' | 'edit' | null;
-    snapshot: firebase.firestore.QueryDocumentSnapshot | null;
-  }>({ action: null, snapshot: null });
+  const [articles, setArticles] = useState<Map<string, Article>>(
+    new Map<string, Article>()
+  );
+  const [open, setOpen] = useState<boolean>(false);
+  const [targetId, setTargetId] = useState<string | null>(null);
   const { customClaims } = useContext(AppContext);
   const classes = useStyles();
 
@@ -47,8 +48,14 @@ const ArticleList: React.FC = () => {
       .firestore()
       .collectionGroup('articles')
       .orderBy('createdAt', 'desc')
+      .limit(LIMIT)
       .onSnapshot((snapshot) => {
-        setArticles(snapshot.docs);
+        const new_articles: Map<string, Article> = new Map<string, Article>();
+        snapshot.docs.forEach((doc) => {
+          const data = doc.data();
+          new_articles.set(doc.ref.id, data as Article);
+        });
+        setArticles(new_articles);
       });
   }, []);
 
@@ -66,57 +73,61 @@ const ArticleList: React.FC = () => {
               size="small"
               variant="contained"
               color="primary"
-              onClick={() => setTarget({ action: 'new', snapshot: null })}
+              onClick={() => {
+                setTargetId(null);
+                setOpen(true);
+              }}
             >
               記事を投稿する
             </Button>
           </Grid>
         )}
         <ArticleDialog
-          open={!!target.action}
-          snapshot={target.snapshot}
-          onClose={() => setTarget({ ...target, action: null })}
+          open={open}
+          docId={targetId}
+          onClose={() => {
+            setOpen(false);
+            setTargetId(null);
+          }}
         />
-        {articles.map((snapshot) => {
-          const article = snapshot.data() as Article;
-          return (
-            <Card className={classes.card}>
-              <CardContent>
-                <Grid
-                  container
-                  direction="row"
-                  justify="space-between"
-                  alignItems="center"
-                >
-                  <Grid item>
-                    <b>{article.subject}</b>
-                  </Grid>
-                  <Grid item>
-                    {customClaims.admin && (
-                      <>
-                        <IconButton
-                          color="primary"
-                          onClick={() =>
-                            setTarget({ action: 'edit', snapshot })
-                          }
-                        >
-                          <Edit />
-                        </IconButton>
-                        <IconButton
-                          color="primary"
-                          onClick={() => snapshot.ref.delete()}
-                        >
-                          <Delete />
-                        </IconButton>
-                      </>
-                    )}
-                  </Grid>
-                </Grid>
-                <div dangerouslySetInnerHTML={{ __html: article.body }} />
-              </CardContent>
-            </Card>
-          );
-        })}
+        <Grid container spacing={3}>
+          {Array.from(articles.entries()).map(([docId, article]) => {
+            return (
+              <Grid item xs={12} sm={6} md={4} lg={3}>
+                <Card className={classes.card}>
+                  <CardContent>
+                    <Grid
+                      container
+                      direction="row"
+                      justify="space-between"
+                      alignItems="center"
+                    >
+                      <Grid item>
+                        <b>{article.subject}</b>
+                      </Grid>
+                      <Grid item>
+                        {customClaims.admin && (
+                          <>
+                            <IconButton
+                              color="primary"
+                              onClick={() => {
+                                setTargetId(docId);
+                                setOpen(true);
+                              }}
+                            >
+                              <Edit />
+                            </IconButton>
+                          </>
+                        )}
+                      </Grid>
+                    </Grid>
+                    <div dangerouslySetInnerHTML={{ __html: article.body }} />
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          })}
+        </Grid>
       </Box>
     </Container>
   );
