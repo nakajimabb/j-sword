@@ -3,17 +3,17 @@ import {
   Box,
   Button,
   Card,
+  CardActions,
   CardContent,
+  CardMedia,
   Container,
   Grid,
-  IconButton,
   makeStyles,
 } from '@material-ui/core';
-import { Edit, Delete } from '@material-ui/icons';
 
 import { Article } from './types';
 import AppContext from './AppContext';
-import ArticleDialog from './ArticleDialog';
+import ArticlePage from './ArticlePage';
 import firebase from './firebase';
 import 'firebase/auth';
 import 'firebase/firestore';
@@ -21,14 +21,20 @@ import './App.css';
 import './passage.css';
 
 const useStyles = makeStyles((theme) => ({
-  container: {
-    display: 'flex',
-  },
   card: {
     marginTop: 10,
     marginBottom: 10,
     paddingBottom: 5,
     height: 400,
+    boxShadow: '3px 3px 3px 3px rgba(0, 0, 0, .2)',
+    '&:hover': {
+      opacity: 0.7,
+      cursor: 'pointer',
+    },
+  },
+  thumbnail: {
+    height: 200,
+    maxHeight: 400,
   },
 }));
 
@@ -38,31 +44,51 @@ const ArticleList: React.FC = () => {
   const [articles, setArticles] = useState<Map<string, Article>>(
     new Map<string, Article>()
   );
-  const [open, setOpen] = useState<boolean>(false);
-  const [targetId, setTargetId] = useState<string | null>(null);
+  const [targetPath, setTargetPath] = useState<string>('');
   const { customClaims } = useContext(AppContext);
+  const admin = customClaims?.admin;
   const classes = useStyles();
 
   useEffect(() => {
-    firebase
-      .firestore()
-      .collectionGroup('articles')
-      .orderBy('createdAt', 'desc')
-      .limit(LIMIT)
-      .onSnapshot((snapshot) => {
-        const new_articles: Map<string, Article> = new Map<string, Article>();
-        snapshot.docs.forEach((doc) => {
-          const data = doc.data();
-          new_articles.set(doc.ref.id, data as Article);
-        });
-        setArticles(new_articles);
+    const f = async () => {
+      const db = firebase.firestore();
+      const storage = firebase.storage();
+
+      let query = db.collectionGroup('articles');
+      if (!admin) query = query.where('published', '==', true);
+      query = query.orderBy('createdAt', 'asc').limit(LIMIT);
+      const snapshot = await query.get();
+
+      const new_articles: Map<string, Article> = new Map<string, Article>();
+      snapshot.forEach(async (doc) => {
+        const data = doc.data();
+        if (data) {
+          const new_article = data as Article;
+          const imageRef = storage.refFromURL(data.image);
+          new_article.imageUrl = await imageRef.getDownloadURL();
+          const thumbnailRef = storage.refFromURL(data.thumbnail);
+          new_article.thumbnailUrl = await thumbnailRef.getDownloadURL();
+          new_articles.set(doc.ref.path, new_article);
+        }
       });
-  }, []);
+      setArticles(new_articles);
+    };
+    f();
+  }, [admin]);
+
+  if (targetPath)
+    return <ArticlePage path={targetPath} onClose={() => setTargetPath('')} />;
 
   return (
-    <Container maxWidth="lg">
-      <Box m={2}>
-        {customClaims.admin && (
+    <Box
+      p={2}
+      style={{
+        height: 'calc(100vh - 70px)',
+        overflow: 'scroll',
+      }}
+    >
+      <Container maxWidth="lg">
+        {admin && (
           <Grid
             container
             direction="column-reverse"
@@ -74,62 +100,44 @@ const ArticleList: React.FC = () => {
               variant="contained"
               color="primary"
               onClick={() => {
-                setTargetId(null);
-                setOpen(true);
+                setTargetPath('');
               }}
             >
               記事を投稿する
             </Button>
           </Grid>
         )}
-        <ArticleDialog
-          open={open}
-          docId={targetId}
-          onClose={() => {
-            setOpen(false);
-            setTargetId(null);
-          }}
-        />
         <Grid container spacing={3}>
-          {Array.from(articles.entries()).map(([docId, article]) => {
+          {Array.from(articles.entries()).map(([path, article], index) => {
             return (
-              <Grid item xs={12} sm={6} md={4} lg={3}>
-                <Card className={classes.card}>
+              <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+                <Card
+                  className={classes.card}
+                  onClick={() => setTargetPath(path)}
+                >
+                  <CardActions>
+                    <div
+                      dangerouslySetInnerHTML={{ __html: article.subject }}
+                    />
+                  </CardActions>
+                  <CardMedia
+                    component="img"
+                    image={article.thumbnailUrl}
+                    title="thumbnail"
+                    className={classes.thumbnail}
+                  />
                   <CardContent>
-                    <Grid
-                      container
-                      direction="row"
-                      justify="space-between"
-                      alignItems="center"
-                    >
-                      <Grid item>
-                        <b>{article.subject}</b>
-                      </Grid>
-                      <Grid item>
-                        {customClaims.admin && (
-                          <>
-                            <IconButton
-                              color="primary"
-                              onClick={() => {
-                                setTargetId(docId);
-                                setOpen(true);
-                              }}
-                            >
-                              <Edit />
-                            </IconButton>
-                          </>
-                        )}
-                      </Grid>
-                    </Grid>
-                    <div dangerouslySetInnerHTML={{ __html: article.body }} />
+                    <div
+                      dangerouslySetInnerHTML={{ __html: article.heading }}
+                    />
                   </CardContent>
                 </Card>
               </Grid>
             );
           })}
         </Grid>
-      </Box>
-    </Container>
+      </Container>
+    </Box>
   );
 };
 

@@ -8,6 +8,11 @@ export interface CustomClaims {
 export interface Article {
   subject: string;
   body: string;
-  createdAt: firebase.firestore.Timestamp;
-  updatedAt: firebase.firestore.Timestamp;
+  heading: string;
+  image?: string;
+  imageUrl?: string;
+  thumbnail?: string;
+  thumbnailUrl?: string;
+  createdAt?: firebase.firestore.Timestamp;
+  updatedAt?: firebase.firestore.Timestamp;
 }

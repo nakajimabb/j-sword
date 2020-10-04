@@ -42,12 +42,6 @@ const Navigation: React.FC = () => {
         value="truth"
         icon={<img src="truth.png" alt="" style={{ height: 32 }} />}
       />
-      <BottomNavigationAction
-        label="Kirishitan"
-        value="kirishitan"
-        disabled
-        icon={<img src="cross.png" alt="" style={{ height: 32 }} />}
-      />
     </BottomNavigation>
   );
 };
