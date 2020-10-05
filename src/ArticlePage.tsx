@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import {
   Box,
-  Button,
+  Breadcrumbs,
   Container,
   Grid,
   IconButton,
+  Link,
   Paper,
   Typography,
   makeStyles,
@@ -18,11 +19,9 @@ import AppContext from './AppContext';
 import ArticleForm from './ArticleForm';
 import { Article } from './types';
 import './passage.css';
+import './article.css';
 
 const useStyles = makeStyles((theme) => ({
-  button: {
-    textAlign: 'right',
-  },
   title: {
     paddingBottom: 10,
   },
@@ -36,6 +35,9 @@ const useStyles = makeStyles((theme) => ({
   save: {
     padding: 0,
     margin: 2,
+  },
+  img: {
+    width: '100%',
   },
 }));
 
@@ -55,27 +57,29 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ onClose, path }) => {
   const admin = customClaims?.admin;
   const classes = useStyles();
   const db = firebase.firestore();
+  const storage = firebase.storage();
 
   useEffect(() => {
-    try {
-      if (path) {
-        db.doc(path)
-          .get()
-          .then((snapshot) => {
-            const data = snapshot.data() as Article;
-            if (data) setArticle(data);
-            else resetArticle();
-          })
-          .catch(() => {
-            resetArticle();
-          });
-      } else {
+    const f = async () => {
+      try {
+        if (path) {
+          const snapshot = await db.doc(path).get();
+          const data = snapshot.data() as Article;
+          if (data.image) {
+            const imageRef = storage.refFromURL(data.image);
+            data.imageUrl = await imageRef.getDownloadURL();
+          }
+          if (data) setArticle(data);
+        } else {
+          resetArticle();
+        }
+      } catch (error) {
+        console.log({ error });
+        alert(error.message || 'エラーが発生しました。');
         resetArticle();
       }
-    } catch (error) {
-      console.log({ error });
-      alert(error.message || 'エラーが発生しました。');
-    }
+    };
+    f();
   }, [path]);
 
   const resetArticle = () => {
@@ -97,49 +101,40 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ onClose, path }) => {
   return (
     <Box m={5}>
       <Container maxWidth="md">
-        <Grid
-          container
-          direction="row"
-          justify="space-between"
-          alignItems="center"
-          className={classes.title}
-        >
-          <Grid item></Grid>
+        <Grid container direction="row" justify="flex-end" alignItems="center">
           <Grid item>
-            <Typography
-              component="h3"
-              variant="inherit"
-              align="center"
-              className={classes.title}
-            >
-              <span dangerouslySetInnerHTML={{ __html: article.subject }} />
-              {admin && (
-                <>
-                  &emsp;
-                  <IconButton
-                    aria-label="edit"
-                    size="small"
-                    onClick={() => setEditMode(true)}
-                  >
-                    <Edit />
-                  </IconButton>
-                </>
-              )}
-            </Typography>
-          </Grid>
-          <Grid item>
-            <Button
-              color="primary"
-              variant="outlined"
-              size="small"
-              onClick={onClose}
-              className={classes.button}
-            >
-              一覧に戻る
-            </Button>
+            <Breadcrumbs aria-label="breadcrumb">
+              <Typography>Truth</Typography>
+              <Link color="inherit" href="#" onClick={onClose}>
+                一覧
+              </Link>
+            </Breadcrumbs>
           </Grid>
         </Grid>
         <Paper className={classes.paper}>
+          <Typography
+            component="h3"
+            variant="inherit"
+            align="center"
+            className={classes.title}
+          >
+            <span dangerouslySetInnerHTML={{ __html: article.subject }} />
+            {admin && (
+              <>
+                &emsp;
+                <IconButton
+                  aria-label="edit"
+                  size="small"
+                  onClick={() => setEditMode(true)}
+                >
+                  <Edit />
+                </IconButton>
+              </>
+            )}
+          </Typography>
+          <Box mt={1} ml={5} mr={5} mb={2}>
+            <img src={article.imageUrl} className={classes.img} />
+          </Box>
           <div dangerouslySetInnerHTML={{ __html: article.body }} />
         </Paper>
       </Container>
