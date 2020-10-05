@@ -18,6 +18,11 @@ import { Article } from './types';
 import './passage.css';
 
 const useStyles = makeStyles((theme) => ({
+  box: {
+    paddingTop: 20,
+    paddingBottom: 56,
+    overflow: 'scroll',
+  },
   button: {
     marginRight: 5,
     textAlign: 'right',
@@ -111,7 +116,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
   };
 
   return (
-    <Box m={5}>
+    <Box className={classes.box}>
       <Container maxWidth="md">
         <Grid
           container

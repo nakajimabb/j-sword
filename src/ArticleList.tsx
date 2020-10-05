@@ -21,6 +21,11 @@ import './App.css';
 import './passage.css';
 
 const useStyles = makeStyles((theme) => ({
+  box: {
+    paddingTop: 20,
+    paddingBottom: 56,
+    overflow: 'scroll',
+  },
   card: {
     marginTop: 10,
     marginBottom: 10,
@@ -80,13 +85,7 @@ const ArticleList: React.FC = () => {
     return <ArticlePage path={targetPath} onClose={() => setTargetPath('')} />;
 
   return (
-    <Box
-      p={2}
-      style={{
-        height: 'calc(100vh - 70px)',
-        overflow: 'scroll',
-      }}
-    >
+    <Box className={classes.box}>
       <Container maxWidth="lg">
         {admin && (
           <Grid

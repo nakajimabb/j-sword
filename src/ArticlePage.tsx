@@ -22,6 +22,11 @@ import './passage.css';
 import './article.css';
 
 const useStyles = makeStyles((theme) => ({
+  box: {
+    paddingTop: 20,
+    paddingBottom: 56,
+    overflow: 'scroll',
+  },
   title: {
     paddingBottom: 10,
   },
@@ -99,12 +104,12 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ onClose, path }) => {
   }
 
   return (
-    <Box m={5}>
+    <Box className={classes.box}>
       <Container maxWidth="md">
         <Grid container direction="row" justify="flex-end" alignItems="center">
           <Grid item>
             <Breadcrumbs aria-label="breadcrumb">
-              <Typography>Truth</Typography>
+              <Typography>真理 (Truth)</Typography>
               <Link color="inherit" href="#" onClick={onClose}>
                 一覧
               </Link>
