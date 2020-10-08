@@ -109,7 +109,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ onClose, path }) => {
         <Grid container direction="row" justify="flex-end" alignItems="center">
           <Grid item>
             <Breadcrumbs aria-label="breadcrumb">
-              <Typography>真理 (Truth)</Typography>
+              <Typography>真理</Typography>
               <Link color="inherit" href="#" onClick={onClose}>
                 一覧
               </Link>

@@ -19,6 +19,9 @@ const useStyles = makeStyles((theme) => ({
   hide: {
     display: 'none',
   },
+  label: {
+    fontSize: '85%',
+  },
 }));
 
 const Navigation: React.FC = () => {
@@ -33,14 +36,19 @@ const Navigation: React.FC = () => {
       className={classes.navi}
     >
       <BottomNavigationAction
-        label="Bible"
+        label={<span className={classes.label}>聖書</span>}
         value="bible"
         icon={<img src="volume.png" alt="" style={{ height: 32 }} />}
       />
       <BottomNavigationAction
-        label="Truth"
+        label={<span className={classes.label}>真理</span>}
         value="truth"
         icon={<img src="truth.png" alt="" style={{ height: 32 }} />}
+      />
+      <BottomNavigationAction
+        label={<span className={classes.label}>ヘブル語</span>}
+        value="hebrew"
+        icon={<img src="shalom.png" alt="" style={{ height: 32 }} />}
       />
     </BottomNavigation>
   );
