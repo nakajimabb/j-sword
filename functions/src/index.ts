@@ -33,8 +33,8 @@ const authorized = async (
       } else {
         const uid = context.auth.uid;
         const userRecord = await admin.auth().getUser(uid);
-        const claimAdmin = userRecord.customClaims?.admin;
-        if (authType === 'admin' && claimAdmin) {
+        const role = userRecord.customClaims?.role;
+        if (authType === 'admin' && role === 'admin') {
           return true;
         } else {
           throw new functions.https.HttpsError(
@@ -77,7 +77,12 @@ const callable = (
   });
 };
 
-exports.getAuthUserList = callable('admin', async (data, context) => {
-  const listUsersResult = await admin.auth().listUsers();
-  return listUsersResult.users;
+exports.getAuthUser = callable('admin', async (data, context) => {
+  const userRecord = await admin.auth().getUser(data.uid);
+  return { userRecord };
+});
+
+exports.saveCustomClaims = callable('admin', async (data, context) => {
+  await admin.auth().setCustomUserClaims(data.uid, data.customClaims);
+  return true;
 });
