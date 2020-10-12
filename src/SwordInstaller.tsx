@@ -124,26 +124,24 @@ const SwordInstaller: React.FC<SwordInstallerProps> = ({ open, onClose }) => {
     const f = async () => {
       const db = firebase.firestore();
       const role = customClaims?.role;
-      const admin = role === 'admin';
-      const manager = role === 'manager';
       try {
         const new_modules: Module[] = [];
+        const secrecies = ['public'];
+        if (role === 'admin') {
+          secrecies.push('protected', 'internal', 'private');
+        } else if (role === 'manager') {
+          secrecies.push('protected', 'internal');
+        } else if (currentUser) {
+          secrecies.push('protected');
+        }
         const querySnap = await db
           .collection('modules')
+          .where('secrecy', 'in', secrecies)
           .orderBy('modtype')
           .orderBy('lang')
           .get();
         querySnap.forEach((doc) => {
-          const module = doc.data() as Module;
-          const authorized =
-            module.secrecy === 'public' ||
-            (module.secrecy === 'protected' && currentUser) ||
-            (module.secrecy === 'internal' && (manager || admin)) ||
-            (module.secrecy === 'private' && admin);
-          console.log({ role, secrecy: module.secrecy });
-          if (authorized) {
-            new_modules.push(module);
-          }
+          new_modules.push(doc.data() as Module);
         });
         setModules(new_modules);
       } catch (error) {
