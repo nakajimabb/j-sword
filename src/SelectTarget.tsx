@@ -18,7 +18,6 @@ import { canons } from './sword/Canon';
 import canon_jp from './sword/canons/locale/ja.json';
 import AppContext from './AppContext';
 import './passage.css';
-import clsx from 'clsx';
 
 const useStyles = makeStyles((theme) => ({
   container: {

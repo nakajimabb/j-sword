@@ -3,7 +3,6 @@ import React, { useState, useEffect, createContext } from 'react';
 import firebase from './firebase';
 import { CustomClaims } from './types';
 import Sword from './sword/Sword';
-import SAMPLE_MODULES from './config/sample_modules';
 
 interface TargetType {
   mod_keys: string[];
@@ -42,7 +41,7 @@ export interface ContextType {
   touchDevice: boolean;
   currentMode: MenuMode;
   setCurrentMode: React.Dispatch<MenuMode>;
-  sample_modules: { [key: string]: string };
+  loadModules: () => void;
 }
 
 const AppContext = createContext({
@@ -59,7 +58,7 @@ const AppContext = createContext({
   touchDevice: false,
   currentMode: 'bible',
   setCurrentMode: (value: MenuMode) => {},
-  sample_modules: {},
+  loadModules: () => {},
 } as ContextType);
 
 export const AppContextProvider: React.FC = (props) => {
@@ -87,21 +86,7 @@ export const AppContextProvider: React.FC = (props) => {
 
   useEffect(() => {
     const f = async () => {
-      const new_bibles = await Sword.loadAll('bible');
-      for (const modname in SAMPLE_MODULES) {
-        if (!new_bibles[modname]) {
-          new_bibles[modname] = new Sword(
-            modname,
-            'bible',
-            SAMPLE_MODULES[modname]
-          );
-        }
-      }
-      setBibles(new_bibles);
-      const new_dictionaries = await Sword.loadAll('dictionary');
-      setDictionaries(new_dictionaries);
-      const new_morphologies = await Sword.loadAll('morphology');
-      setMorphologies(new_morphologies);
+      await loadModules();
       firebase.auth().onAuthStateChanged((user) => {
         setCurrentUser(user);
         if (user) {
@@ -120,6 +105,15 @@ export const AppContextProvider: React.FC = (props) => {
     };
     f();
   }, []);
+
+  const loadModules = async () => {
+    const new_bibles = await Sword.loadAll('bible');
+    setBibles(new_bibles);
+    const new_dictionaries = await Sword.loadAll('dictionary');
+    setDictionaries(new_dictionaries);
+    const new_morphologies = await Sword.loadAll('morphology');
+    setMorphologies(new_morphologies);
+  };
 
   const setSwordModule = (module: Sword) => {
     switch (module.modtype) {
@@ -151,7 +145,7 @@ export const AppContextProvider: React.FC = (props) => {
         touchDevice,
         currentMode,
         setCurrentMode,
-        sample_modules: SAMPLE_MODULES,
+        loadModules,
       }}
     >
       {props.children}

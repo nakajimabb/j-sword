@@ -68,6 +68,13 @@ class SwordDB extends Dexie {
   async saveReference(reference: ReferencesType) {
     return this.references.put(reference);
   }
+
+  async remove(modname: string) {
+    await this.confs.delete(modname);
+    await this.blobs.delete(modname);
+    await this.indexes.delete(modname);
+    await this.references.delete(modname);
+  }
 }
 
 export default new SwordDB();

@@ -61,12 +61,12 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ onClose, path }) => {
   const { customClaims } = useContext(AppContext);
   const admin = customClaims?.admin;
   const classes = useStyles();
-  const db = firebase.firestore();
-  const storage = firebase.storage();
 
   useEffect(() => {
     const f = async () => {
       try {
+        const db = firebase.firestore();
+        const storage = firebase.storage();
         if (path) {
           const snapshot = await db.doc(path).get();
           const data = snapshot.data() as Article;
@@ -138,7 +138,7 @@ const ArticlePage: React.FC<ArticlePageProps> = ({ onClose, path }) => {
             )}
           </Typography>
           <Box mt={1} ml={5} mr={5} mb={2}>
-            <img src={article.imageUrl} className={classes.img} />
+            <img src={article.imageUrl} alt="main" className={classes.img} />
           </Box>
           <div dangerouslySetInnerHTML={{ __html: article.body }} />
         </Paper>

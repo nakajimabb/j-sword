@@ -737,6 +737,10 @@ class Sword {
       return references;
     }
   }
+
+  async remove() {
+    await SwordDB.remove(this.modname);
+  }
 }
 
 export const extractLemma = (

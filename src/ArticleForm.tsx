@@ -58,10 +58,10 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
   const { currentUser, customClaims } = useContext(AppContext);
   const admin = customClaims?.admin;
   const classes = useStyles();
-  const db = firebase.firestore();
 
   useEffect(() => {
     if (path && admin) {
+      const db = firebase.firestore();
       db.doc(path)
         .get()
         .then((snapshot) => {
@@ -75,7 +75,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
     } else {
       resetArticle();
     }
-  }, [path]);
+  }, [path, admin]);
 
   const resetArticle = () => {
     setArticle({ subject: '', body: '', heading: '' });
@@ -89,6 +89,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
 
   const saveArticle = async () => {
     if (admin && currentUser) {
+      const db = firebase.firestore();
       try {
         if (path) {
           await db.doc(path).update({

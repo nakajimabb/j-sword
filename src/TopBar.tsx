@@ -1,26 +1,40 @@
-import React, { useState, useRef, useContext } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+} from 'react';
 import {
   AppBar,
-  Button,
-  IconButton,
   Grid,
+  IconButton,
   Menu,
   MenuItem,
   Toolbar,
+  Tooltip,
+  Typography,
   makeStyles,
   fade,
 } from '@material-ui/core';
-import { MoreVert } from '@material-ui/icons';
-import { LogIn, LogOut, User } from 'react-feather';
+import {
+  MoreVert,
+  MenuBookOutlined,
+  CloudDownloadOutlined,
+} from '@material-ui/icons';
+import { LogIn, LogOut } from 'react-feather';
 import { Link } from 'react-router-dom';
-
-import AppContext from './AppContext';
-import SelectTarget from './SelectTarget';
-import Sword from './sword/Sword';
-import canon_jp from './sword/canons/locale/ja.json';
 import firebase from './firebase';
 import 'firebase/auth';
 import 'firebase/functions';
+import clsx from 'clsx';
+
+import Alert from './Alert';
+import AppContext from './AppContext';
+import SwordInstaller from './SwordInstaller';
+import SelectTarget from './SelectTarget';
+import Sword from './sword/Sword';
+import canon_jp from './sword/canons/locale/ja.json';
 import './App.css';
 
 const useStyles = makeStyles((theme) => ({
@@ -57,22 +71,34 @@ const useStyles = makeStyles((theme) => ({
     textAlign: 'left',
   },
   icon: {
-    color: 'white',
+    marginRight: 10,
+    backgroundColor: fade(theme.palette.common.white, 1.0),
+    '&:hover': {
+      backgroundColor: fade(theme.palette.common.white, 0.8),
+    },
   },
   hide: {
     display: 'none',
+  },
+  blink: {
+    animation: '$flash 1s linear infinite',
+  },
+  '@keyframes flash': {
+    from: {
+      opacity: 1,
+    },
+    to: {
+      opacity: 0.5,
+    },
   },
 }));
 
 interface TopBarProps {}
 
 const TopBar: React.FC<TopBarProps> = () => {
-  const bible_file = useRef<HTMLInputElement>(null);
-  const dict_file = useRef<HTMLInputElement>(null);
-  const morph_file = useRef<HTMLInputElement>(null);
-  const references = useRef<HTMLInputElement>(null);
   const [anchorEl, setAnchorEl] = useState<Element | null>(null);
-  const [open_select_target, setOpenSelectTarget] = useState<boolean>(false);
+  const [opener, setOpener] = useState<'installer' | 'selector' | null>(null);
+  const [message, setMessage] = useState<string>('');
   const { bibles, target, currentUser, customClaims, currentMode } = useContext(
     AppContext
   );
@@ -80,7 +106,26 @@ const TopBar: React.FC<TopBarProps> = () => {
   const bookName = canonjp.hasOwnProperty(target.book)
     ? canonjp[target.book].abbrev
     : target.book;
+  const emptyBibles = Object.keys(bibles).length === 0;
+  const emptyTarget = target.mod_keys.length === 0;
+  const bible_file = useRef<HTMLInputElement>(null);
+  const dict_file = useRef<HTMLInputElement>(null);
+  const morph_file = useRef<HTMLInputElement>(null);
+  const references = useRef<HTMLInputElement>(null);
   const classes = useStyles();
+
+  const checkMessage = useCallback(() => {
+    setMessage('');
+    if (emptyBibles) {
+      setMessage('モジュールをダウンロードしてください。');
+    } else if (emptyTarget) {
+      setMessage('聖書を開いてください。');
+    }
+  }, [emptyBibles, emptyTarget]);
+
+  useEffect(() => {
+    checkMessage();
+  }, [checkMessage]);
 
   const onChangeBibleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -171,29 +216,19 @@ const TopBar: React.FC<TopBarProps> = () => {
     }
   };
 
-  const logoout = () => {
-    firebase
-      .auth()
-      .signOut()
-      .then(function () {
-        // Sign-out successful.
-      })
-      .catch(function (error) {
-        // An error happened.
-        alert('エラーが発生しました。');
-        console.log({ error });
-      });
-  };
-
-  const showUserInfo = () => {
-    if (currentUser) {
-      let messages: string[] = [];
-      if (currentUser.email) messages.push('email: ' + currentUser.email);
-      if (currentUser.phoneNumber)
-        messages.push('phoneNumber: ' + currentUser.phoneNumber);
-      if (currentUser.displayName)
-        messages.push('displayName: ' + currentUser.displayName);
-      alert(messages.join('\n'));
+  const logout = () => {
+    if (window.confirm('ログアウトしますか？')) {
+      firebase
+        .auth()
+        .signOut()
+        .then(function () {
+          // Sign-out successful.
+        })
+        .catch(function (error) {
+          // An error happened.
+          alert('エラーが発生しました。');
+          console.log({ error });
+        });
     }
   };
 
@@ -226,44 +261,76 @@ const TopBar: React.FC<TopBarProps> = () => {
         >
           <Grid item>
             {currentMode === 'bible' && (
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={() => setOpenSelectTarget(true)}
-                className={classes.chip}
-              >
-                {`${bookName} ${target.chapter}章`}
-              </Button>
+              <>
+                <Tooltip title="モジュール ダウンロード" aria-label="download">
+                  <IconButton
+                    size="small"
+                    onClick={() => setOpener('installer')}
+                    className={clsx(classes.icon, emptyBibles && classes.blink)}
+                  >
+                    <CloudDownloadOutlined />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="聖書を開く" aria-label="open bible">
+                  <IconButton
+                    size="small"
+                    onClick={() => setOpener('selector')}
+                    className={clsx(
+                      classes.icon,
+                      !emptyBibles && emptyTarget && classes.blink
+                    )}
+                  >
+                    <MenuBookOutlined />
+                  </IconButton>
+                </Tooltip>
+                <Typography
+                  display="inline"
+                  variant="subtitle2"
+                >{`${bookName} ${target.chapter}章`}</Typography>
+              </>
             )}
           </Grid>
           <Grid item>
-            {currentUser && (
-              <IconButton
-                aria-label="profile"
-                onClick={showUserInfo}
-                className={classes.icon}
+            {currentUser?.displayName && (
+              <Typography
+                display="inline"
+                variant="subtitle2"
+                style={{ marginRight: 12 }}
               >
-                <User fontSize="small" />
-              </IconButton>
+                {currentUser.displayName}
+              </Typography>
             )}
             {currentUser ? (
-              <IconButton
-                aria-label="logout"
-                onClick={logoout}
-                className={classes.icon}
-              >
-                <LogOut fontSize="small" />
-              </IconButton>
+              <Tooltip title="ログアウト" aria-label="logout">
+                <IconButton
+                  size="small"
+                  aria-label="logout"
+                  onClick={logout}
+                  className={classes.icon}
+                >
+                  <LogOut fontSize="small" />
+                </IconButton>
+              </Tooltip>
             ) : (
               <Link to="/sign_in">
-                <IconButton aria-label="login" className={classes.icon}>
-                  <LogIn id="login" fontSize="small" />
-                </IconButton>
+                <Tooltip title="ログイン" aria-label="login">
+                  <IconButton
+                    size="small"
+                    aria-label="login"
+                    className={classes.icon}
+                  >
+                    <LogIn id="login" fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               </Link>
             )}
+            <SwordInstaller
+              open={opener === 'installer'}
+              onClose={() => setOpener(null)}
+            />
             <SelectTarget
-              open={open_select_target}
-              onClose={() => setOpenSelectTarget(false)}
+              open={opener === 'selector'}
+              onClose={() => setOpener(null)}
             />
             {currentUser && (
               <>
@@ -338,6 +405,9 @@ const TopBar: React.FC<TopBarProps> = () => {
         style={{ display: 'none' }}
         onChange={onChangeReferences}
       />
+      {message && !opener && (
+        <Alert message={message} vertical="top" severity="warning" />
+      )}
     </AppBar>
   );
 };

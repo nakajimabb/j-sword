@@ -2,13 +2,9 @@ import React, { useEffect, useState, useContext } from 'react';
 import { Box, Chip, makeStyles } from '@material-ui/core';
 import clsx from 'clsx';
 
-import firebase from './firebase';
-import 'firebase/firestore';
-import 'firebase/storage';
 import AppContext from './AppContext';
 import Passage from './Passage';
 import { Raw } from './sword/types';
-import Sword from './sword/Sword';
 import './passage.css';
 
 let g_scroll: { id: string | null; time: Date | null } = {
@@ -35,33 +31,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const blobFromUrl = (url: string) => {
-  return new Promise<Blob | null>((resolve, reject) => {
-    if (!url) reject(null);
-    const storage = firebase.storage();
-    var httpsReference = storage.refFromURL(url);
-    httpsReference.getDownloadURL().then(function (url2) {
-      let xhr = new XMLHttpRequest();
-      xhr.responseType = 'blob';
-      xhr.onload = async () => {
-        resolve(xhr.response);
-      };
-      xhr.open('GET', url2);
-      xhr.send();
-    });
-  });
-};
-
 interface Props {
   mod_key: string;
 }
 
 const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
   const [raw_texts, setRawTexts] = useState<Raw[]>([]);
-  const [enabled, setEnabled] = useState<boolean>(false);
-  const { bibles, setSwordModule, target, sample_modules } = useContext(
-    AppContext
-  );
+  const { bibles, target } = useContext(AppContext);
   const { book, chapter, verse } = target;
   const bible = bibles[mod_key];
   const direction = bible?.conf?.Direction === 'RtoL' && 'rtl';
@@ -71,57 +47,6 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
 
   useEffect(() => {
     const f = async () => {
-      if (bible.isValid()) {
-        setEnabled(true);
-      } else {
-        if (bible.modname in sample_modules) {
-          const snapshot = await firebase
-            .firestore()
-            .collection('modules')
-            .doc(bible.modname)
-            .get();
-          const bible_module = snapshot?.data();
-          console.log(`installing ${bible.modname} module...`);
-          if (bible_module) {
-            const blob = await blobFromUrl(bible_module.url);
-            if (blob)
-              await Sword.install(
-                blob,
-                bible_module.modtype,
-                bible_module.title
-              );
-            const sword = await Sword.load(bible.modname);
-            if (sword) setSwordModule(sword);
-            // install reference for hebrew or greek vocabulary
-            if (bible_module.referenceUrl) {
-              const blob = await blobFromUrl(bible_module.referenceUrl);
-              if (blob && sword) await sword.installReference(blob);
-            }
-            // install dependencies
-            const dependencies = bible_module.dependencies || [];
-            for (const modname of dependencies) {
-              let sword_module = await Sword.load(modname);
-              if (sword_module?.isValid()) continue;
-              const snap = await firebase
-                .firestore()
-                .collection('modules')
-                .doc(modname)
-                .get();
-              const module = snap?.data();
-              console.log(`installing ${modname} module...`);
-              if (module) {
-                const blob = await blobFromUrl(module.url);
-                if (blob)
-                  await Sword.install(blob, module.modtype, module.title);
-                sword_module = await Sword.load(modname);
-                if (sword_module) setSwordModule(sword_module);
-              }
-            }
-            setEnabled(true);
-          }
-        }
-      }
-
       if (valid_params) {
         let book_pos = book + '.' + chapter; // + ':1';
         if (verse) book_pos += ':' + verse;
@@ -145,7 +70,7 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
       }
     };
     f();
-  }, [bible, chapter, verse]);
+  }, [book, chapter, verse, bible, valid_params]);
 
   const hoverPassage = (
     event: React.MouseEvent,
@@ -194,7 +119,7 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
     }
   };
 
-  if (!enabled || raw_texts.length === 0) return null;
+  if (raw_texts.length === 0) return null;
 
   return (
     <>

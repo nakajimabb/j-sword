@@ -167,7 +167,7 @@ const RefPassages: React.FC<RefPassagesProps> = ({
       setRawTexts(new_raw_texts);
     };
     f();
-  }, [indexes, target.mod_keys, mod_key]);
+  }, [indexes, bibles, mod_key, mod_keys]);
 
   const localizeBookPos = (book_pos: string) => {
     const canonjp: {
@@ -262,6 +262,15 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
     .flat(1)
     .filter((di) => di.mod_key !== 'lemma');
 
+  useEffect(() => {
+    const references2 = references || {};
+    const modKey = Object.keys(references2)[0];
+    const book = Object.keys(references2[modKey] || {})[0];
+    setTarget({ mod_key: modKey, book: book });
+    setIndexes(bookDictIndex(modKey, book));
+    setPage(1);
+  }, [references]);
+
   const bookDictIndex = (modKey: string, book: string) => {
     let indexes = [];
     const book_indexes = ((references || {})[modKey] || {})[book];
@@ -272,15 +281,6 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
     }
     return indexes;
   };
-
-  useEffect(() => {
-    const references2 = references || {};
-    const modKey = Object.keys(references2)[0];
-    const book = Object.keys(references2[modKey] || {})[0];
-    setTarget({ mod_key: modKey, book: book });
-    setIndexes(bookDictIndex(modKey, book));
-    setPage(1);
-  }, [references]);
 
   const onChangeTarget = (
     e: React.ChangeEvent<{ name?: string; value: unknown }>
@@ -422,7 +422,7 @@ const BibleReference: React.FC<BibleReferenceProps> = ({ lemma, depth }) => {
       }
     };
     f();
-  }, [lemma]);
+  }, [lemma, bibles]);
 
   if (!lemma) return null;
 

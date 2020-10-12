@@ -16,3 +16,15 @@ export interface Article {
   createdAt?: firebase.firestore.Timestamp;
   updatedAt?: firebase.firestore.Timestamp;
 }
+
+export type ModType = 'bible' | 'dictionary' | 'morphology';
+
+export interface Module {
+  modname: string;
+  modtype: ModType;
+  title: string;
+  lang: string;
+  dependencies: string[];
+  path: string;
+  referencePath?: string;
+}

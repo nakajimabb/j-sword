@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Chip, makeStyles } from '@material-ui/core';
+import { Box, Chip, makeStyles } from '@material-ui/core';
 import { NodeObj, createNodeObj } from './NodeObj';
 import AppContext from './AppContext';
 import './passage.css';
@@ -89,12 +89,12 @@ const DictPassage: React.FC<DictPassageProps> = ({ lemma, lang }) => {
       }
     };
     f();
-  }, [lemma]);
+  }, [lemma, dictionaries]);
 
   if (!lemma) return null;
 
   return (
-    <>
+    <Box>
       {Object.entries(nodeObjs).map(([modname, nodeObj], index) => (
         <React.Fragment key={index}>
           <Chip
@@ -105,9 +105,10 @@ const DictPassage: React.FC<DictPassageProps> = ({ lemma, lang }) => {
           />
           <br />
           <Phrase nodeObj={nodeObj} lang={lang} />
+          <br />
         </React.Fragment>
       ))}
-    </>
+    </Box>
   );
 };
 

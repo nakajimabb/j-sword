@@ -63,7 +63,7 @@ const MorphPassage: React.FC<MorphPassageProps> = ({ morph }) => {
       }
     };
     f();
-  }, [morph]);
+  }, [morph, morphologies]);
 
   if (!morph) return null;
 
