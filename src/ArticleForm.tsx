@@ -56,7 +56,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
     heading,
   });
   const { currentUser, customClaims } = useContext(AppContext);
-  const admin = customClaims?.admin;
+  const admin = customClaims?.role === 'admin';
   const classes = useStyles();
 
   useEffect(() => {

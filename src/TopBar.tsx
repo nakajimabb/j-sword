@@ -112,6 +112,7 @@ const TopBar: React.FC<TopBarProps> = () => {
   const dict_file = useRef<HTMLInputElement>(null);
   const morph_file = useRef<HTMLInputElement>(null);
   const references = useRef<HTMLInputElement>(null);
+  const admin = customClaims?.role === 'admin';
   const classes = useStyles();
 
   const checkMessage = useCallback(() => {
@@ -232,13 +233,14 @@ const TopBar: React.FC<TopBarProps> = () => {
     }
   };
 
-  const getUsers = () => {
+  const getAuthUser = () => {
     if (currentUser) {
+      const uid = window.prompt('input uid');
       const func = firebase
         .app()
         .functions('asia-northeast1')
-        .httpsCallable('getAuthUserList');
-      func()
+        .httpsCallable('getAuthUser');
+      func({ uid })
         .then((result) => {
           console.log({ result });
           alert('データを取得しました。');
@@ -359,9 +361,7 @@ const TopBar: React.FC<TopBarProps> = () => {
                     load morphology
                   </MenuItem>
                   <MenuItem onClick={loadReferences}>load references</MenuItem>
-                  {customClaims.admin && (
-                    <MenuItem onClick={getUsers}>get users</MenuItem>
-                  )}
+                  {admin && <MenuItem onClick={getAuthUser}>get user</MenuItem>}
                   <MenuItem onClick={createReferences}>create indexes</MenuItem>
                 </Menu>
               </>

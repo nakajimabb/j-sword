@@ -51,7 +51,7 @@ const ArticleList: React.FC = () => {
   );
   const [targetPath, setTargetPath] = useState<string>('');
   const { customClaims } = useContext(AppContext);
-  const admin = customClaims?.admin;
+  const admin = customClaims?.role === 'admin';
   const classes = useStyles();
 
   useEffect(() => {

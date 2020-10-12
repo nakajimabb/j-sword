@@ -2,7 +2,7 @@ import firebase from './firebase';
 import 'firebase/firestore';
 
 export interface CustomClaims {
-  admin?: boolean | null;
+  role?: 'manager' | 'admin';
 }
 
 export interface Article {
@@ -22,6 +22,7 @@ export type ModType = 'bible' | 'dictionary' | 'morphology';
 export interface Module {
   modname: string;
   modtype: ModType;
+  secrecy: 'public' | 'protected' | 'internal' | 'private';
   title: string;
   lang: string;
   dependencies: string[];

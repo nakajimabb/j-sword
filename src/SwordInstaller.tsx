@@ -93,9 +93,14 @@ const SwordInstaller: React.FC<SwordInstallerProps> = ({ open, onClose }) => {
   const [modules, setModules] = useState<Module[]>([]);
   const [targets, setTargets] = useState<Set<string>>(new Set());
   const [messages, setMessages] = useState<string[]>([]);
-  const { bibles, dictionaries, morphologies, loadModules } = useContext(
-    AppContext
-  );
+  const {
+    currentUser,
+    customClaims,
+    bibles,
+    dictionaries,
+    morphologies,
+    loadModules,
+  } = useContext(AppContext);
   const langs: { [key: string]: string } = {
     ja: '日本語',
     he: 'ヘブル語',
@@ -118,6 +123,9 @@ const SwordInstaller: React.FC<SwordInstallerProps> = ({ open, onClose }) => {
   useEffect(() => {
     const f = async () => {
       const db = firebase.firestore();
+      const role = customClaims?.role;
+      const admin = role === 'admin';
+      const manager = role === 'manager';
       try {
         const new_modules: Module[] = [];
         const querySnap = await db
@@ -126,9 +134,15 @@ const SwordInstaller: React.FC<SwordInstallerProps> = ({ open, onClose }) => {
           .orderBy('lang')
           .get();
         querySnap.forEach((doc) => {
-          const data = doc.data();
-          if (data) {
-            new_modules.push(data as Module);
+          const module = doc.data() as Module;
+          const authorized =
+            module.secrecy === 'public' ||
+            (module.secrecy === 'protected' && currentUser) ||
+            (module.secrecy === 'internal' && (manager || admin)) ||
+            (module.secrecy === 'private' && admin);
+          console.log({ role, secrecy: module.secrecy });
+          if (authorized) {
+            new_modules.push(module);
           }
         });
         setModules(new_modules);
@@ -138,7 +152,7 @@ const SwordInstaller: React.FC<SwordInstallerProps> = ({ open, onClose }) => {
       }
     };
     f();
-  }, []);
+  }, [currentUser, customClaims]);
 
   const addTarget = (module: Module) => (
     e: React.ChangeEvent<{ value: unknown; checked: unknown }>
@@ -218,9 +232,7 @@ const SwordInstaller: React.FC<SwordInstallerProps> = ({ open, onClose }) => {
         }
       } catch (error) {
         console.log({ error });
-        setMessages((prev) =>
-          prev.concat(`${module.title}: ${error.messaage}`)
-        );
+        setMessages((prev) => prev.concat(error.message));
       }
       count += 1;
       setProgress((100 * count) / target_modules.length);
