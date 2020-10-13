@@ -316,7 +316,6 @@ const TopBar: React.FC<TopBarProps> = () => {
                   message={messageInfo.message}
                   top={messageInfo.top}
                   left={messageInfo.left}
-                  severity="error"
                   onClose={() =>
                     setMessageInfo({ message: '', top: 0, left: 0 })
                   }

@@ -49,7 +49,6 @@ const useStyles = makeStyles((theme) => ({
 
 interface BalloonProps {
   message: string;
-  severity?: 'error' | 'warning' | 'info' | 'success';
   top?: number;
   left?: number;
   // horizontal?: 'center' | 'left' | 'right';
@@ -61,7 +60,6 @@ const Balloon: React.FC<BalloonProps> = ({
   message,
   top = 0,
   left = 0,
-  severity = 'info',
   // horizontal = 'center',
   // vertical = 'bottom',
   onClose,
