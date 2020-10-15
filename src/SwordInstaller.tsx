@@ -20,6 +20,7 @@ import { Delete } from '@material-ui/icons';
 import firebase from './firebase';
 import 'firebase/firestore';
 import 'firebase/storage';
+import clsx from 'clsx';
 
 import Sword from './sword/Sword';
 import AppContext from './AppContext';
@@ -80,6 +81,9 @@ const useStyles = makeStyles((theme) => ({
   alert: {
     color: 'red',
   },
+  bible: { color: 'darkorange' },
+  dictionary: { color: 'darkcyan' },
+  morphology: { color: 'royalblue' },
 }));
 
 interface SwordInstallerProps {
@@ -259,38 +263,33 @@ const SwordInstaller: React.FC<SwordInstallerProps> = ({ open, onClose }) => {
             <colgroup>
               <col className={classes.check} />
               <col className={classes.name} />
-              <col className={classes.modtype} />
               <col className={classes.lang} />
+              <col className={classes.modtype} />
               <col className={classes.action} />
             </colgroup>
             <TableBody>
               {modules.map((module) => (
                 <TableRow>
-                  <TableCell className={classes.cell}>
-                    <FormControlLabel
-                      label=""
-                      control={
-                        <Checkbox
-                          size="small"
-                          value={module.modname}
-                          disabled={
-                            installed_names.has(module.modname) || loading
-                          }
-                          checked={
-                            installed_names.has(module.modname) ||
-                            targets.has(module.modname)
-                          }
-                          onChange={addTarget(module)}
-                        />
+                  <TableCell className={classes.cell} style={{ padding: 0 }}>
+                    <Checkbox
+                      size="small"
+                      value={module.modname}
+                      disabled={installed_names.has(module.modname) || loading}
+                      checked={
+                        installed_names.has(module.modname) ||
+                        targets.has(module.modname)
                       }
+                      onChange={addTarget(module)}
                     />
                   </TableCell>
                   <TableCell className={classes.cell}>{module.title}</TableCell>
                   <TableCell className={classes.cell}>
-                    <small>{modtypes[module.modtype]}</small>
-                  </TableCell>
-                  <TableCell className={classes.cell}>
                     <small>{langs[module.lang]}</small>
+                  </TableCell>
+                  <TableCell
+                    className={clsx(classes.cell, classes[module.modtype])}
+                  >
+                    <small>{modtypes[module.modtype]}</small>
                   </TableCell>
                   <TableCell className={classes.cell}>
                     {installed_names.has(module.modname) && (

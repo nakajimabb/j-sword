@@ -24,7 +24,7 @@ export interface Module {
   modtype: ModType;
   secrecy: 'public' | 'protected' | 'internal' | 'private';
   title: string;
-  lang: string;
+  lang: 'ja' | 'he' | 'grc' | 'en';
   dependencies: string[];
   path: string;
   referencePath?: string;

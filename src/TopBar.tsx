@@ -31,7 +31,7 @@ import clsx from 'clsx';
 
 import AppContext from './AppContext';
 import SwordInstaller from './SwordInstaller';
-import SelectTarget from './SelectTarget';
+import SwordSelector from './SwordSelector';
 import Balloon from './Balloon';
 import Sword from './sword/Sword';
 import canon_jp from './sword/canons/locale/ja.json';
@@ -360,7 +360,7 @@ const TopBar: React.FC<TopBarProps> = () => {
                 open={opener === 'installer'}
                 onClose={() => setOpener(null)}
               />
-              <SelectTarget
+              <SwordSelector
                 open={opener === 'selector'}
                 onClose={() => setOpener(null)}
               />

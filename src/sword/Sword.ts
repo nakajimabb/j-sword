@@ -705,6 +705,10 @@ class Sword {
     return indexes;
   }
 
+  get lang() {
+    return String(this.conf?.Lang);
+  }
+
   async createReference() {
     const lang = String(this.conf?.Lang);
     const index = this.index || (await SwordDB.getIndex(this.modname));
