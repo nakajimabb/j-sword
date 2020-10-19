@@ -268,8 +268,8 @@ const SwordInstaller: React.FC<SwordInstallerProps> = ({ open, onClose }) => {
               <col className={classes.action} />
             </colgroup>
             <TableBody>
-              {modules.map((module) => (
-                <TableRow>
+              {modules.map((module, index) => (
+                <TableRow key={index}>
                   <TableCell className={classes.cell} style={{ padding: 0 }}>
                     <Checkbox
                       size="small"
@@ -318,8 +318,12 @@ const SwordInstaller: React.FC<SwordInstallerProps> = ({ open, onClose }) => {
         )}
         {messages.length > 0 && (
           <Paper className={classes.paper2}>
-            {messages.map((message) => (
-              <Typography variant="subtitle2" className={classes.alert}>
+            {messages.map((message, index) => (
+              <Typography
+                key={index}
+                variant="subtitle2"
+                className={classes.alert}
+              >
                 {message}
               </Typography>
             ))}
