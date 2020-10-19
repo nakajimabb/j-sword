@@ -32,7 +32,7 @@ const BibleViewer: React.FC = () => {
 
   return (
     <div className={classes.container}>
-      {target.mod_keys.map((mod_key: string, index: number) => (
+      {target.modnames.map((mod_key: string, index: number) => (
         <SwordRenderer key={index} mod_key={mod_key} />
       ))}
       <Box className={classes.pane}>

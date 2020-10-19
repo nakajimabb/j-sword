@@ -29,3 +29,15 @@ export interface Module {
   path: string;
   referencePath?: string;
 }
+
+export interface TargetType {
+  modnames: string[];
+  book: string;
+  chapter: string;
+  verse?: string;
+}
+
+export interface Setting {
+  uid: string;
+  target: TargetType;
+}

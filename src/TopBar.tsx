@@ -115,7 +115,7 @@ const TopBar: React.FC<TopBarProps> = () => {
     ? canonjp[target.book].abbrev
     : target.book;
   const emptyBibles = Object.keys(bibles).length === 0;
-  const emptyTarget = target.mod_keys.length === 0;
+  const emptyTarget = target.modnames.length === 0;
   const bible_file = useRef<HTMLInputElement>(null);
   const dict_file = useRef<HTMLInputElement>(null);
   const morph_file = useRef<HTMLInputElement>(null);
@@ -311,7 +311,7 @@ const TopBar: React.FC<TopBarProps> = () => {
                   >{`${bookName} ${target.chapter}章`}</Typography>
                 </>
               )}
-              {messageInfo.message && !opener && (
+              {messageInfo.message && !opener && currentMode === 'bible' && (
                 <Balloon
                   message={messageInfo.message}
                   top={messageInfo.top}

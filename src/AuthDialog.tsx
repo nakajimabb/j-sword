@@ -118,8 +118,6 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ open, onClose }) => {
   const [tab, setTab] = useState(0);
   const classes = useStyles();
 
-  useEffect(() => {}, []);
-
   const authGoogle = async () => {
     try {
       onClose();

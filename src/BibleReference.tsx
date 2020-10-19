@@ -139,7 +139,7 @@ const RefPassages: React.FC<RefPassagesProps> = ({
 }) => {
   const [raw_texts, setRawTexts] = useState<RawTexts>({});
   const { bibles, target } = useContext(AppContext);
-  const mod_keys = Array.from(new Set([mod_key].concat(target.mod_keys)));
+  const modnames = Array.from(new Set([mod_key].concat(target.modnames)));
   const classes = useStyles();
 
   useEffect(() => {
@@ -147,7 +147,7 @@ const RefPassages: React.FC<RefPassagesProps> = ({
       let new_raw_texts: RawTexts = {};
       for (const book_pos of indexes) {
         new_raw_texts[book_pos] = {};
-        for (const modKey of mod_keys) {
+        for (const modKey of modnames) {
           try {
             const raws = await bibles[modKey].renderText(book_pos, {
               footnotes: false,
@@ -167,7 +167,7 @@ const RefPassages: React.FC<RefPassagesProps> = ({
       setRawTexts(new_raw_texts);
     };
     f();
-  }, [indexes, bibles, mod_key, mod_keys]);
+  }, [indexes, bibles, mod_key, modnames]);
 
   const localizeBookPos = (book_pos: string) => {
     const canonjp: {
@@ -194,7 +194,7 @@ const RefPassages: React.FC<RefPassagesProps> = ({
               <b>{localizeBookPos(book_pos)}</b>
             </Box>
             <Box>
-              {mod_keys.map(
+              {modnames.map(
                 (modKey) =>
                   raw_texts[book_pos] &&
                   raw_texts[book_pos][modKey] &&

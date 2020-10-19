@@ -1,15 +1,9 @@
 import React, { useState, useEffect, createContext } from 'react';
 
 import firebase from './firebase';
-import { CustomClaims } from './types';
+import { CustomClaims, TargetType } from './types';
 import Sword from './sword/Sword';
-
-interface TargetType {
-  mod_keys: string[];
-  book: string;
-  chapter: string;
-  verse?: string;
-}
+import SettingDB from './SettingDB';
 
 export interface Word {
   lemma: string;
@@ -35,7 +29,7 @@ export interface ContextType {
   currentUser: firebase.User | null;
   customClaims: CustomClaims;
   target: TargetType;
-  setTarget: React.Dispatch<TargetType>;
+  saveSetting: React.Dispatch<TargetType>;
   targetWords: Word[];
   setTargetWords: React.Dispatch<Word[]>;
   touchDevice: boolean;
@@ -51,8 +45,8 @@ const AppContext = createContext({
   setSwordModule: (module: Sword) => {},
   currentUser: null,
   customClaims: {},
-  target: { mod_keys: [], book: '', chapter: '', verse: '' },
-  setTarget: (value: TargetType) => {},
+  target: { modnames: [], book: '', chapter: '', verse: '' },
+  saveSetting: (value: TargetType) => {},
   targetWords: [],
   setTargetWords: (value: Word[]) => {},
   touchDevice: false,
@@ -70,7 +64,7 @@ export const AppContextProvider: React.FC = (props) => {
   const [touchDevice, SetTouchDevice] = useState<boolean>(false);
   const [currentMode, setCurrentMode] = useState<MenuMode>('bible');
   const [target, setTarget] = useState<TargetType>({
-    mod_keys: [],
+    modnames: [],
     book: 'Gen',
     chapter: '1',
     verse: '',
@@ -87,24 +81,38 @@ export const AppContextProvider: React.FC = (props) => {
   useEffect(() => {
     const f = async () => {
       await loadModules();
-      firebase.auth().onAuthStateChanged((user) => {
+      firebase.auth().onAuthStateChanged(async (user) => {
         setCurrentUser(user);
-        if (user) {
-          user
-            .getIdTokenResult()
-            .then((token) => {
-              setCustomClaims(token.claims || {});
-            })
-            .catch((error) => {
-              setCustomClaims({});
-            });
+        const uid = user ? user.uid : 'anonymous';
+        const setting = await SettingDB.getSetting(uid);
+        if (setting && setting.target) {
+          setTarget(setting.target);
         } else {
+          resetTarget();
+        }
+        try {
+          if (user) {
+            const token = await user.getIdTokenResult();
+            setCustomClaims(token.claims || {});
+          } else {
+            setCustomClaims({});
+          }
+        } catch (error) {
           setCustomClaims({});
         }
       });
     };
     f();
   }, []);
+
+  const resetTarget = () => {
+    setTarget({
+      modnames: [],
+      book: 'Gen',
+      chapter: '1',
+      verse: '',
+    });
+  };
 
   const loadModules = async () => {
     const new_bibles = await Sword.loadAll('bible');
@@ -129,6 +137,14 @@ export const AppContextProvider: React.FC = (props) => {
     }
   };
 
+  const saveSetting = async (value: TargetType) => {
+    setTarget(value);
+    await SettingDB.saveSetting({
+      uid: currentUser ? currentUser.uid : 'anonymous',
+      target: value,
+    });
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -139,7 +155,7 @@ export const AppContextProvider: React.FC = (props) => {
         currentUser,
         customClaims,
         target,
-        setTarget,
+        saveSetting,
         targetWords,
         setTargetWords,
         touchDevice,

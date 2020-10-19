@@ -120,9 +120,13 @@ const SwordSelector: React.FC<SwordSelectorProps> = ({ open, onClose }) => {
   const canon = canons.nrsv;
   const [tab, setTab] = useState(0);
   const [maxChapter, setMaxChapter] = useState<number>(canon.ot[0].maxChapter);
-  const { bibles, dictionaries, morphologies, target, setTarget } = useContext(
-    AppContext
-  );
+  const {
+    bibles,
+    dictionaries,
+    morphologies,
+    target,
+    saveSetting,
+  } = useContext(AppContext);
   const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
   const classes = useStyles();
   const langs: { [key: string]: string } = {
@@ -138,19 +142,19 @@ const SwordSelector: React.FC<SwordSelectorProps> = ({ open, onClose }) => {
   };
 
   const bookChanged = (book: string, maxChap: number) => () => {
-    setTarget({ ...target, book, chapter: '' });
+    saveSetting({ ...target, book, chapter: '' });
     setMaxChapter(maxChap);
     setTab(2);
   };
 
   const checkTarget = (modname: string) => () => {
-    let modnames = target.mod_keys;
-    if (target.mod_keys.includes(modname))
-      modnames = target.mod_keys.filter((name) => name !== modname);
+    let modnames = target.modnames;
+    if (target.modnames.includes(modname))
+      modnames = target.modnames.filter((name) => name !== modname);
     else modnames.push(modname);
-    setTarget({
+    saveSetting({
       ...target,
-      mod_keys: modnames,
+      modnames: modnames,
     });
   };
 
@@ -213,7 +217,7 @@ const SwordSelector: React.FC<SwordSelectorProps> = ({ open, onClose }) => {
                         value={module.modname}
                         checked={
                           module.modtype !== 'bible' ||
-                          target.mod_keys.includes(module.modname)
+                          target.modnames.includes(module.modname)
                         }
                         onChange={checkTarget(module.modname)}
                       />
@@ -279,7 +283,7 @@ const SwordSelector: React.FC<SwordSelectorProps> = ({ open, onClose }) => {
                   key={index}
                   item
                   onClick={() => {
-                    setTarget({
+                    saveSetting({
                       ...target,
                       chapter: String(chapter),
                       verse: '',
