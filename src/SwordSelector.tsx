@@ -3,11 +3,8 @@ import {
   AppBar,
   Box,
   Checkbox,
-  Chip,
   Dialog,
   DialogContent,
-  FormControlLabel,
-  FormGroup,
   Grid,
   Tab,
   Tabs,
@@ -46,6 +43,8 @@ const useStyles = makeStyles((theme) => ({
     boxShadow: '1px 1px 1px 1px rgba(0, 0, 0, .5)',
     userSelect: 'none',
     backgroundColor: 'aliceblue',
+    lineHeight: 1,
+    textAlign: 'center',
     '&:hover': {
       opacity: 0.8,
     },
@@ -54,6 +53,8 @@ const useStyles = makeStyles((theme) => ({
     boxShadow: '1px 1px 1px 1px rgba(0, 0, 0, .5)',
     userSelect: 'none',
     backgroundColor: 'ivory',
+    lineHeight: 1,
+    textAlign: 'center',
     '&:hover': {
       opacity: 0.8,
     },
@@ -254,9 +255,9 @@ const SwordSelector: React.FC<SwordSelectorProps> = ({ open, onClose }) => {
                 onClick={bookChanged(info.abbrev, info.maxChapter)}
                 className={classes.gridOt}
               >
-                {canonjp.hasOwnProperty(info.abbrev)
-                  ? canonjp[info.abbrev].abbrev
-                  : info.abbrev}
+                {canonjp[info.abbrev].abbrev}
+                <br />
+                <small>{info.abbrev}</small>
               </Grid>
             ))}
             {canon.nt.map((info, index) => (
@@ -267,9 +268,9 @@ const SwordSelector: React.FC<SwordSelectorProps> = ({ open, onClose }) => {
                 onClick={bookChanged(info.abbrev, info.maxChapter)}
                 className={classes.gridNt}
               >
-                {canonjp.hasOwnProperty(info.abbrev)
-                  ? canonjp[info.abbrev].abbrev
-                  : info.abbrev}
+                {canonjp[info.abbrev].abbrev}
+                <br />
+                <small>{info.abbrev}</small>
               </Grid>
             ))}
           </Grid>
