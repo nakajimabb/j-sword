@@ -22,6 +22,10 @@ const useStyles = makeStyles((theme) => ({
   label: {
     fontSize: '85%',
   },
+  selected: {
+    backgroundColor: 'ghostwhite',
+    border: '1px solid aliceblue',
+  },
 }));
 
 const Navigation: React.FC = () => {
@@ -39,16 +43,19 @@ const Navigation: React.FC = () => {
         label={<span className={classes.label}>聖書</span>}
         value="bible"
         icon={<img src="volume.png" alt="" style={{ height: 32 }} />}
+        className={currentMode === 'bible' ? classes.selected : ''}
       />
       <BottomNavigationAction
         label={<span className={classes.label}>真理</span>}
         value="truth"
         icon={<img src="truth.png" alt="" style={{ height: 32 }} />}
+        className={currentMode === 'truth' ? classes.selected : ''}
       />
       <BottomNavigationAction
         label={<span className={classes.label}>ヘブル語</span>}
         value="hebrew"
         icon={<img src="shalom.png" alt="" style={{ height: 32 }} />}
+        className={currentMode === 'hebrew' ? classes.selected : ''}
       />
     </BottomNavigation>
   );

@@ -14,12 +14,7 @@ export interface Word {
   fixed: boolean;
 }
 
-export type MenuMode =
-  | 'bible'
-  | 'truth'
-  | 'kirishitan'
-  | 'worship'
-  | 'ministry';
+export type MenuMode = 'bible' | 'truth' | 'hebrew';
 
 export interface ContextType {
   bibles: { [key: string]: Sword };
