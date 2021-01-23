@@ -17,8 +17,7 @@ import 'firebase/firestore';
 import 'firebase/auth';
 import AppContext from './AppContext';
 import './passage.css';
-import clsx from 'clsx';
-import { firestore } from 'firebase';
+import 'firebase/firestore';
 
 const str = (text: string | null) => (text ? String(text) : '');
 
