@@ -41,7 +41,7 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
   const { book, chapter, verse } = target;
   const bible = bibles[mod_key];
   const direction = bible?.conf?.Direction === 'RtoL' && 'rtl';
-  const lang = String(bible?.conf?.Lang);
+  const lang = String(bible?.lang);
   const valid_params = bible && book && chapter;
   const classes = useStyles();
 

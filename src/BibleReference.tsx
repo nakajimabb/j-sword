@@ -107,7 +107,7 @@ const RefPassage: React.FC<RefPassageProps> = ({
   const classes = useStyles();
   const conf = bible.conf;
   const direction = conf?.Direction === 'RtoL' && 'rtl';
-  const lang = String(conf?.Lang);
+  const lang = bible.lang;
 
   return (
     <Box className={clsx(direction, lang, classes.passage)}>

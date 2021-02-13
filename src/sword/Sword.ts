@@ -706,11 +706,12 @@ class Sword {
   }
 
   get lang() {
-    return String(this.conf?.Lang);
+    const lang = String(this.conf?.Lang)
+    return lang === 'hbo' ? 'he' : lang;
   }
 
   async createReference() {
-    const lang = String(this.conf?.Lang);
+    const lang = this.lang;
     const index = this.index || (await SwordDB.getIndex(this.modname));
     if (index) {
       const all_book_indexes = Object.assign(
