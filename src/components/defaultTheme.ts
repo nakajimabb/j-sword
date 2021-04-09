@@ -1,0 +1,48 @@
+const theme = {
+  bg: {
+    primary: 'bg-blue-500',
+    secondary: 'bg-gray-500',
+    success: 'bg-green-500',
+    danger: 'bg-red-500',
+    warning: 'bg-yellow-500',
+    info: 'bg-blue-300',
+    light: 'bg-gray-300',
+    dark: 'bg-black',
+    none: '',
+  },
+  border: {
+    primary: 'border-blue-500',
+    secondary: 'border-gray-500',
+    success: 'border-green-500',
+    danger: 'border-red-500',
+    warning: 'border-yellow-500',
+    info: 'border-blue-300',
+    light: 'border-gray-300',
+    dark: 'border-black',
+    none: '',
+  },
+  text: {
+    primary: 'text-blue-500',
+    secondary: 'text-gray-500',
+    success: 'text-green-500',
+    danger: 'text-red-500',
+    warning: 'text-yellow-500',
+    info: 'text-blue-300',
+    light: 'text-gray-300',
+    dark: 'text-black',
+    none: 'text-gray-500',
+  },
+  ring: {
+    primary: 'ring-blue-500',
+    secondary: 'ring-gray-500',
+    success: 'ring-green-500',
+    danger: 'ring-red-500',
+    warning: 'ring-yellow-500',
+    info: 'ring-blue-300',
+    light: 'ring-gray-300',
+    dark: 'ring-black',
+    none: 'ring-gray-500',
+  },
+};
+
+export default theme;
