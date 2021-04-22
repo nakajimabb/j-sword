@@ -3,6 +3,7 @@ export { default as Card } from './Card';
 export { default as Dropdown } from './Dropdown';
 export { default as Flex } from './Flex';
 export { default as Grid } from './Grid';
+export { default as Icon } from './Icon';
 export { default as Modal } from './Modal';
 export { default as Navbar } from './Navbar';
 export { default as Tabs } from './Tabs';
