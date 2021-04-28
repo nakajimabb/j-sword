@@ -1,44 +1,32 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Box, Chip, makeStyles } from '@material-ui/core';
 import { NodeObj, createNodeObj } from './NodeObj';
 import AppContext from './AppContext';
 import './passage.css';
-import clsx from 'clsx';
 
 const INVALID_CHAR = /[^\x09\x0A\x0D\x20-\xFF\x85\xA0-\uD7FF\uE000-\uFDCF\uFDE0-\uFFFD]/gm;
-
-const useStyles = makeStyles((theme) => ({
-  title: {
-    marginTop: 5,
-    backgroundColor: 'lightyellow',
-  },
-  spell: {},
-  pronunciation: {},
-}));
 
 interface PhraseProps {
   nodeObj: NodeObj;
   lang: string;
+  className?: string;
 }
 
-const Phrase: React.FC<PhraseProps> = ({ nodeObj, lang }) => {
-  const classes = useStyles();
-
+const Phrase: React.FC<PhraseProps> = ({ nodeObj, lang, className }) => {
   const header = () => {
     if (nodeObj.tag === 'entryFree') {
       const attrs = nodeObj.attrs;
       return (
         <div>
-          <span className={clsx(lang, classes.spell)}>{attrs.spell}</span>
+          <span className={lang}>{attrs.spell}</span>
           --
-          <span className={classes.pronunciation}>{attrs.pronunciation}</span>
+          <span>{attrs.pronunciation}</span>
         </div>
       );
     }
   };
 
   return (
-    <>
+    <div className={className}>
       {header()}
       <span className={lang} style={{ fontSize: '100%' }}>
         {nodeObj.value}
@@ -46,19 +34,23 @@ const Phrase: React.FC<PhraseProps> = ({ nodeObj, lang }) => {
       {nodeObj.children.map((childObj, index) => (
         <Phrase key={index} nodeObj={childObj} lang={lang} />
       ))}
-    </>
+    </div>
   );
 };
 
 interface DictPassageProps {
   lemma: string;
   lang: string;
+  className?: string;
 }
 
-const DictPassage: React.FC<DictPassageProps> = ({ lemma, lang }) => {
+const DictPassage: React.FC<DictPassageProps> = ({
+  lemma,
+  lang,
+  className,
+}) => {
   const [nodeObjs, setNodeObjs] = useState<{ [modname: string]: NodeObj }>({});
   const { dictionaries } = useContext(AppContext);
-  const classes = useStyles();
 
   useEffect(() => {
     const f = async () => {
@@ -94,21 +86,16 @@ const DictPassage: React.FC<DictPassageProps> = ({ lemma, lang }) => {
   if (!lemma) return null;
 
   return (
-    <Box>
+    <div className={className}>
       {Object.entries(nodeObjs).map(([modname, nodeObj], index) => (
         <React.Fragment key={index}>
-          <Chip
-            variant="outlined"
-            size="small"
-            label={dictionaries[modname].title}
-            className={classes.title}
-          />
-          <br />
-          <Phrase nodeObj={nodeObj} lang={lang} />
-          <br />
+          <div className="text-xs bg-yellow-50 rounded-full border border-gray-400 px-2 py-0.5 w-max">
+            {dictionaries[modname].title}
+          </div>
+          <Phrase nodeObj={nodeObj} lang={lang} className="mb-4" />
         </React.Fragment>
       ))}
-    </Box>
+    </div>
   );
 };
 

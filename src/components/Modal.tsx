@@ -2,68 +2,87 @@ import React from 'react';
 import clsx from 'clsx';
 
 import { Size2 } from './type';
+import { Button, Icon, Flex } from './';
 
-type Props = {
+type HeaderProps = {
+  centered?: boolean;
+  padding?: number;
+  showCloseButton?: boolean;
+  onClose?(): void;
   className?: string;
 };
 
-const ModalHeader: React.FC<Props> = ({ className, children }) => {
+const ModalHeader: React.FC<HeaderProps> = ({
+  centered = false,
+  padding = 3,
+  onClose,
+  className,
+  children,
+}) => {
   return (
-    <h1 className={clsx('bg-white px-6 pt-4 pb-2 border', className)}>
-      {children}
+    <h1
+      className={clsx(
+        'bg-white border text-lg leading-6 font-medium text-gray-900',
+        `p-${padding}`,
+        centered && 'text-center',
+        className
+      )}
+    >
+      <Flex align_items="center">
+        <div className="flex-1">{children}</div>
+        {onClose && (
+          <CloseButton
+            onClose={onClose}
+            className={clsx(padding === 0 && 'mx-2')}
+          />
+        )}
+      </Flex>
     </h1>
   );
 };
 
-const ModalBody: React.FC<Props> = ({ className, children }) => {
-  return <div className={clsx('bg-white p-4', className)}>{children}</div>;
+type Props = {
+  padding?: number;
+  className?: string;
 };
 
-const ModalFooter: React.FC<Props> = ({ className, children }) => {
+const ModalBody: React.FC<Props> = ({ padding = 4, className, children }) => {
   return (
-    <div className={clsx('bg-gray-50 px-4 py-3 border', className)}>
+    <div className={clsx('bg-white', `p-${padding}`, className)}>
       {children}
     </div>
   );
 };
 
-type CloseButtonProps = {
-  onClose?(): void;
+const ModalFooter: React.FC<Props> = ({ className, children }) => {
+  return <div className={clsx('px-4 py-3 border', className)}>{children}</div>;
 };
 
-const CloseButton: React.FC<CloseButtonProps> = ({ onClose }) => {
+type CloseButtonProps = {
+  onClose?(): void;
+  className?: string;
+};
+
+const CloseButton: React.FC<CloseButtonProps> = ({ onClose, className }) => {
   return (
-    <div className="hidden sm:block absolute top-0 right-0 pt-4 pr-4">
-      <button
-        type="button"
-        className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        onClick={onClose}
-      >
-        <span className="sr-only">Close</span>
-        <svg
-          className="h-6 w-6"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
-    </div>
+    <Button
+      variant="icon"
+      color="none"
+      size="xs"
+      onClick={onClose}
+      className={clsx(
+        'text-gray-400 hover:text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-1 focus:ring-offset-0 focus:ring-gray-400',
+        className
+      )}
+    >
+      <Icon name="x" />
+    </Button>
   );
 };
 
 type ModalProps = {
   open: boolean;
   size?: Size2;
-  showCloseButton?: boolean;
   onClose?(): void;
 };
 
@@ -73,23 +92,18 @@ type ModalType = React.FC<ModalProps> & {
   Footer: typeof ModalFooter;
 };
 
-const Modal: ModalType = ({
-  open,
-  size = 'lg',
-  showCloseButton,
-  onClose,
-  children,
-}) => {
+const Modal: ModalType = ({ open, size = 'lg', onClose, children }) => {
   if (!open) return null;
 
   return (
     <div
-      className="fixed z-10 inset-0 overflow-y-auto"
+      // className="fixed z-20 inset-0 overflow-y-auto"
+      className="fixed z-20 inset-0"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
     >
-      <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center">
+      <div className="flex items-center justify-center min-h-screen p-3 text-center">
         {/* Background overlay */}
         <div
           className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
@@ -98,11 +112,10 @@ const Modal: ModalType = ({
         ></div>
         <div
           className={clsx(
-            'inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all  max-w-full',
+            'inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all max-w-full',
             `sm:max-w-${size}`
           )}
         >
-          {showCloseButton && <CloseButton onClose={onClose} />}
           {children}
         </div>
       </div>

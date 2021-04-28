@@ -31,7 +31,6 @@ export interface Module {
 }
 
 export interface TargetType {
-  modnames: string[];
   book: string;
   chapter: string;
   verse?: string;

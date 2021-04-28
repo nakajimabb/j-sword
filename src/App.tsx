@@ -1,39 +1,26 @@
-import React, { useContext } from 'react';
-import { makeStyles } from '@material-ui/core';
-import clsx from 'clsx';
+import React from 'react';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
+import SignIn from './SignIn';
+import { AppContextProvider } from './AppContext';
 
-import AppContext from './AppContext';
-import TopBar from './TopBar';
-import Navigation from './Navigation';
-import BibleViewer from './BibleViewer';
-import ArticleList from './ArticleList';
+import AppBar from './AppBar';
+import GridLayout from './GridLayout';
+import Tailwind from './Tailwind';
 import './App.css';
 import './passage.css';
 
-const useStyles = makeStyles((theme) => ({
-  container: {
-    display: 'flex',
-  },
-  hidden: {
-    display: 'none',
-  },
-}));
-
 const App: React.FC = () => {
-  const { currentMode } = useContext(AppContext);
-  const classes = useStyles();
-
   return (
-    <div id="App">
-      <TopBar />
-      <div className={clsx(currentMode !== 'bible' && classes.hidden)}>
-        <BibleViewer />
-      </div>
-      <div className={clsx(currentMode !== 'truth' && classes.hidden)}>
-        <ArticleList />
-      </div>
-      <Navigation />
-    </div>
+    <React.StrictMode>
+      <AppContextProvider>
+        <Router>
+          <Route path="/" component={AppBar} />
+          <Route exact path="/" component={GridLayout} />
+          <Route exact path="/sign_in" component={SignIn} />
+          <Route exact path="/tailwind" component={Tailwind} />
+        </Router>
+      </AppContextProvider>
+    </React.StrictMode>
   );
 };
 

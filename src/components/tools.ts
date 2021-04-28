@@ -5,7 +5,7 @@ export const makeResponsiveClasses = (str: string, attr: string) => {
       .filter((s) => s)
       .map((s) => {
         const strs = s.split(':');
-        return s.length === 1
+        return strs.length === 1
           ? `${attr}-${strs[0]}`
           : `${strs[0]}:${attr}-${strs[1]}`;
       })

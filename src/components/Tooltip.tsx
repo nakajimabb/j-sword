@@ -27,7 +27,7 @@ const Tooltip: React.FC<TooltipProps> = ({ title, className, children }) => {
       <div
         className={clsx(
           !show && 'hidden',
-          'opacity-60 bg-black text-white text-xs rounded px-2 py-1 whitespace-pre z-10',
+          'opacity-90 bg-gray-600 text-white text-xs rounded px-2 py-1 whitespace-pre z-10',
           'absolute left-1/2 top-full m-auto',
           'transform -translate-x-1/2 translate-y-2',
           className

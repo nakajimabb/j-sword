@@ -3,8 +3,8 @@ import clsx from 'clsx';
 import { makeResponsiveClasses } from './tools';
 
 type GridProps = {
-  cols?: string;
-  rows?: string;
+  cols?: string | number;
+  rows?: string | number;
   gap?: string;
   flow?: 'row' | 'col' | 'row-dense' | 'col-dense';
   auto_cols?: 'auto' | 'min' | 'max' | 'fr';
@@ -26,8 +26,8 @@ const Grid: React.FC<GridProps> = ({
     <div
       className={clsx(
         'grid',
-        cols && makeResponsiveClasses(cols, 'grid-cols'),
-        rows && makeResponsiveClasses(rows, 'grid-rows'),
+        cols && makeResponsiveClasses(String(cols), 'grid-cols'),
+        rows && makeResponsiveClasses(String(rows), 'grid-rows'),
         gap && makeResponsiveClasses(gap, 'gap'),
         flow && `grid-flow-${flow}`,
         auto_cols && `auto-cols-${auto_cols}`,

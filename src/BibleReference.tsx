@@ -1,19 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import {
-  Chip,
-  Dialog,
-  Divider,
-  Box,
-  Container,
-  Card,
-  Grid,
-  FormControl,
-  CardContent,
-  Select,
-  MenuItem,
-  makeStyles,
-} from '@material-ui/core';
-import Pagination from '@material-ui/lab/Pagination';
+import { Button, Flex, Form, Grid, Modal, Pagination } from './components';
 
 import Sword from './sword/Sword';
 import Passage from './Passage';
@@ -23,50 +9,6 @@ import { Raw, References } from './sword/types';
 import canon_jp from './sword/canons/locale/ja.json';
 import './passage.css';
 import clsx from 'clsx';
-
-const useStyles = makeStyles((theme) => ({
-  container: {
-    display: 'flex',
-  },
-  dialog: {
-    height: '100%',
-    width: '100%',
-    maxWidth: 'initial',
-  },
-  card_container: {
-    backgroundColor: 'whitesmoke',
-    maxWidth: 'initial',
-    paddingTop: 5,
-    paddingBottom: 5,
-  },
-  card: {
-    marginTop: 5,
-    marginBottom: 5,
-  },
-  card_content: {
-    paddingBottom: '5px !important',
-  },
-  chip: {
-    padding: 0,
-    margin: 2,
-    height: 'initial',
-  },
-  pane: {
-    overflow: 'scroll',
-    padding: theme.spacing(2),
-    textAlign: 'left',
-    width: '100%',
-    height: 'calc(100vh - 150px)',
-    dislay: 'flex',
-    flexDirection: 'column',
-  },
-  passage: {
-    padding: 10,
-    fontSize: '100%',
-    borderBottom: 'lightgray solid 1px',
-    '&:last-child': { borderBottom: 'none' },
-  },
-}));
 
 const countByModKey = (references: References) => {
   let sum: { [modname: string]: { [book: string]: number } } = {};
@@ -104,13 +46,12 @@ const RefPassage: React.FC<RefPassageProps> = ({
   raw,
   target_lemma,
 }) => {
-  const classes = useStyles();
   const conf = bible.conf;
   const direction = conf?.Direction === 'RtoL' && 'rtl';
   const lang = bible.lang;
 
   return (
-    <Box className={clsx(direction, lang, classes.passage)}>
+    <div className={clsx('border-b p-2', direction, lang)}>
       <Passage
         raw={raw}
         show_verse={false}
@@ -118,7 +59,7 @@ const RefPassage: React.FC<RefPassageProps> = ({
         lang={lang}
         depth={depth}
       />
-    </Box>
+    </div>
   );
 };
 
@@ -138,9 +79,11 @@ const RefPassages: React.FC<RefPassagesProps> = ({
   lemma,
 }) => {
   const [raw_texts, setRawTexts] = useState<RawTexts>({});
-  const { bibles, target } = useContext(AppContext);
-  const modnames = Array.from(new Set([mod_key].concat(target.modnames)));
-  const classes = useStyles();
+  const { bibles, target, layout } = useContext(AppContext);
+  const modnames = layout
+    .flat()
+    .filter((item) => item.type === 'book')
+    .map((item) => item.name);
 
   useEffect(() => {
     const f = async () => {
@@ -186,34 +129,33 @@ const RefPassages: React.FC<RefPassagesProps> = ({
   };
 
   return (
-    <Container className={classes.card_container}>
+    <div>
       {indexes.map((book_pos: string, key: number) => (
-        <Card key={key} className={classes.card}>
-          <CardContent className={classes.card_content}>
-            <Box>
-              <b>{localizeBookPos(book_pos)}</b>
-            </Box>
-            <Box>
-              {modnames.map(
-                (modKey) =>
-                  raw_texts[book_pos] &&
-                  raw_texts[book_pos][modKey] &&
-                  raw_texts[book_pos][modKey].map((raw) => {
-                    return (
-                      <RefPassage
-                        depth={depth}
-                        bible={bibles[modKey]}
-                        raw={raw}
-                        target_lemma={lemma}
-                      />
-                    );
-                  })
-              )}
-            </Box>
-          </CardContent>
-        </Card>
+        <div
+          key={key}
+          className="rounded-md border border-gray-300 shadow mb-2 p-2 bg-white"
+        >
+          <h5>
+            <b>{localizeBookPos(book_pos)}</b>
+          </h5>
+          {modnames.map(
+            (modKey) =>
+              raw_texts[book_pos] &&
+              raw_texts[book_pos][modKey] &&
+              raw_texts[book_pos][modKey].map((raw) => {
+                return (
+                  <RefPassage
+                    depth={depth}
+                    bible={bibles[modKey]}
+                    raw={raw}
+                    target_lemma={lemma}
+                  />
+                );
+              })
+          )}
+        </div>
       ))}
-    </Container>
+    </div>
   );
 };
 
@@ -250,7 +192,6 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
     start_index + count_per_page
   );
   const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
-  const classes = useStyles();
 
   const references_options = Object.keys(references)
     .map((modKey: string) =>
@@ -261,6 +202,13 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
     )
     .flat(1)
     .filter((di) => di.mod_key !== 'lemma');
+
+  const options = references_options.map((option) => ({
+    label: `${canonjp[option.book].abbrev}(${option.mod_key})  x${
+      counts[option.mod_key][option.book]
+    }`,
+    value: `${option.mod_key}:${option.book}`,
+  }));
 
   useEffect(() => {
     const references2 = references || {};
@@ -298,86 +246,51 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="xl"
-      classes={{ paper: classes.dialog }}
-      aria-labelledby="simple-modal-title"
-      aria-describedby="simple-modal-description"
-    >
-      <Grid container style={{ margin: 5 }}>
-        <Grid item xs={6}>
-          <Box style={{ textAlign: 'center', margin: 5 }}>語彙＆参照箇所</Box>
-        </Grid>
-        <Grid item xs={6}>
-          <Grid
-            container
-            direction="row"
-            justify="space-between"
-            alignItems="center"
-          >
-            <Grid item>
-              <FormControl>
-                <Select
-                  labelId="demo-simple-select-helper-label"
-                  id="age-native-simple"
-                  value={`${target.mod_key}:${target.book}`}
-                  style={{ width: 150 }}
-                  onChange={onChangeTarget}
-                >
-                  {references_options.map((option) => (
-                    <MenuItem value={`${option.mod_key}:${option.book}`}>
-                      <Grid
-                        container
-                        direction="row"
-                        justify="space-between"
-                        alignItems="center"
-                      >
-                        <Grid item>
-                          {canonjp[option.book].abbrev}
-                          <small style={{ textAlign: 'right' }}>
-                            &nbsp;({option.mod_key})
-                          </small>
-                        </Grid>
-                        <Grid item>x{counts[option.mod_key][option.book]}</Grid>
-                      </Grid>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item>
-              {page_count > 1 && (
-                <Pagination
-                  size="small"
-                  count={page_count}
-                  page={page}
-                  onChange={onChangePage}
-                  style={{ marginRight: 30 }}
-                />
-              )}
-            </Grid>
-          </Grid>
-        </Grid>
-      </Grid>
-      <Divider />
-      <div className={classes.container}>
-        <Box className={classes.pane}>
-          <DictView depth={depth} />
-        </Box>
-        <Box className={classes.pane}>
-          {target.mod_key && (
-            <RefPassages
-              depth={depth}
-              indexes={target_indexes}
-              mod_key={target.mod_key}
-              lemma={lemma}
+    <Modal open={open} onClose={onClose} size="max">
+      <Modal.Header padding={0} onClose={onClose}>
+        <div className="inline-block w-1/2 text-center p-2">語彙＆参照箇所</div>
+        <div className="inline-block w-1/2 pl-4 pr-0 py-1">
+          <Flex justify_content="between">
+            <Form.Select
+              value={`${target.mod_key}:${target.book}`}
+              options={options}
+              onChange={onChangeTarget}
+              size="sm"
+              className="ml-3"
             />
-          )}
-        </Box>
-      </div>
-    </Dialog>
+            <Pagination
+              size="sm"
+              count={page_count}
+              page={page}
+              onChange={(v) => setPage(v)}
+            />
+          </Flex>
+        </div>
+      </Modal.Header>
+      <Modal.Body padding={0} className="bg-gray-50">
+        <Grid cols={2}>
+          <div
+            className="p-2 overflow-y-scroll"
+            style={{ height: 'calc(100vh - 100px)' }}
+          >
+            <DictView depth={depth} />
+          </div>
+          <div
+            className="p-2 overflow-y-scroll"
+            style={{ height: 'calc(100vh - 100px)' }}
+          >
+            {target.mod_key && (
+              <RefPassages
+                depth={depth}
+                indexes={target_indexes}
+                mod_key={target.mod_key}
+                lemma={lemma}
+              />
+            )}
+          </div>
+        </Grid>
+      </Modal.Body>
+    </Modal>
   );
 };
 
@@ -428,12 +341,14 @@ const BibleReference: React.FC<BibleReferenceProps> = ({ lemma, depth }) => {
 
   return (
     <>
-      <Chip
-        label={label}
-        variant="outlined"
-        size="small"
+      <Button
+        color="none"
+        size="none"
+        className="text-xs rounded-full border border-gray-400 px-2 py-0.5 w-max"
         onClick={() => setOpen(true)}
-      />
+      >
+        {label}
+      </Button>
       {open && (
         <ModalDictIndex
           depth={depth}

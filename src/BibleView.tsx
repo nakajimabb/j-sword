@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Box, Chip, makeStyles } from '@material-ui/core';
 import clsx from 'clsx';
 
 import AppContext from './AppContext';
@@ -12,30 +11,11 @@ let g_scroll: { id: string | null; time: Date | null } = {
   time: null,
 };
 
-const useStyles = makeStyles((theme) => ({
-  pane: {
-    overflow: 'scroll',
-    padding: theme.spacing(1),
-    paddingBottom: 30,
-    textAlign: 'left',
-    width: '100%',
-    height: 'calc(100vh - 125px)',
-    dislay: 'flex',
-    flexDirection: 'column',
-  },
-  title: {
-    backgroundColor: 'lightyellow',
-  },
-  hide: {
-    display: 'none',
-  },
-}));
-
 interface Props {
   mod_key: string;
 }
 
-const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
+const BibleView: React.FC<Props> = ({ mod_key }) => {
   const [raw_texts, setRawTexts] = useState<Raw[]>([]);
   const { bibles, target } = useContext(AppContext);
   const { book, chapter, verse } = target;
@@ -43,7 +23,6 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
   const direction = bible?.conf?.Direction === 'RtoL' && 'rtl';
   const lang = String(bible?.lang);
   const valid_params = bible && book && chapter;
-  const classes = useStyles();
 
   useEffect(() => {
     const f = async () => {
@@ -124,20 +103,10 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
   return (
     <>
       {valid_params && (
-        <Box
-          id={`pane-${mod_key}`}
-          className={clsx('pane', classes.pane)}
-          onScroll={onScroll}
-        >
-          <Chip
-            variant="outlined"
-            size="small"
-            label={bible.title}
-            className={classes.title}
-          />
-          <Box className={clsx(direction, lang)}>
+        <div id={`pane-${mod_key}`} className="pane p-2" onScroll={onScroll}>
+          <div className={clsx(direction, lang)}>
             {raw_texts.map((raw, index: number) => (
-              <Box
+              <div
                 key={index}
                 className="passage"
                 data-pos={`${book}-${chapter}-${raw.verse}`}
@@ -145,13 +114,13 @@ const SwordRenderer: React.FC<Props> = ({ mod_key }) => {
                 onMouseLeave={onMouseLeave}
               >
                 <Passage depth={0} lang={lang} raw={raw} show_verse={true} />
-              </Box>
+              </div>
             ))}
-          </Box>
-        </Box>
+          </div>
+        </div>
       )}
     </>
   );
 };
 
-export default SwordRenderer;
+export default BibleView;

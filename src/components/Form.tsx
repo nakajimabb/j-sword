@@ -24,8 +24,12 @@ type InputProps = {
   name?: string;
   value?: string;
   label?: string;
+  checked?: boolean;
+  disabled?: boolean;
   placeholder?: string;
   size?: 'sm' | 'md' | 'lg';
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onKeyPress?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   className?: string;
 };
 
@@ -34,8 +38,11 @@ const Input: (type: InputType) => React.FC<InputProps> = (type) => ({
   name,
   value,
   label,
+  checked,
+  disabled,
   placeholder,
   size = 'md',
+  onChange,
   className,
   children,
   ...other
@@ -51,7 +58,10 @@ const Input: (type: InputType) => React.FC<InputProps> = (type) => ({
       id={id}
       name={name}
       value={value}
+      checked={checked}
+      disabled={disabled}
       placeholder={placeholder}
+      onChange={onChange}
       className={clsx(
         baseClass,
         textSize[size],
@@ -79,7 +89,7 @@ type SelectProps = {
   name?: string;
   value?: string;
   label?: string;
-  options: { label: string; value: string }[];
+  options: { label: string; value: string }[] | string[];
   size?: 'sm' | 'md' | 'lg';
   onChange?: React.ChangeEventHandler<HTMLSelectElement>;
   className?: string;
@@ -107,10 +117,14 @@ const Select: React.FC<SelectProps> = ({
       onChange={onChange}
       className={clsx(baseClass, padding[size], textSize[size], className)}
     >
-      {label && <option>{label}</option>}
-      {options.map((option) => (
-        <option value={option.value}>{option.label}</option>
-      ))}
+      {label && <option value="">{label}</option>}
+      {options.map((option: { label: string; value: string } | string) =>
+        typeof option === 'string' ? (
+          <option value={option}>{option}</option>
+        ) : (
+          <option value={option.value}>{option.label}</option>
+        )
+      )}
     </select>
   );
 };

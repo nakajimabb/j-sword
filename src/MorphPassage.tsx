@@ -20,6 +20,7 @@ const Phrase: React.FC<PhraseProps> = ({ nodeObj }) => {
 
 interface MorphPassageProps {
   morph: string;
+  className?: string;
 }
 
 const initNodeObj = {
@@ -29,7 +30,7 @@ const initNodeObj = {
   children: [],
 };
 
-const MorphPassage: React.FC<MorphPassageProps> = ({ morph }) => {
+const MorphPassage: React.FC<MorphPassageProps> = ({ morph, className }) => {
   const [nodeObj, setNodeObj] = useState<NodeObj>(initNodeObj);
   const { morphologies } = useContext(AppContext);
 
@@ -68,9 +69,9 @@ const MorphPassage: React.FC<MorphPassageProps> = ({ morph }) => {
   if (!morph) return null;
 
   return (
-    <>
+    <div className={className}>
       [{morph}] <Phrase nodeObj={nodeObj} />
-    </>
+    </div>
   );
 };
 

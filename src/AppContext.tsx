@@ -15,6 +15,10 @@ export interface Word {
 }
 
 export type MenuMode = 'bible' | 'truth' | 'hebrew';
+export type Layout = {
+  name: string;
+  type: 'book' | 'dictionary' | 'article';
+};
 
 export interface ContextType {
   bibles: { [key: string]: Sword };
@@ -24,6 +28,8 @@ export interface ContextType {
   currentUser: firebase.User | null;
   customClaims: CustomClaims;
   target: TargetType;
+  layout: Layout[][];
+  setLayout: (layout: Layout[][]) => void;
   saveSetting: React.Dispatch<TargetType>;
   targetWords: Word[];
   setTargetWords: React.Dispatch<Word[]>;
@@ -31,6 +37,8 @@ export interface ContextType {
   currentMode: MenuMode;
   setCurrentMode: React.Dispatch<MenuMode>;
   loadModules: () => void;
+  selectLayout: Layout | null;
+  setSelectLayout: (layout: Layout | null) => void;
 }
 
 const AppContext = createContext({
@@ -40,7 +48,9 @@ const AppContext = createContext({
   setSwordModule: (module: Sword) => {},
   currentUser: null,
   customClaims: {},
-  target: { modnames: [], book: '', chapter: '', verse: '' },
+  target: { book: '', chapter: '', verse: '' },
+  layout: [],
+  setLayout: (layout: Layout[][]) => {},
   saveSetting: (value: TargetType) => {},
   targetWords: [],
   setTargetWords: (value: Word[]) => {},
@@ -48,6 +58,8 @@ const AppContext = createContext({
   currentMode: 'bible',
   setCurrentMode: (value: MenuMode) => {},
   loadModules: () => {},
+  selectLayout: null,
+  setSelectLayout: (layout: Layout | null) => {},
 } as ContextType);
 
 export const AppContextProvider: React.FC = (props) => {
@@ -59,15 +71,16 @@ export const AppContextProvider: React.FC = (props) => {
   const [touchDevice, SetTouchDevice] = useState<boolean>(false);
   const [currentMode, setCurrentMode] = useState<MenuMode>('bible');
   const [target, setTarget] = useState<TargetType>({
-    modnames: [],
     book: 'Gen',
     chapter: '1',
     verse: '',
   });
+  const [layout, setLayout] = useState<Layout[][]>([]);
 
   const [targetWords, setTargetWords] = useState<Word[]>([
     { lemma: '', morph: '', text: '', lang: '', targetLemma: '', fixed: false },
   ]);
+  const [selectLayout, setSelectLayout] = useState<Layout | null>(null);
 
   useEffect(() => {
     SetTouchDevice(window.ontouchstart === null);
@@ -102,7 +115,6 @@ export const AppContextProvider: React.FC = (props) => {
 
   const resetTarget = () => {
     setTarget({
-      modnames: [],
       book: 'Gen',
       chapter: '1',
       verse: '',
@@ -150,6 +162,8 @@ export const AppContextProvider: React.FC = (props) => {
         currentUser,
         customClaims,
         target,
+        layout,
+        setLayout,
         saveSetting,
         targetWords,
         setTargetWords,
@@ -157,6 +171,8 @@ export const AppContextProvider: React.FC = (props) => {
         currentMode,
         setCurrentMode,
         loadModules,
+        selectLayout,
+        setSelectLayout,
       }}
     >
       {props.children}

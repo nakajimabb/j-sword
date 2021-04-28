@@ -1,97 +1,30 @@
 import React, { useState, useEffect, useContext } from 'react';
-import {
-  Button,
-  Checkbox,
-  Dialog,
-  DialogContent,
-  FormControlLabel,
-  Grid,
-  IconButton,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-  Tooltip,
-  Typography,
-  makeStyles,
-} from '@material-ui/core';
-import { Delete } from '@material-ui/icons';
 import firebase from './firebase';
 import 'firebase/firestore';
 import 'firebase/storage';
-import clsx from 'clsx';
+
+import {
+  Alert,
+  Button,
+  Form,
+  Icon,
+  Modal,
+  Progress,
+  Table,
+  Tooltip,
+} from './components';
 
 import Sword from './sword/Sword';
 import AppContext from './AppContext';
-import LinearProgressWithLabel from './LinearProgressWithLabel';
 import { Module } from './types';
 import './passage.css';
 
-const useStyles = makeStyles((theme) => ({
-  container: {
-    display: 'flex',
-  },
-  dialog: {
-    height: '100%',
-    width: '100%',
-    maxWidth: 'initial',
-    backgroundColor: 'whitesmoke',
-  },
-  button: {
-    padding: 0,
-    margin: 2,
-  },
-  title: {
-    marginBottom: 10,
-  },
-  check: {
-    width: '7%',
-  },
-  name: {
-    width: '60%',
-  },
-  modtype: {
-    width: '10%',
-  },
-  lang: {
-    width: '16%',
-  },
-  action: {
-    width: '7%',
-  },
-  table: {
-    padding: 5,
-  },
-  cell: {
-    padding: 5,
-  },
-  paper: {
-    backgroundColor: 'white',
-    padding: '0 20px',
-    marginTop: 10,
-    marginBottom: 10,
-  },
-  paper2: {
-    backgroundColor: 'snow',
-    padding: '5px 20px',
-    marginTop: 10,
-    marginBottom: 10,
-  },
-  alert: {
-    color: 'red',
-  },
-  bible: { color: 'darkorange' },
-  dictionary: { color: 'darkcyan' },
-  morphology: { color: 'royalblue' },
-}));
-
-interface SwordInstallerProps {
+interface Props {
   open: boolean;
   onClose: () => void;
 }
 
-const SwordInstaller: React.FC<SwordInstallerProps> = ({ open, onClose }) => {
+const SwordInstaller: React.FC<Props> = ({ open, onClose }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
   const [modules, setModules] = useState<Module[]>([]);
@@ -122,7 +55,6 @@ const SwordInstaller: React.FC<SwordInstallerProps> = ({ open, onClose }) => {
       Object.keys(morphologies)
     )
   );
-  const classes = useStyles();
 
   useEffect(() => {
     const f = async () => {
@@ -244,92 +176,75 @@ const SwordInstaller: React.FC<SwordInstallerProps> = ({ open, onClose }) => {
     setTimeout(() => setLoading(false), 500);
   };
 
+  const textColor = {
+    bible: 'text-gray-600',
+    dictionary: 'text-green-500',
+    morphology: 'text-indigo-500',
+  };
+
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      className={classes.dialog}
-      maxWidth="sm"
-      fullWidth
-      aria-labelledby="simple-modal-title"
-      aria-describedby="simple-modal-description"
-    >
-      <DialogContent style={{ minHeight: 450, backgroundColor: 'whitesmoke' }}>
-        <Typography component="h4" variant="inherit" align="center">
-          モジュール ダウンロード
-        </Typography>
-        <Paper className={classes.paper}>
-          <Table size="small" className={classes.table}>
-            <colgroup>
-              <col className={classes.check} />
-              <col className={classes.name} />
-              <col className={classes.lang} />
-              <col className={classes.modtype} />
-              <col className={classes.action} />
-            </colgroup>
-            <TableBody>
-              {modules.map((module, index) => (
-                <TableRow key={index}>
-                  <TableCell className={classes.cell} style={{ padding: 0 }}>
-                    <Checkbox
-                      size="small"
-                      value={module.modname}
-                      disabled={installed_names.has(module.modname) || loading}
-                      checked={
-                        installed_names.has(module.modname) ||
-                        targets.has(module.modname)
-                      }
-                      onChange={addTarget(module)}
-                    />
-                  </TableCell>
-                  <TableCell className={classes.cell}>{module.title}</TableCell>
-                  <TableCell className={classes.cell}>
-                    <small>{langs[module.lang]}</small>
-                  </TableCell>
-                  <TableCell
-                    className={clsx(classes.cell, classes[module.modtype])}
-                  >
-                    <small>{modtypes[module.modtype]}</small>
-                  </TableCell>
-                  <TableCell className={classes.cell}>
-                    {installed_names.has(module.modname) && (
-                      <Tooltip title="モジュールを削除">
-                        <IconButton
-                          size="small"
-                          disabled={loading}
-                          onClick={deleteTarget(module)}
-                        >
-                          <Delete />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Paper>
+    <Modal open={open} onClose={onClose} size="7xl">
+      <Modal.Header centered onClose={onClose}>
+        モジュール ダウンロード
+      </Modal.Header>
+      <Modal.Body className="bg-gray-100">
+        <Table hover={false} size="sm" className="mb-3">
+          <Table.Body className="bg-gray-50">
+            {modules.map((module, index) => (
+              <Table.Row key={index} className={textColor[module.modtype]}>
+                <Table.Cell>
+                  <Form.Checkbox
+                    value={module.modname}
+                    disabled={installed_names.has(module.modname) || loading}
+                    checked={
+                      installed_names.has(module.modname) ||
+                      targets.has(module.modname)
+                    }
+                    onChange={addTarget(module)}
+                    className="mx-2 my-1"
+                  />
+                </Table.Cell>
+                <Table.Cell>{module.title}</Table.Cell>
+                <Table.Cell>
+                  <small>{langs[module.lang]}</small>
+                </Table.Cell>
+                <Table.Cell>
+                  <small>{modtypes[module.modtype]}</small>
+                </Table.Cell>
+                <Table.Cell>
+                  {installed_names.has(module.modname) && (
+                    <Tooltip title="削除する" className="text-left">
+                      <Button
+                        size="xs"
+                        variant="icon"
+                        color="none"
+                        onClick={deleteTarget(module)}
+                        className="mx-2 text-gray-500 hover:bg-gray-200 focus:outline-none focus:ring-1 focus:ring-offset-0 focus:ring-gray-400"
+                      >
+                        <Icon name="trash" />
+                      </Button>
+                    </Tooltip>
+                  )}
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
         {loading && (
-          <LinearProgressWithLabel
-            variant="determinate"
-            value={progress}
-            label={`${Math.round(progress)}%`}
-          />
+          <Progress value={progress} label={`${Math.round(progress)}%`} />
         )}
         {messages.length > 0 && (
-          <Paper className={classes.paper2}>
+          <Alert
+            severity="error"
+            onClose={() => setMessages([])}
+            className="my-2"
+          >
             {messages.map((message, index) => (
-              <Typography
-                key={index}
-                variant="subtitle2"
-                className={classes.alert}
-              >
-                {message}
-              </Typography>
+              <p key={index}>{message}</p>
             ))}
-          </Paper>
+          </Alert>
         )}
-        <Grid container direction="row" justify="center" alignItems="center">
+        <div className="text-center">
           <Button
             variant="contained"
             color="primary"
@@ -338,9 +253,9 @@ const SwordInstaller: React.FC<SwordInstallerProps> = ({ open, onClose }) => {
           >
             ダウンロード
           </Button>
-        </Grid>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </Modal.Body>
+    </Modal>
   );
 };
 

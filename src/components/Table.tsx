@@ -87,8 +87,8 @@ const TableCell: React.FC<CellProps> = ({
       className={clsx(
         padding[size],
         border && 'border',
-        th && 'font-medium text-gray-900',
-        !th && 'text-gray-500',
+        // th && 'font-medium text-gray-900',
+        // !th && 'text-gray-500',
         textAlign && `text-${textAlign}`,
         `text-${size}`,
         className
@@ -123,6 +123,7 @@ const Table: TableType = ({
   return (
     <table
       className={clsx(
+        'shadow-md',
         border !== 'none' && 'border border-gray-200',
         border === 'none' && 'border-none',
         className

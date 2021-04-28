@@ -1,9 +1,10 @@
 import React from 'react';
-import { Grid } from '@material-ui/core';
 
 import firebase from './firebase';
 import 'firebase/auth';
 import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
+
+import { Flex } from './components';
 
 const uiConfig = {
   signInFlow: 'redirect',
@@ -13,21 +14,13 @@ const uiConfig = {
 
 const SignInScreen: React.FC = () => {
   return (
-    <Grid
-      container
-      spacing={0}
-      direction="column"
-      alignItems="center"
-      justify="center"
-      style={{ minHeight: '100vh' }}
+    <Flex
+      justify_content="center"
+      align_items="center"
+      className="w-full h-screen"
     >
-      <Grid item xs={3}>
-        <StyledFirebaseAuth
-          uiConfig={uiConfig}
-          firebaseAuth={firebase.auth()}
-        />
-      </Grid>
-    </Grid>
+      <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()} />
+    </Flex>
   );
 };
 

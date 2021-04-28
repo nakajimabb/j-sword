@@ -1,61 +1,22 @@
 import React, { useState, useEffect, useContext } from 'react';
-import {
-  Box,
-  Checkbox,
-  Grid,
-  IconButton,
-  TextField,
-  makeStyles,
-} from '@material-ui/core';
-import {
-  PinDrop,
-  PinDropOutlined,
-  ChevronLeft,
-  ChevronRight,
-} from '@material-ui/icons';
+import clsx from 'clsx';
+
+import { Button, Flex, Form, Icon } from './components';
 import BibleReference from './BibleReference';
 import DictPassage from './DictPassage';
 import MorphPassage from './MorphPassage';
 import AppContext from './AppContext';
 import { shapeLemma } from './NodeObj';
 
-const useStyles = makeStyles((theme) => ({
-  header: {
-    marginBottom: 5,
-    display: 'flex',
-  },
-  item: {
-    marginRight: 5,
-    alignSelf: 'center',
-    '&:last-child': {
-      marginLeft: 'auto',
-    },
-  },
-  spell: {
-    fontSize: '110%',
-    marginBottom: 5,
-  },
-  dict: {
-    whiteSpace: 'pre-wrap',
-  },
-  meaning: {
-    fontSize: '85%',
-  },
-  input: {
-    width: 70,
-  },
-}));
-
-interface DictViewProp {
+type Props = {
   depth: number;
-}
+};
 
-const DictView: React.FC<DictViewProp> = ({ depth }) => {
+const DictView: React.FC<Props> = ({ depth }) => {
   const [shapedLemma, setShapedLemma] = useState<string>('');
   const { targetWords, setTargetWords } = useContext(AppContext);
   const word = targetWords[depth];
   const { text: wordText, lang, lemma, morph, fixed } = word;
-  const classes = useStyles();
 
   useEffect(() => {
     // 次の要素が存在しなければ前もって追加しておく
@@ -107,60 +68,62 @@ const DictView: React.FC<DictViewProp> = ({ depth }) => {
   };
 
   return (
-    <Box>
+    <div className="p-2">
       {lemma && (
-        <Box m={0}>
-          <Grid
-            container
-            direction="row"
-            justify="space-between"
-            alignItems="center"
+        <Flex align_items="center">
+          <Button
+            variant="icon"
+            size="none"
+            color="none"
+            onClick={incrementLemma(-1)}
+            className="mr-1 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 w-6 h-6"
           >
-            <Grid item>
-              <IconButton size="small" onClick={incrementLemma(-1)}>
-                <ChevronLeft />
-              </IconButton>
-              <TextField
-                value={lemma}
-                size="small"
-                onChange={onChangeLemma}
-                className={classes.input}
-              />
-              <IconButton size="small" onClick={incrementLemma(1)}>
-                <ChevronRight />
-              </IconButton>
-            </Grid>
-            <Grid item>
-              <BibleReference lemma={shapedLemma} depth={depth + 1} />
-              <Checkbox
-                checked={fixed}
-                icon={<PinDropOutlined />}
-                checkedIcon={<PinDrop />}
-                className={classes.item}
-                onChange={reverseFixed}
-                style={{ marginLeft: 5 }}
-              />
-            </Grid>
-          </Grid>
-        </Box>
+            <Icon name="chevron-left" variant="outline" />
+          </Button>
+          <Form.Text
+            value={lemma}
+            size="sm"
+            onChange={onChangeLemma}
+            className="h-7 w-20"
+          />
+          <Button
+            variant="icon"
+            size="none"
+            color="none"
+            onClick={incrementLemma(1)}
+            className="mx-1 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 w-6 h-6"
+          >
+            <Icon name="chevron-right" variant="outline" />
+          </Button>
+          <BibleReference lemma={shapedLemma} depth={depth + 1} />
+          <Button
+            variant="icon"
+            size="none"
+            color="none"
+            onClick={reverseFixed}
+            className="ml-1 p-1 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 w-8 h-8"
+          >
+            <Icon
+              name="location-marker"
+              variant={fixed ? 'solid' : 'outline'}
+              className={clsx(fixed && 'text-red-600')}
+            />
+          </Button>
+        </Flex>
       )}
 
       {wordText && lemma && (
-        <Box mb={0}>
-          <span className={lang} style={{ fontSize: '180%' }}>
-            {wordText}
-          </span>
-        </Box>
+        <span className={clsx(lang, 'tex-2xl')}>{wordText}</span>
       )}
 
-      <Box mb={1}>
-        <MorphPassage morph={morph} />
-      </Box>
+      <MorphPassage morph={morph} className="mb-1" />
 
-      <Box mb={1} className={classes.dict}>
-        <DictPassage lemma={shapedLemma} lang={lang} />
-      </Box>
-    </Box>
+      <DictPassage
+        lemma={shapedLemma}
+        lang={lang}
+        className="mb-1 whitespace-pre-wrap"
+      />
+    </div>
   );
 };
 
