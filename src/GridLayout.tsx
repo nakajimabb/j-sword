@@ -14,29 +14,38 @@ type SelectionProps = {
 };
 
 const Selection: React.FC<SelectionProps> = ({ col, row, position }) => {
-  const { layout, setLayout, selectLayout, setSelectLayout } = useContext(
-    AppContext
-  );
+  const {
+    target,
+    layouts,
+    setLayouts,
+    selectLayout,
+    setSelectLayout,
+    saveSetting,
+  } = useContext(AppContext);
 
   // ビューを追加
   const AddTarget = () => {
     if (selectLayout) {
       if (row) {
-        setLayout([
-          ...layout.slice(0, col - 1),
+        const newLayout = [
+          ...layouts.slice(0, col - 1),
           [
-            ...layout[col - 1].slice(0, row - 1),
+            ...layouts[col - 1].slice(0, row - 1),
             selectLayout,
-            ...layout[col - 1].slice(row - 1),
+            ...layouts[col - 1].slice(row - 1),
           ],
-          ...layout.slice(col),
-        ]);
+          ...layouts.slice(col),
+        ];
+        setLayouts(newLayout);
+        saveSetting(target, newLayout);
       } else {
-        setLayout([
-          ...layout.slice(0, col - 1),
+        const newLayout = [
+          ...layouts.slice(0, col - 1),
           [selectLayout],
-          ...layout.slice(col - 1),
-        ]);
+          ...layouts.slice(col - 1),
+        ];
+        setLayouts(newLayout);
+        saveSetting(target, newLayout);
       }
     }
     setSelectLayout(null);
@@ -59,18 +68,18 @@ const Selection: React.FC<SelectionProps> = ({ col, row, position }) => {
 type Props = {};
 
 const GridLayout: React.FC<Props> = () => {
-  const { layout, selectLayout } = useContext(AppContext);
+  const { layouts, selectLayout } = useContext(AppContext);
 
   return (
     <div className="pt-12 h-screen">
       <Grid
-        cols={`1 md:${layout.length}`}
-        rows={`${layout.length} md:1`}
+        cols={`1 md:${layouts.length}`}
+        rows={`${layouts.length} md:1`}
         gap="0"
         flow="row"
         className="w-full h-full"
       >
-        {layout.map((views, index1) => (
+        {layouts.map((views, index1) => (
           <Grid
             key={index1}
             cols={1}
@@ -102,7 +111,7 @@ const GridLayout: React.FC<Props> = () => {
             {selectLayout && (
               <Selection col={index1 + 1} row={null} position="left" />
             )}
-            {selectLayout && layout.length - 1 === index1 && (
+            {selectLayout && layouts.length - 1 === index1 && (
               <Selection col={index1 + 2} row={null} position="right" />
             )}
           </Grid>

@@ -6,21 +6,21 @@ class SettingDB extends Dexie {
   constructor() {
     super('j-sword-setting');
     this.version(1).stores({
-      settings: '&uid',
+      settings: '&name',
     });
     this.settings = this.table('settings');
   }
 
-  async getSetting(uid: string) {
-    return this.settings.get(uid);
+  async getSetting(name: string) {
+    return this.settings.get(name);
   }
 
   async saveSetting(setting: Setting) {
     return this.settings.put(setting);
   }
 
-  async remove(uid: string) {
-    await this.settings.delete(uid);
+  async remove(name: string) {
+    await this.settings.delete(name);
   }
 }
 

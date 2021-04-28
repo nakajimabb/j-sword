@@ -1,53 +1,57 @@
 import React, { useContext } from 'react';
 import { Button, Dropdown, Icon } from './components';
 import AppContext from './AppContext';
+import { Layout } from './types';
 
-type Props = {};
+type Props = {
+  col?: number;
+  row?: number;
+  trigger: React.ReactElement;
+};
 
-const BookSelecter: React.FC<Props> = () => {
-  const { bibles, layout, setLayout, setSelectLayout } = useContext(AppContext);
+const BookSelecter: React.FC<Props> = ({ col = -1, row = -1, trigger }) => {
+  const {
+    bibles,
+    target,
+    layouts,
+    setLayouts,
+    setSelectLayout,
+    saveSetting,
+  } = useContext(AppContext);
   const items = Object.keys(bibles).map((modname) => ({
     modname,
     title: bibles[modname].title,
   }));
 
-  return (
-    <Dropdown
-      icon={
-        <Button
-          variant="icon"
-          size="sm"
-          color="none"
-          className="mx-1 my-2 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300"
-        >
-          <Icon name="document-add" />
-        </Button>
+  const storeSetting = (layout: Layout) => {
+    if (col >= 0 && row >= 0) {
+      const newLayouts = [...layouts];
+      newLayouts[col][row] = layout;
+      setLayouts(newLayouts);
+      saveSetting(target, newLayouts);
+    } else {
+      if (layouts.length > 0) {
+        setSelectLayout(layout);
+      } else {
+        setLayouts([[layout]]);
+        saveSetting(target, [[layout]]);
       }
-      align="right"
-    >
+    }
+  };
+
+  return (
+    <Dropdown icon={trigger} align="right">
       <Dropdown.Item title="聖書">
         {items.map((item) => (
           <Dropdown.Item
             title={item.title}
-            onClick={() => {
-              if (layout.length > 0) {
-                setSelectLayout({ name: item.modname, type: 'book' });
-              } else {
-                setLayout([[{ name: item.modname, type: 'book' }]]);
-              }
-            }}
+            onClick={() => storeSetting({ name: item.modname, type: 'book' })}
           />
         ))}
       </Dropdown.Item>
       <Dropdown.Item
         title="辞書"
-        onClick={() => {
-          if (layout.length > 0) {
-            setSelectLayout({ name: '', type: 'dictionary' });
-          } else {
-            setLayout([[{ name: '', type: 'dictionary' }]]);
-          }
-        }}
+        onClick={() => storeSetting({ name: '', type: 'dictionary' })}
       />
     </Dropdown>
   );

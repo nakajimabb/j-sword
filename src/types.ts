@@ -36,7 +36,13 @@ export interface TargetType {
   verse?: string;
 }
 
+export type Layout = {
+  name: string;
+  type: 'book' | 'dictionary' | 'article';
+};
+
 export interface Setting {
-  uid: string;
+  name: string;
   target: TargetType;
+  layouts: Layout[][];
 }

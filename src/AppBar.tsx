@@ -23,12 +23,10 @@ import './App.css';
 const AppBar: React.FC = () => {
   const [value, setValue] = useState('0');
   const [opener, setOpener] = useState<'installer' | 'selector' | null>(null);
-  const { bibles, target, layout, currentUser, customClaims } = useContext(
-    AppContext
-  );
+  const { bibles, layouts, currentUser, customClaims } = useContext(AppContext);
   const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
   const emptyBibles = Object.keys(bibles).length === 0;
-  const emptyLayout = layout.length === 0;
+  const emptyLayout = layouts?.length === 0;
   const bible_file = useRef<HTMLInputElement>(null);
   const dict_file = useRef<HTMLInputElement>(null);
   const morph_file = useRef<HTMLInputElement>(null);
@@ -111,9 +109,32 @@ const AppBar: React.FC = () => {
           </Button>
         </Tooltip>
         <Tooltip title="画面追加">
-          <BookSelecter />
+          <BookSelecter
+            trigger={
+              <Button
+                variant="icon"
+                size="sm"
+                color="none"
+                className="mx-1 my-2 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300"
+              >
+                <Icon name="document-add" />
+              </Button>
+            }
+          />
         </Tooltip>
-        <BookOpener className="mx-2" />
+        <BookOpener
+          trigger={
+            <Button
+              variant="icon"
+              size="none"
+              color="none"
+              className="absolute top-0 left-0 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 z-10 w-6 h-6 p-0.5 m-1"
+            >
+              <Icon name="book-open" />
+            </Button>
+          }
+          className="mx-2"
+        />
       </Flex>
       <Flex>
         {currentUser ? (

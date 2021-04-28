@@ -2,7 +2,7 @@ import React from 'react';
 import { Flex } from './components';
 
 type Props = {
-  title: string;
+  title: string | React.ReactElement;
   menu?: React.ReactElement;
 };
 

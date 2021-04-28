@@ -79,8 +79,8 @@ const RefPassages: React.FC<RefPassagesProps> = ({
   lemma,
 }) => {
   const [raw_texts, setRawTexts] = useState<RawTexts>({});
-  const { bibles, target, layout } = useContext(AppContext);
-  const modnames = layout
+  const { bibles, layouts } = useContext(AppContext);
+  const modnames = layouts
     .flat()
     .filter((item) => item.type === 'book')
     .map((item) => item.name);

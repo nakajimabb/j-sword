@@ -14,13 +14,7 @@ type DialogProps = {
 };
 
 const Dialog: React.FC<DialogProps> = ({ open, onClose }) => {
-  const {
-    bibles,
-    dictionaries,
-    morphologies,
-    target,
-    saveSetting,
-  } = useContext(AppContext);
+  const { target, setTarget, layouts, saveSetting } = useContext(AppContext);
   const canon = canons.nrsv;
   const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
   const [tab, setTab] = useState('0');
@@ -96,13 +90,14 @@ const Dialog: React.FC<DialogProps> = ({ open, onClose }) => {
                 <div
                   key={index}
                   onClick={() => {
-                    setChapter(chap);
-                    saveSetting({
-                      ...target,
+                    const newTarget = {
                       book: modname,
                       chapter: String(chap),
                       verse: '',
-                    });
+                    };
+                    setChapter(chap);
+                    setTarget(newTarget);
+                    saveSetting(newTarget, layouts);
                     onClose();
                   }}
                   className={clsx(
@@ -121,11 +116,12 @@ const Dialog: React.FC<DialogProps> = ({ open, onClose }) => {
 };
 
 type Props = {
+  trigger: React.ReactElement;
   className?: string;
 };
 
-const BookOpener: React.FC<Props> = ({ className }) => {
-  const { target, saveSetting } = useContext(AppContext);
+const BookOpener: React.FC<Props> = ({ trigger, className }) => {
+  const { target, setTarget, layouts, saveSetting } = useContext(AppContext);
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState('');
 
@@ -135,15 +131,7 @@ const BookOpener: React.FC<Props> = ({ className }) => {
 
   return (
     <div className={clsx('relative w-32 h-8 my-2', className)}>
-      <Button
-        variant="icon"
-        size="none"
-        color="none"
-        onClick={() => setOpen(true)}
-        className="absolute top-0 left-0 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 z-10 w-6 h-6 p-0.5 m-1"
-      >
-        <Icon name="book-open" />
-      </Button>
+      <span onClick={() => setOpen(true)}>{trigger}</span>
       <Form.Text
         size="sm"
         placeholder="Gen.1:1"
@@ -155,12 +143,13 @@ const BookOpener: React.FC<Props> = ({ className }) => {
           if (e.charCode === 13 && position) {
             const m = position.match(/(\w+)\.(\w+)/);
             if (m) {
-              saveSetting({
-                ...target,
+              const newTarget = {
                 book: m[1],
                 chapter: m[2],
                 verse: '',
-              });
+              };
+              setTarget(newTarget);
+              saveSetting(newTarget, layouts);
             }
           }
         }}

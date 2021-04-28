@@ -1,7 +1,7 @@
 import React, { useState, useEffect, createContext } from 'react';
 
 import firebase from './firebase';
-import { CustomClaims, TargetType } from './types';
+import { CustomClaims, TargetType, Layout, Setting } from './types';
 import Sword from './sword/Sword';
 import SettingDB from './SettingDB';
 
@@ -15,10 +15,6 @@ export interface Word {
 }
 
 export type MenuMode = 'bible' | 'truth' | 'hebrew';
-export type Layout = {
-  name: string;
-  type: 'book' | 'dictionary' | 'article';
-};
 
 export interface ContextType {
   bibles: { [key: string]: Sword };
@@ -28,9 +24,10 @@ export interface ContextType {
   currentUser: firebase.User | null;
   customClaims: CustomClaims;
   target: TargetType;
-  layout: Layout[][];
-  setLayout: (layout: Layout[][]) => void;
-  saveSetting: React.Dispatch<TargetType>;
+  setTarget: React.Dispatch<TargetType>;
+  layouts: Layout[][];
+  setLayouts: (layouts: Layout[][]) => void;
+  saveSetting: (target: TargetType, layouts: Layout[][], name?: string) => void;
   targetWords: Word[];
   setTargetWords: React.Dispatch<Word[]>;
   touchDevice: boolean;
@@ -49,9 +46,14 @@ const AppContext = createContext({
   currentUser: null,
   customClaims: {},
   target: { book: '', chapter: '', verse: '' },
-  layout: [],
-  setLayout: (layout: Layout[][]) => {},
-  saveSetting: (value: TargetType) => {},
+  setTarget: (target: TargetType) => {},
+  layouts: [],
+  setLayouts: (layouts: Layout[][]) => {},
+  saveSetting: (
+    target: TargetType,
+    layouts: Layout[][],
+    name: string = '&last'
+  ) => {},
   targetWords: [],
   setTargetWords: (value: Word[]) => {},
   touchDevice: false,
@@ -75,7 +77,7 @@ export const AppContextProvider: React.FC = (props) => {
     chapter: '1',
     verse: '',
   });
-  const [layout, setLayout] = useState<Layout[][]>([]);
+  const [layouts, setLayouts] = useState<Layout[][]>([]);
 
   const [targetWords, setTargetWords] = useState<Word[]>([
     { lemma: '', morph: '', text: '', lang: '', targetLemma: '', fixed: false },
@@ -91,10 +93,10 @@ export const AppContextProvider: React.FC = (props) => {
       await loadModules();
       firebase.auth().onAuthStateChanged(async (user) => {
         setCurrentUser(user);
-        const uid = user ? user.uid : 'anonymous';
-        const setting = await SettingDB.getSetting(uid);
-        if (setting && setting.target) {
+        const setting = await SettingDB.getSetting('&last');
+        if (setting) {
           setTarget(setting.target);
+          setLayouts(setting.layouts);
         } else {
           resetTarget();
         }
@@ -144,12 +146,12 @@ export const AppContextProvider: React.FC = (props) => {
     }
   };
 
-  const saveSetting = async (value: TargetType) => {
-    setTarget(value);
-    await SettingDB.saveSetting({
-      uid: currentUser ? currentUser.uid : 'anonymous',
-      target: value,
-    });
+  const saveSetting = async (
+    target: TargetType,
+    layouts: Layout[][],
+    name: string = '&last'
+  ) => {
+    await SettingDB.saveSetting({ target, layouts, name });
   };
 
   return (
@@ -162,8 +164,9 @@ export const AppContextProvider: React.FC = (props) => {
         currentUser,
         customClaims,
         target,
-        layout,
-        setLayout,
+        setTarget,
+        layouts,
+        setLayouts,
         saveSetting,
         targetWords,
         setTargetWords,

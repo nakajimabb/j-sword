@@ -5,6 +5,7 @@ import AppContext from './AppContext';
 import FrameView from './FrameView';
 import BibleView from './BibleView';
 import DictView from './DictView';
+import BookSelecter from './BookSelecter';
 
 type Props = {
   name: string;
@@ -14,7 +15,9 @@ type Props = {
 };
 
 const SwordView: React.FC<Props> = ({ name, type, col, row, children }) => {
-  const { bibles, layout, setLayout } = useContext(AppContext);
+  const { bibles, target, layouts, setLayouts, saveSetting } = useContext(
+    AppContext
+  );
   const [title, setTitle] = useState<string>('');
 
   useEffect(() => {
@@ -28,18 +31,24 @@ const SwordView: React.FC<Props> = ({ name, type, col, row, children }) => {
   }, [name, type, bibles]);
 
   const onClose = () => {
-    setLayout(
-      [
-        ...layout.slice(0, col),
-        [...layout[col].slice(0, row), ...layout[col].slice(row + 1)],
-        ...layout.slice(col + 1),
-      ].filter((arr) => arr.length > 0)
-    );
+    const newLayout = [
+      ...layouts.slice(0, col),
+      [...layouts[col].slice(0, row), ...layouts[col].slice(row + 1)],
+      ...layouts.slice(col + 1),
+    ].filter((arr) => arr.length > 0);
+    setLayouts(newLayout);
+    saveSetting(target, newLayout);
   };
 
   return (
     <FrameView
-      title={title}
+      title={
+        <BookSelecter
+          col={col}
+          row={row}
+          trigger={<span className="cursor-pointer">{title}</span>}
+        />
+      }
       menu={
         <Dropdown
           icon={<Icon name="menu-alt-1" className="w-4 h-4" />}
