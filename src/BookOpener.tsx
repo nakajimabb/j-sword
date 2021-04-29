@@ -153,20 +153,20 @@ const BookOpener: React.FC<Props> = ({ className }) => {
         <Icon name="book-open" />
       </Button>
       <Button
-        variant="contained"
+        variant="text"
         size="none"
         color="none"
         onClick={increment(1)}
-        className="absolute top-0 left-full text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 z-10 w-4 h-4 -mx-4"
+        className="absolute top-0 left-full text-gray-500 hover:bg-gray-300 focus:ring-inset focus:ring-gray-300 z-10 w-4 h-4 -mx-4"
       >
         <Icon name="chevron-up" />
       </Button>
       <Button
-        variant="contained"
+        variant="text"
         size="none"
         color="none"
         onClick={increment(-1)}
-        className="absolute bottom-0 left-full text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 z-10 w-4 h-4 -mx-4"
+        className="absolute bottom-0 left-full text-gray-500 hover:bg-gray-300 focus:ring-inset focus:ring-gray-300 z-10 w-4 h-4 -mx-4"
       >
         <Icon name="chevron-down" />
       </Button>

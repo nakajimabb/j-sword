@@ -1,6 +1,8 @@
 import React from 'react';
 import clsx from 'clsx';
 
+import { Form } from './';
+
 type TabProps = {
   value: string;
   label: string;
@@ -83,9 +85,7 @@ const Tabs: TabsType = ({
   const px = size === 'sm' ? 2 : 4;
 
   const children = React.Children.map(childrenProp, (child) => {
-    if (!React.isValidElement(child)) {
-      return null;
-    }
+    if (!React.isValidElement(child)) return null;
 
     const selected = child.props.value === value;
     return React.cloneElement(child, {
@@ -96,18 +96,31 @@ const Tabs: TabsType = ({
     });
   });
 
+  const options =
+    React.Children.map(childrenProp, (child) => {
+      if (!React.isValidElement(child)) return null;
+      return {
+        label: String(child.props.label),
+        value: String(child.props.value),
+      };
+    })?.filter((item) => item) || [];
+
   return (
-    <nav
-      className={clsx(
-        'flex overflow-hidden items-center max-w-full',
-        variant === 'bar' && 'justify-around divide-x',
-        baseLine && 'border-b',
-        className
-      )}
-      aria-label="Tabs"
-    >
-      {children}
-    </nav>
+    <>
+      <nav
+        className={clsx(
+          'flex overflow-hidden items-center max-w-full',
+          variant === 'bar' && 'justify-around divide-x',
+          baseLine && 'border-b',
+          'hidden sm:flex',
+          className
+        )}
+        aria-label="Tabs"
+      >
+        {children}
+      </nav>
+      <Form.Select size="sm" options={options} className="sm:hidden h-8 m-2" />
+    </>
   );
 };
 Tabs.Tab = Tab;
