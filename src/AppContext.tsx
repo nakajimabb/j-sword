@@ -45,7 +45,7 @@ const AppContext = createContext({
   setSwordModule: (module: Sword) => {},
   currentUser: null,
   customClaims: {},
-  target: { book: '', chapter: '', verse: '' },
+  target: { book: '', chapter: 1 },
   setTarget: (target: TargetType) => {},
   layouts: [],
   setLayouts: (layouts: Layout[][]) => {},
@@ -74,8 +74,7 @@ export const AppContextProvider: React.FC = (props) => {
   const [currentMode, setCurrentMode] = useState<MenuMode>('bible');
   const [target, setTarget] = useState<TargetType>({
     book: 'Gen',
-    chapter: '1',
-    verse: '',
+    chapter: 1,
   });
   const [layouts, setLayouts] = useState<Layout[][]>([]);
 
@@ -118,8 +117,7 @@ export const AppContextProvider: React.FC = (props) => {
   const resetTarget = () => {
     setTarget({
       book: 'Gen',
-      chapter: '1',
-      verse: '',
+      chapter: 1,
     });
   };
 

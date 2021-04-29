@@ -92,8 +92,7 @@ const Dialog: React.FC<DialogProps> = ({ open, onClose }) => {
                   onClick={() => {
                     const newTarget = {
                       book: modname,
-                      chapter: String(chap),
-                      verse: '',
+                      chapter: chap,
                     };
                     setChapter(chap);
                     setTarget(newTarget);
@@ -116,11 +115,10 @@ const Dialog: React.FC<DialogProps> = ({ open, onClose }) => {
 };
 
 type Props = {
-  trigger: React.ReactElement;
   className?: string;
 };
 
-const BookOpener: React.FC<Props> = ({ trigger, className }) => {
+const BookOpener: React.FC<Props> = ({ className }) => {
   const { target, setTarget, layouts, saveSetting } = useContext(AppContext);
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState('');
@@ -129,9 +127,49 @@ const BookOpener: React.FC<Props> = ({ trigger, className }) => {
     setPosition(`${target.book}.${target.chapter}`);
   }, [target]);
 
+  const increment = (inc: number) => () => {
+    if (target.chapter && target.verse) {
+      const newVerse = target.verse + inc;
+      if (newVerse > 0) {
+        setTarget({ ...target, verse: target.verse + inc });
+      }
+    } else if (target.chapter) {
+      const newChapter = target.chapter + inc;
+      if (newChapter > 0) {
+        setTarget({ ...target, chapter: target.chapter + inc });
+      }
+    }
+  };
+
   return (
-    <div className={clsx('relative w-32 h-8 my-2', className)}>
-      <span onClick={() => setOpen(true)}>{trigger}</span>
+    <div className={clsx('relative w-36 h-8 my-2', className)}>
+      <Button
+        variant="icon"
+        size="none"
+        color="none"
+        onClick={() => setOpen(true)}
+        className="absolute top-0 left-0 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 z-10 w-6 h-6 p-0.5 m-1"
+      >
+        <Icon name="book-open" />
+      </Button>
+      <Button
+        variant="contained"
+        size="none"
+        color="none"
+        onClick={increment(1)}
+        className="absolute top-0 left-full text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 z-10 w-4 h-4 -mx-4"
+      >
+        <Icon name="chevron-up" />
+      </Button>
+      <Button
+        variant="contained"
+        size="none"
+        color="none"
+        onClick={increment(-1)}
+        className="absolute bottom-0 left-full text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 z-10 w-4 h-4 -mx-4"
+      >
+        <Icon name="chevron-down" />
+      </Button>
       <Form.Text
         size="sm"
         placeholder="Gen.1:1"
@@ -145,15 +183,14 @@ const BookOpener: React.FC<Props> = ({ trigger, className }) => {
             if (m) {
               const newTarget = {
                 book: m[1],
-                chapter: m[2],
-                verse: '',
+                chapter: +m[2],
               };
               setTarget(newTarget);
               saveSetting(newTarget, layouts);
             }
           }
         }}
-        className="absolute top-0 left-0 w-full h-full pl-8"
+        className="absolute top-0 left-0 w-full h-full pl-8 pr-5"
       />
       <Dialog open={open} onClose={() => setOpen(false)} />
     </div>

@@ -32,8 +32,8 @@ export interface Module {
 
 export interface TargetType {
   book: string;
-  chapter: string;
-  verse?: string;
+  chapter: number;
+  verse?: number;
 }
 
 export type Layout = {

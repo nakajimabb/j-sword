@@ -122,19 +122,7 @@ const AppBar: React.FC = () => {
             }
           />
         </Tooltip>
-        <BookOpener
-          trigger={
-            <Button
-              variant="icon"
-              size="none"
-              color="none"
-              className="absolute top-0 left-0 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 z-10 w-6 h-6 p-0.5 m-1"
-            >
-              <Icon name="book-open" />
-            </Button>
-          }
-          className="mx-2"
-        />
+        <BookOpener className="mx-2" />
       </Flex>
       <Flex>
         {currentUser ? (
