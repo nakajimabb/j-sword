@@ -65,6 +65,7 @@ type TabsProps = {
   variant?: 'line' | 'bar';
   size?: 'sm' | 'md';
   baseLine?: boolean;
+  responsible?: boolean;
   className?: string;
   onChange: (value: string) => void;
 };
@@ -78,6 +79,7 @@ const Tabs: TabsType = ({
   variant = 'line',
   size = 'md',
   baseLine = true,
+  responsible = false,
   children: childrenProp,
   className,
   onChange,
@@ -112,14 +114,20 @@ const Tabs: TabsType = ({
           'flex overflow-hidden items-center max-w-full',
           variant === 'bar' && 'justify-around divide-x',
           baseLine && 'border-b',
-          'hidden sm:flex',
+          responsible && 'hidden sm:flex',
           className
         )}
         aria-label="Tabs"
       >
         {children}
       </nav>
-      <Form.Select size="sm" options={options} className="sm:hidden h-8 m-2" />
+      {responsible && (
+        <Form.Select
+          size="sm"
+          options={options}
+          className="sm:hidden h-8 m-2"
+        />
+      )}
     </>
   );
 };

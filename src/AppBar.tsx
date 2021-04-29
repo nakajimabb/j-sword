@@ -81,6 +81,7 @@ const AppBar: React.FC = () => {
           variant="line"
           size="sm"
           baseLine={false}
+          responsible
           onChange={handleChange}
           className="mx-1"
         >
