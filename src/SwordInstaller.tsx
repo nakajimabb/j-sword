@@ -205,10 +205,10 @@ const SwordInstaller: React.FC<Props> = ({ open, onClose }) => {
                   />
                 </Table.Cell>
                 <Table.Cell>{module.title}</Table.Cell>
-                <Table.Cell>
+                <Table.Cell className="hidden sm:table-cell">
                   <small>{langs[module.lang]}</small>
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell className="hidden sm:table-cell">
                   <small>{modtypes[module.modtype]}</small>
                 </Table.Cell>
                 <Table.Cell>

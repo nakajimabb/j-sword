@@ -1,24 +1,34 @@
-import React, { useState } from 'react';
+import React, { SetStateAction, useState } from 'react';
 import clsx from 'clsx';
 
 import { Flex } from './';
 import './Dropdown.css';
+import { AlertTriangle } from 'react-feather';
 
 type ItemProps = {
   title: React.ReactElement | string;
   onClick?(e: React.MouseEvent<HTMLDivElement>): void;
+  setShow?: React.Dispatch<SetStateAction<boolean>>;
   className?: string;
 };
 
 const DropdownItem: React.FC<ItemProps> = ({
   title,
   onClick,
+  setShow,
   className,
   children,
 }) => {
   return (
     <div
-      onClick={onClick}
+      onClick={(e) => {
+        console.log({ e });
+        if (onClick) {
+          onClick(e);
+          if (setShow) setShow(false);
+        }
+        e.stopPropagation();
+      }}
       className={clsx(
         'relative overflow-hidden hover-overflow-visible',
         'items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 text-left',
@@ -35,7 +45,7 @@ const DropdownItem: React.FC<ItemProps> = ({
             {React.Children.map(children, (child) => {
               if (!React.isValidElement(child)) return null;
 
-              return React.cloneElement(child);
+              return React.cloneElement(child, { setShow });
             })}
           </div>
         </>
@@ -75,17 +85,10 @@ const Dropdown: DropdownType = ({ icon, align = 'right', children }) => {
         <div
           className="fixed inset-0"
           aria-hidden="true"
-          onClick={() => {
-            setShow(false);
-          }}
+          onClick={() => setShow(false)}
         ></div>
       )}
-      <span
-        onClick={() => {
-          setShow((prev) => !prev);
-        }}
-        className="relative"
-      >
+      <span onClick={() => setShow(true)} className="relative">
         {icon}
         {show && (
           <div
@@ -102,7 +105,7 @@ const Dropdown: DropdownType = ({ icon, align = 'right', children }) => {
             {React.Children.map(children, (child) => {
               if (!React.isValidElement(child)) return null;
 
-              return React.cloneElement(child);
+              return React.cloneElement(child, { setShow });
             })}
           </div>
         )}
