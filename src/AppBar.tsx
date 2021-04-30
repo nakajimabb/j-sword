@@ -1,14 +1,6 @@
 import React, { useState, useRef, useContext } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  Button,
-  Dropdown,
-  Flex,
-  Icon,
-  Tabs,
-  Tooltip,
-  Navbar,
-} from './components';
+import { Button, Dropdown, Flex, Icon, Tooltip, Navbar } from './components';
 import firebase from './firebase';
 import 'firebase/auth';
 import 'firebase/functions';
@@ -19,9 +11,9 @@ import BookOpener from './BookOpener';
 import BookSelecter from './BookSelecter';
 import canon_jp from './sword/canons/locale/ja.json';
 import './App.css';
+import clsx from 'clsx';
 
 const AppBar: React.FC = () => {
-  const [value, setValue] = useState('0');
   const [opener, setOpener] = useState<'installer' | 'selector' | null>(null);
   const { bibles, layouts, currentUser, customClaims } = useContext(AppContext);
   const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
@@ -32,10 +24,6 @@ const AppBar: React.FC = () => {
   const morph_file = useRef<HTMLInputElement>(null);
   const references = useRef<HTMLInputElement>(null);
   const admin = customClaims?.role === 'admin';
-
-  const handleChange = (newValue: string) => {
-    setValue(newValue);
-  };
 
   const logout = () => {
     if (window.confirm('ログアウトしますか？')) {
@@ -76,35 +64,18 @@ const AppBar: React.FC = () => {
     <Navbar fixed className="bg-gray-100 flex justify-between h-12">
       <Flex>
         <img src="j-sword.png" className="h-10 mx-2 my-1 hidden sm:block" />
-        <Tabs
-          value={value}
-          variant="line"
-          size="sm"
-          baseLine={false}
-          responsible
-          onChange={handleChange}
-          className="mx-1"
-        >
-          <Tabs.Tab
-            label="聖書"
-            // icon={<Icon name="fire" variant="solid" className="text-red-400" />}
-            icon={<img src="volume.png" className="w-5 h-5" />}
-            value="0"
-          />
-          <Tabs.Tab
-            label="真理"
-            // icon={<Icon name="lightning-bolt" className="text-yellow-400" />}
-            icon={<img src="truth.png" className="w-5 h-5" />}
-            value="1"
-          />
-        </Tabs>
+        <img src="j-sword-sm.png" className="h-10 mx-2 my-1 sm:hidden" />
         <Tooltip title="モジュールダウンロード" className="text-left">
           <Button
             variant="icon"
             size="sm"
             color="none"
             onClick={() => setOpener('installer')}
-            className="mx-1 my-2 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300"
+            className={clsx(
+              'mx-1 my-2 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300',
+              !emptyBibles && 'text-gray-500',
+              emptyBibles && 'text-blue-400 animate-pulse'
+            )}
           >
             <Icon name="cloud-download" />
           </Button>
@@ -116,9 +87,13 @@ const AppBar: React.FC = () => {
                 variant="icon"
                 size="sm"
                 color="none"
-                className="mx-1 my-2 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300"
+                className={clsx(
+                  'mx-1 my-2 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300',
+                  !emptyLayout && 'text-gray-500',
+                  !emptyBibles && emptyLayout && 'text-blue-400 animate-pulse'
+                )}
               >
-                <Icon name="document-add" />
+                <Icon name="view-grid-add" />
               </Button>
             }
           />
