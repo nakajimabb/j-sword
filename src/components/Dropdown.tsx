@@ -3,7 +3,6 @@ import clsx from 'clsx';
 
 import { Flex } from './';
 import './Dropdown.css';
-import { AlertTriangle } from 'react-feather';
 
 type ItemProps = {
   title: React.ReactElement | string;

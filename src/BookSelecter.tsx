@@ -42,8 +42,9 @@ const BookSelecter: React.FC<Props> = ({ col = -1, row = -1, trigger }) => {
   return (
     <Dropdown icon={trigger} align="right">
       <Dropdown.Item title="聖書">
-        {items.map((item) => (
+        {items.map((item, index) => (
           <Dropdown.Item
+            key={index}
             title={item.title}
             onClick={() => storeSetting({ name: item.modname, type: 'book' })}
           />
