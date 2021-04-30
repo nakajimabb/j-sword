@@ -88,7 +88,7 @@ const Dropdown: DropdownType = ({ icon, align = 'right', children }) => {
           onClick={() => setShow(false)}
         ></div>
       )}
-      <span onClick={() => setShow(true)} className="relative">
+      <span onClick={() => setShow((prev) => !prev)} className="relative">
         {icon}
         {show && (
           <div
