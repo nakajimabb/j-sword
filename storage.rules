@@ -5,9 +5,6 @@ service firebase.storage {
       allow read;
     }
     match /modules/protected/{allPaths=**} {
-      allow read: if request.auth != null;
-    }
-    match /modules/internal/{allPaths=**} {
       allow read: if request.auth != null && (request.auth.token.role == 'admin' || request.auth.token.role == 'manager');
     }
     match /modules/private/{allPaths=**} {

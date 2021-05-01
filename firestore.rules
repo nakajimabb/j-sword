@@ -12,10 +12,9 @@ service cloud.firestore {
 		function checkSecrecy(resource, request) {
 			let secrecy = resource.data.secrecy;
       let chk_public = secrecy == 'public';
-      let chk_protected = secrecy == 'protected' && request.auth != null;
-      let chk_internal = secrecy == 'internal' && checkRole('manager', request);
+      let chk_protected = secrecy == 'protected' && checkRole('manager', request);
       let chk_private = secrecy == 'private' && checkRole('admin', request);
-      return chk_public || chk_protected || chk_internal || chk_private;
+      return chk_public || chk_protected || chk_private;
 		}
 
     // This rule allows anyone on the internet to view, edit, and delete
