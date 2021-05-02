@@ -79,54 +79,5 @@
       ]
     }
   ],
-  "fieldOverrides": [
-    {
-      "collectionGroup": "articles",
-      "fieldPath": "createdAt",
-      "indexes": [
-        {
-          "order": "ASCENDING",
-          "queryScope": "COLLECTION"
-        },
-        {
-          "order": "DESCENDING",
-          "queryScope": "COLLECTION"
-        },
-        {
-          "arrayConfig": "CONTAINS",
-          "queryScope": "COLLECTION"
-        },
-        {
-          "order": "ASCENDING",
-          "queryScope": "COLLECTION_GROUP"
-        },
-        {
-          "order": "DESCENDING",
-          "queryScope": "COLLECTION_GROUP"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "articles",
-      "fieldPath": "updatedAt",
-      "indexes": [
-        {
-          "order": "ASCENDING",
-          "queryScope": "COLLECTION"
-        },
-        {
-          "order": "DESCENDING",
-          "queryScope": "COLLECTION"
-        },
-        {
-          "arrayConfig": "CONTAINS",
-          "queryScope": "COLLECTION"
-        },
-        {
-          "order": "DESCENDING",
-          "queryScope": "COLLECTION_GROUP"
-        }
-      ]
-    }
-  ]
+  "fieldOverrides": []
 }

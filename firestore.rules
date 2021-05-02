@@ -25,11 +25,12 @@ service cloud.firestore {
     //
     // Make sure to write security rules for your app before that time, or else
     // your app will lose access to your Firestore database
-    match /{path=**}/modules/{docID} {
+    match /{path=**}/modules/{docId} {
       allow read: if checkSecrecy(resource, request);
     }
-    match /{path=**}/articles/{docID} {
-			allow read;
+    match /{path=**}/books/{docId} {
+      allow read: if resource.data.published || checkRole('admin', request);
+      allow write: if checkRole('admin', request);
     }
   }
 }
