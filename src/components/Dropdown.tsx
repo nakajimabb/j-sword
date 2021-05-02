@@ -21,7 +21,6 @@ const DropdownItem: React.FC<ItemProps> = ({
   return (
     <div
       onClick={(e) => {
-        console.log({ e });
         if (onClick) {
           onClick(e);
           if (setShow) setShow(false);
@@ -66,6 +65,7 @@ const Divider: React.FC = () => {
 type DropdownProps = {
   icon?: React.ReactElement;
   align: 'right' | 'left';
+  onEnter?: () => void;
   className?: string;
 };
 
@@ -74,7 +74,12 @@ type DropdownType = React.FC<DropdownProps> & {
   Divider: typeof Divider;
 };
 
-const Dropdown: DropdownType = ({ icon, align = 'right', children }) => {
+const Dropdown: DropdownType = ({
+  icon,
+  align = 'right',
+  onEnter,
+  children,
+}) => {
   const [show, setShow] = useState(false);
 
   return (
@@ -87,7 +92,13 @@ const Dropdown: DropdownType = ({ icon, align = 'right', children }) => {
           onClick={() => setShow(false)}
         ></div>
       )}
-      <span onClick={() => setShow((prev) => !prev)} className="relative">
+      <span
+        onClick={async () => {
+          if (!show && onEnter) await onEnter();
+          setShow((prev) => !prev);
+        }}
+        className="relative"
+      >
         {icon}
         {show && (
           <div
