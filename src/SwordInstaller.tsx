@@ -64,10 +64,8 @@ const SwordInstaller: React.FC<Props> = ({ open, onClose }) => {
         const new_modules: Module[] = [];
         const secrecies = ['public'];
         if (role === 'admin') {
-          secrecies.push('protected', 'internal', 'private');
+          secrecies.push('protected', 'private');
         } else if (role === 'manager') {
-          secrecies.push('protected', 'internal');
-        } else if (currentUser) {
           secrecies.push('protected');
         }
         const querySnap = await db

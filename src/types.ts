@@ -22,12 +22,17 @@ export type ModType = 'bible' | 'dictionary' | 'morphology';
 export interface Module {
   modname: string;
   modtype: ModType;
-  secrecy: 'public' | 'protected' | 'internal' | 'private';
+  secrecy: 'public' | 'protected' | 'private';
   title: string;
   lang: 'ja' | 'he' | 'grc' | 'en';
   dependencies: string[];
   path: string;
   referencePath?: string;
+}
+
+export interface Book {
+  title: string;
+  published: boolean;
 }
 
 export interface TargetType {
@@ -37,8 +42,8 @@ export interface TargetType {
 }
 
 export type Layout = {
-  name: string;
-  type: 'book' | 'dictionary' | 'article';
+  modname: string;  // or docId
+  type: 'bible' | 'dictionary' | 'book';
 };
 
 export interface Setting {

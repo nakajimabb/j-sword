@@ -82,8 +82,8 @@ const RefPassages: React.FC<RefPassagesProps> = ({
   const { bibles, layouts } = useContext(AppContext);
   const modnames = layouts
     .flat()
-    .filter((item) => item.type === 'book')
-    .map((item) => item.name);
+    .filter((item) => item.type === 'bible')
+    .map((item) => item.modname);
 
   useEffect(() => {
     const f = async () => {

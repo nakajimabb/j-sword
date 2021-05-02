@@ -7,6 +7,7 @@ import 'firebase/functions';
 
 import AppContext from './AppContext';
 import SwordInstaller from './SwordInstaller';
+import BookForm from './BookForm';
 import BookOpener from './BookOpener';
 import BookSelecter from './BookSelecter';
 import canon_jp from './sword/canons/locale/ja.json';
@@ -14,7 +15,9 @@ import './App.css';
 import clsx from 'clsx';
 
 const AppBar: React.FC = () => {
-  const [opener, setOpener] = useState<'installer' | 'selector' | null>(null);
+  const [opener, setOpener] = useState<
+    'installer' | 'selector' | 'book-form' | null
+  >(null);
   const { bibles, layouts, currentUser, customClaims } = useContext(AppContext);
   const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
   const emptyBibles = Object.keys(bibles).length === 0;
@@ -24,6 +27,7 @@ const AppBar: React.FC = () => {
   const morph_file = useRef<HTMLInputElement>(null);
   const references = useRef<HTMLInputElement>(null);
   const admin = customClaims?.role === 'admin';
+  const manager = admin || customClaims?.role === 'manager';
 
   const logout = () => {
     if (window.confirm('ログアウトしますか？')) {
@@ -41,22 +45,45 @@ const AppBar: React.FC = () => {
     }
   };
 
-  const getAuthUser = () => {
+  const setCustomUserClaims = async () => {
     if (currentUser) {
       const uid = window.prompt('input uid');
-      const func = firebase
-        .app()
-        .functions('asia-northeast1')
-        .httpsCallable('getAuthUser');
-      func({ uid })
-        .then((result) => {
+      if (uid) {
+        try {
+          const func = firebase
+            .app()
+            .functions('asia-northeast1')
+            .httpsCallable('saveCustomClaims');
+
+          const result = await func({ uid, customClaims: { role: 'manager' } });
           console.log({ result });
-          alert('データを取得しました。');
-        })
-        .catch((error) => {
+          alert('登録しました。');
+        } catch (error) {
           console.log({ error });
           alert(error.message || 'エラーが発生しました。');
-        });
+        }
+      }
+    }
+  };
+
+  const getAuthUser = async () => {
+    if (currentUser) {
+      const uid = window.prompt('input uid');
+      if (uid) {
+        try {
+          const func = firebase
+            .app()
+            .functions('asia-northeast1')
+            .httpsCallable('getAuthUser');
+
+          const result = await func({ uid });
+          console.log({ result });
+          alert('データを取得しました。');
+        } catch (error) {
+          console.log({ error });
+          alert(error.message || 'エラーが発生しました。');
+        }
+      }
     }
   };
 
@@ -64,7 +91,6 @@ const AppBar: React.FC = () => {
     <Navbar fixed className="bg-gray-100 flex justify-between h-12">
       <Flex>
         <img src="j-sword.png" className="h-10 mx-2 my-1 hidden sm:block" />
-        <img src="j-sword-sm.png" className="h-10 mx-2 my-1 sm:hidden" />
         <Tooltip title="モジュールダウンロード" className="text-left">
           <Button
             variant="icon"
@@ -101,6 +127,19 @@ const AppBar: React.FC = () => {
         <BookOpener className="mx-2" />
       </Flex>
       <Flex>
+        {manager && (
+          <Tooltip title="ブックを追加" className="text-left">
+            <Button
+              variant="icon"
+              size="sm"
+              color="none"
+              onClick={() => setOpener('book-form')}
+              className="mx-1 my-2 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300"
+            >
+              <Icon name="document-add" />
+            </Button>
+          </Tooltip>
+        )}
         {currentUser ? (
           <Dropdown
             icon={
@@ -126,6 +165,15 @@ const AppBar: React.FC = () => {
               }
             />
             <Dropdown.Divider />
+            {admin && (
+              <Dropdown.Item title="ユーザ情報取得" onClick={getAuthUser} />
+            )}
+            {admin && (
+              <Dropdown.Item
+                title="マネージャに変更"
+                onClick={setCustomUserClaims}
+              />
+            )}
             <Dropdown.Item title="ログアウト" onClick={logout} />
           </Dropdown>
         ) : (
@@ -145,6 +193,11 @@ const AppBar: React.FC = () => {
       </Flex>
       <SwordInstaller
         open={opener === 'installer'}
+        onClose={() => setOpener(null)}
+      />
+      <BookForm
+        open={opener === 'book-form'}
+        docId={null}
         onClose={() => setOpener(null)}
       />
     </Navbar>

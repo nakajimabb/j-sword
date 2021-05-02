@@ -79,23 +79,17 @@ const GridLayout: React.FC<Props> = () => {
         flow="row"
         className="w-full h-full"
       >
-        {layouts.map((views, index1) => (
+        {layouts.map((layouts_col, index1) => (
           <Grid
             key={index1}
             cols={1}
-            rows={views.length}
+            rows={layouts_col.length}
             gap="0"
             flow="col"
             className={clsx(selectLayout && 'relative')}
           >
-            {views.map((view, index2) => (
-              <SwordView
-                col={index1}
-                row={index2}
-                key={index2}
-                name={view.name}
-                type={view.type}
-              >
+            {layouts_col.map((layout, index2) => (
+              <SwordView col={index1} row={index2} key={index2} layout={layout}>
                 {selectLayout && (
                   <Selection col={index1 + 1} row={index2 + 1} position="top" />
                 )}

@@ -17,6 +17,8 @@ const BookSelecter: React.FC<Props> = ({ col = -1, row = -1, trigger }) => {
     setLayouts,
     setSelectLayout,
     saveSetting,
+    books,
+    loadBooks,
   } = useContext(AppContext);
   const items = Object.keys(bibles).map((modname) => ({
     modname,
@@ -40,20 +42,43 @@ const BookSelecter: React.FC<Props> = ({ col = -1, row = -1, trigger }) => {
   };
 
   return (
-    <Dropdown icon={trigger} align="right">
+    <Dropdown
+      icon={trigger}
+      align="left"
+      onEnter={() => {
+        loadBooks(false);
+      }}
+    >
       <Dropdown.Item title="聖書">
         {items.map((item, index) => (
           <Dropdown.Item
             key={index}
             title={item.title}
-            onClick={() => storeSetting({ name: item.modname, type: 'book' })}
+            onClick={() =>
+              storeSetting({
+                modname: item.modname,
+                type: 'bible',
+              })
+            }
           />
         ))}
       </Dropdown.Item>
       <Dropdown.Item
         title="辞書"
-        onClick={() => storeSetting({ name: '', type: 'dictionary' })}
+        onClick={() => storeSetting({ modname: '', type: 'dictionary' })}
       />
+      <Dropdown.Item title="記事">
+        {books &&
+          Object.keys(books).map((docId, index) => (
+            <Dropdown.Item
+              key={index}
+              title={books[docId].title}
+              onClick={() => {
+                storeSetting({ modname: docId, type: 'book' });
+              }}
+            />
+          ))}
+      </Dropdown.Item>
     </Dropdown>
   );
 };

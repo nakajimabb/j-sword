@@ -26,6 +26,7 @@ type InputProps = {
   label?: string;
   checked?: boolean;
   disabled?: boolean;
+  required?: boolean;
   placeholder?: string;
   size?: 'sm' | 'md' | 'lg';
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -40,6 +41,7 @@ const Input: (type: InputType) => React.FC<InputProps> = (type) => ({
   label,
   checked,
   disabled,
+  required,
   placeholder,
   size = 'md',
   onChange,
@@ -60,6 +62,7 @@ const Input: (type: InputType) => React.FC<InputProps> = (type) => ({
       value={value}
       checked={checked}
       disabled={disabled}
+      required={required}
       placeholder={placeholder}
       onChange={onChange}
       className={clsx(
@@ -146,7 +149,6 @@ const TextArea: React.FC<TextAreaProps> = ({
   rows,
   className,
   children,
-  ...other
 }) => {
   const baseClass = 'block shadow-md border-gray-300 p-2';
 
@@ -169,6 +171,7 @@ const InputCheckbox = Input('checkbox');
 const InputRadio = Input('radio');
 
 type FormProps = {
+  onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void;
   className?: string;
 };
 
@@ -183,8 +186,12 @@ type FormType = React.FC<FormProps> & {
   TextArea: typeof TextArea;
 };
 
-const Form: FormType = ({ className, children }) => {
-  return <form className={className}>{children}</form>;
+const Form: FormType = ({ onSubmit, className, children }) => {
+  return (
+    <form onSubmit={onSubmit} className={className}>
+      {children}
+    </form>
+  );
 };
 
 Form.Text = InputText;

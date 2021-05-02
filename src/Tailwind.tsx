@@ -173,14 +173,12 @@ You are in control.`;
         <Card className="m-8 overflow-visible">
           <Card.Header>Pagination</Card.Header>
           <Card.Body className="p-4 bg-gray-50 text-center">
-            <Tooltip title={title} className="text-left">
-              <Pagination
-                count={10}
-                page={page}
-                size={pagerSize}
-                onChange={(p) => setPage(p)}
-              />
-            </Tooltip>
+            <Pagination
+              count={10}
+              page={page}
+              size={pagerSize}
+              onChange={(p) => setPage(p)}
+            />
           </Card.Body>
           <Card.Footer>
             <Flex className="space-x-2 items-center">

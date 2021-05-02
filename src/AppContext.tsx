@@ -1,7 +1,7 @@
 import React, { useState, useEffect, createContext } from 'react';
 
 import firebase from './firebase';
-import { CustomClaims, TargetType, Layout, Setting } from './types';
+import { CustomClaims, TargetType, Layout, Book } from './types';
 import Sword from './sword/Sword';
 import SettingDB from './SettingDB';
 
@@ -36,6 +36,8 @@ export interface ContextType {
   loadModules: () => void;
   selectLayout: Layout | null;
   setSelectLayout: (layout: Layout | null) => void;
+  books: { [docId: string]: Book } | null;
+  loadBooks: (reload: boolean) => void;
 }
 
 const AppContext = createContext({
@@ -62,6 +64,8 @@ const AppContext = createContext({
   loadModules: () => {},
   selectLayout: null,
   setSelectLayout: (layout: Layout | null) => {},
+  books: null,
+  loadBooks: (reload: boolean) => {},
 } as ContextType);
 
 export const AppContextProvider: React.FC = (props) => {
@@ -82,6 +86,8 @@ export const AppContextProvider: React.FC = (props) => {
     { lemma: '', morph: '', text: '', lang: '', targetLemma: '', fixed: false },
   ]);
   const [selectLayout, setSelectLayout] = useState<Layout | null>(null);
+  const [books, setBooks] = useState<{ [docId: string]: Book } | null>(null);
+  const admin = customClaims?.role === 'admin';
 
   useEffect(() => {
     SetTouchDevice(window.ontouchstart === null);
@@ -90,6 +96,12 @@ export const AppContextProvider: React.FC = (props) => {
   useEffect(() => {
     const f = async () => {
       await loadModules();
+    };
+    f();
+  }, []);
+
+  useEffect(() => {
+    const f = async () => {
       firebase.auth().onAuthStateChanged(async (user) => {
         setCurrentUser(user);
         const setting = await SettingDB.getSetting('&last');
@@ -144,6 +156,28 @@ export const AppContextProvider: React.FC = (props) => {
     }
   };
 
+  const loadBooks = async (reload: boolean = false) => {
+    if (!books || reload) {
+      try {
+        const db = firebase.firestore();
+        // 社員情報保存
+        const newBooks: { [docId: string]: Book } = {};
+        const query = admin
+          ? db.collection('books').get()
+          : db.collection('books').where('published', '==', true).get();
+        const snapshot = await query;
+        snapshot.forEach((doc) => {
+          newBooks[doc.id] = doc.data() as Book;
+        });
+        setBooks(newBooks);
+        console.log({ newBooks });
+      } catch (error) {
+        console.log({ error });
+        alert(error.message || 'エラーが発生しました。');
+      }
+    }
+  };
+
   const saveSetting = async (
     target: TargetType,
     layouts: Layout[][],
@@ -174,6 +208,8 @@ export const AppContextProvider: React.FC = (props) => {
         loadModules,
         selectLayout,
         setSelectLayout,
+        books,
+        loadBooks,
       }}
     >
       {props.children}
