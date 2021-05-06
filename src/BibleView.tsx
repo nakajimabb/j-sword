@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useContext } from 'react';
 import clsx from 'clsx';
 
+import { Raw } from './sword/types';
 import AppContext from './AppContext';
 import Passage from './Passage';
-import { Raw } from './sword/types';
+import FrameView from './FrameView';
 import './passage.css';
 
 let g_scroll: { id: string | null; time: Date | null } = {
@@ -11,23 +12,26 @@ let g_scroll: { id: string | null; time: Date | null } = {
   time: null,
 };
 
-interface Props {
-  mod_key: string;
-}
+type Props = {
+  modname: string;
+  col: number;
+  row: number;
+};
 
-const BibleView: React.FC<Props> = ({ mod_key }) => {
+const BibleView: React.FC<Props> = ({ modname, col, row }) => {
   const [raw_texts, setRawTexts] = useState<Raw[]>([]);
   const { bibles, target } = useContext(AppContext);
   const { book, chapter, verse } = target;
-  const bible = bibles[mod_key];
+  const bible = bibles[modname];
   const direction = bible?.conf?.Direction === 'RtoL' && 'rtl';
   const lang = String(bible?.lang);
   const valid_params = bible && book && chapter;
+  const title = bible?.title;
 
   useEffect(() => {
     const f = async () => {
       if (valid_params) {
-        let book_pos = book + '.' + chapter; // + ':1';
+        let book_pos = book + '.' + chapter; // + ':1-3';
         if (verse) book_pos += ':' + verse;
         try {
           const new_raw_texts = await bible.renderText(book_pos, {
@@ -98,28 +102,29 @@ const BibleView: React.FC<Props> = ({ mod_key }) => {
     }
   };
 
-  if (raw_texts.length === 0) return null;
-
   return (
-    <>
-      {valid_params && (
-        <div id={`pane-${mod_key}`} className="pane p-2" onScroll={onScroll}>
-          <div className={clsx(direction, lang)}>
-            {raw_texts.map((raw, index: number) => (
-              <div
-                key={index}
-                className="passage"
-                data-pos={`${book}-${chapter}-${raw.verse}`}
-                onMouseOver={onMouseOver}
-                onMouseLeave={onMouseLeave}
-              >
-                <Passage depth={0} lang={lang} raw={raw} show_verse={true} />
-              </div>
-            ))}
+    <FrameView>
+      <FrameView.Nav title={title} col={col} row={row} />
+      <FrameView.Body col={col} row={row}>
+        {valid_params && (
+          <div id={`pane-${modname}`} className="pane p-2" onScroll={onScroll}>
+            <div className={clsx(direction, lang)}>
+              {raw_texts.map((raw, index: number) => (
+                <div
+                  key={index}
+                  className="passage"
+                  data-pos={`${book}-${chapter}-${raw.verse}`}
+                  onMouseOver={onMouseOver}
+                  onMouseLeave={onMouseLeave}
+                >
+                  <Passage depth={0} lang={lang} raw={raw} show_verse={true} />
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
-    </>
+        )}
+      </FrameView.Body>
+    </FrameView>
   );
 };
 

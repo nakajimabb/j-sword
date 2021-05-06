@@ -92,7 +92,7 @@ const Dialog: React.FC<DialogProps> = ({ open, onClose }) => {
                   onClick={() => {
                     const newTarget = {
                       book: modname,
-                      chapter: chap,
+                      chapter: String(chap),
                     };
                     setChapter(chap);
                     setTarget(newTarget);
@@ -129,12 +129,12 @@ const BookOpener: React.FC<Props> = ({ className }) => {
 
   const increment = (inc: number) => () => {
     if (target.chapter && target.verse) {
-      const newVerse = target.verse + inc;
+      const newVerse = +target.verse + inc;
       if (newVerse > 0) {
         setTarget({ ...target, verse: target.verse + inc });
       }
     } else if (target.chapter) {
-      const newChapter = target.chapter + inc;
+      const newChapter = +target.chapter + inc;
       if (newChapter > 0) {
         setTarget({ ...target, chapter: target.chapter + inc });
       }
@@ -183,7 +183,7 @@ const BookOpener: React.FC<Props> = ({ className }) => {
             if (m) {
               const newTarget = {
                 book: m[1],
-                chapter: +m[2],
+                chapter: String(+m[2]),
               };
               setTarget(newTarget);
               saveSetting(newTarget, layouts);

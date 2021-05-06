@@ -127,7 +127,7 @@ const AppBar: React.FC = () => {
         <BookOpener className="mx-2" />
       </Flex>
       <Flex>
-        {manager && (
+        {admin && (
           <Tooltip title="ブックを追加" className="text-left">
             <Button
               variant="icon"

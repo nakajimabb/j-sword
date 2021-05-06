@@ -6,13 +6,19 @@ import BibleReference from './BibleReference';
 import DictPassage from './DictPassage';
 import MorphPassage from './MorphPassage';
 import AppContext from './AppContext';
+import FrameView from './FrameView';
+import { Layout } from './types';
 import { shapeLemma } from './NodeObj';
 
 type Props = {
   depth: number;
+  col?: number;
+  row?: number;
+  layout?: Layout;
+  onClose?: () => void;
 };
 
-const DictView: React.FC<Props> = ({ depth }) => {
+const DictView: React.FC<Props> = ({ depth, layout, col, row }) => {
   const [shapedLemma, setShapedLemma] = useState<string>('');
   const { targetWords, setTargetWords } = useContext(AppContext);
   const word = targetWords[depth];
@@ -67,7 +73,7 @@ const DictView: React.FC<Props> = ({ depth }) => {
     changeLemma(String(e.currentTarget.value));
   };
 
-  return (
+  const contents = (
     <div className="p-2">
       {lemma && (
         <Flex align_items="center">
@@ -124,6 +130,17 @@ const DictView: React.FC<Props> = ({ depth }) => {
         className="mb-1 whitespace-pre-wrap"
       />
     </div>
+  );
+
+  return col !== undefined && row !== undefined && layout !== undefined ? (
+    <FrameView>
+      <FrameView.Nav title="辞書" col={col} row={row} />
+      <FrameView.Body col={col} row={row}>
+        {contents}
+      </FrameView.Body>
+    </FrameView>
+  ) : (
+    contents
   );
 };
 

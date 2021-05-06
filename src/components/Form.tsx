@@ -1,16 +1,23 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import clsx from 'clsx';
 
 type LabelProps = {
   htmlFor?: string;
   className?: string;
+  style?: CSSProperties;
 };
 
-const Label: React.FC<LabelProps> = ({ htmlFor, className, children }) => {
+const Label: React.FC<LabelProps> = ({
+  htmlFor,
+  className,
+  children,
+  style,
+}) => {
   return (
     <label
       htmlFor={htmlFor}
       className={clsx('leading-normal focus:shadow-outline', className)}
+      style={style}
     >
       {children}
     </label>
@@ -32,6 +39,7 @@ type InputProps = {
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onKeyPress?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   className?: string;
+  style?: CSSProperties;
 };
 
 const Input: (type: InputType) => React.FC<InputProps> = (type) => ({
@@ -47,7 +55,7 @@ const Input: (type: InputType) => React.FC<InputProps> = (type) => ({
   onChange,
   className,
   children,
-  ...other
+  style,
 }) => {
   const padding = { sm: 'px-2 py-1', md: 'px-3 py-1.5', lg: 'px-4 py-2' };
   const textSize = { sm: 'text-sm', md: 'text-base', lg: 'text-lg' };
@@ -73,7 +81,7 @@ const Input: (type: InputType) => React.FC<InputProps> = (type) => ({
         // checkbox && 'focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500',
         className
       )}
-      {...other}
+      style={style}
     />
   );
 
@@ -96,6 +104,7 @@ type SelectProps = {
   size?: 'sm' | 'md' | 'lg';
   onChange?: React.ChangeEventHandler<HTMLSelectElement>;
   className?: string;
+  style?: CSSProperties;
 };
 
 const Select: React.FC<SelectProps> = ({
@@ -107,6 +116,7 @@ const Select: React.FC<SelectProps> = ({
   size = 'md',
   onChange,
   className,
+  style,
 }) => {
   const padding = { sm: 'px-2 py-1', md: 'px-3 py-2', lg: 'px-4 py-2' };
   const textSize = { sm: 'text-sm', md: 'text-base', lg: 'text-lg' };
@@ -119,6 +129,7 @@ const Select: React.FC<SelectProps> = ({
       value={value}
       onChange={onChange}
       className={clsx(baseClass, padding[size], textSize[size], className)}
+      style={style}
     >
       {label && <option value="">{label}</option>}
       {options.map((option: { label: string; value: string } | string) =>
@@ -137,8 +148,11 @@ type TextAreaProps = {
   name?: string;
   value?: string;
   placeholder?: string;
+  required?: boolean;
+  onChange?: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
   rows?: number;
   className?: string;
+  style?: CSSProperties;
 };
 
 const TextArea: React.FC<TextAreaProps> = ({
@@ -147,8 +161,10 @@ const TextArea: React.FC<TextAreaProps> = ({
   value,
   placeholder,
   rows,
+  required,
+  onChange,
   className,
-  children,
+  style,
 }) => {
   const baseClass = 'block shadow-md border-gray-300 p-2';
 
@@ -159,7 +175,10 @@ const TextArea: React.FC<TextAreaProps> = ({
       value={value}
       placeholder={placeholder}
       rows={rows}
+      required
+      onChange={onChange}
       className={clsx(baseClass, className)}
+      style={style}
     />
   );
 };
@@ -173,6 +192,7 @@ const InputRadio = Input('radio');
 type FormProps = {
   onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void;
   className?: string;
+  style?: CSSProperties;
 };
 
 type FormType = React.FC<FormProps> & {
@@ -186,9 +206,9 @@ type FormType = React.FC<FormProps> & {
   TextArea: typeof TextArea;
 };
 
-const Form: FormType = ({ onSubmit, className, children }) => {
+const Form: FormType = ({ onSubmit, className, children, style }) => {
   return (
-    <form onSubmit={onSubmit} className={className}>
+    <form onSubmit={onSubmit} className={className} style={style}>
       {children}
     </form>
   );

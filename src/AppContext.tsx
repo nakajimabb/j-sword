@@ -37,7 +37,7 @@ export interface ContextType {
   selectLayout: Layout | null;
   setSelectLayout: (layout: Layout | null) => void;
   books: { [docId: string]: Book } | null;
-  loadBooks: (reload: boolean) => void;
+  loadBooks: (reload: boolean) => Promise<{ [docId: string]: Book } | null>;
 }
 
 const AppContext = createContext({
@@ -47,7 +47,7 @@ const AppContext = createContext({
   setSwordModule: (module: Sword) => {},
   currentUser: null,
   customClaims: {},
-  target: { book: '', chapter: 1 },
+  target: { book: '', chapter: '1' },
   setTarget: (target: TargetType) => {},
   layouts: [],
   setLayouts: (layouts: Layout[][]) => {},
@@ -65,7 +65,7 @@ const AppContext = createContext({
   selectLayout: null,
   setSelectLayout: (layout: Layout | null) => {},
   books: null,
-  loadBooks: (reload: boolean) => {},
+  loadBooks: async (reload: boolean) => ({}),
 } as ContextType);
 
 export const AppContextProvider: React.FC = (props) => {
@@ -78,7 +78,7 @@ export const AppContextProvider: React.FC = (props) => {
   const [currentMode, setCurrentMode] = useState<MenuMode>('bible');
   const [target, setTarget] = useState<TargetType>({
     book: 'Gen',
-    chapter: 1,
+    chapter: '1',
   });
   const [layouts, setLayouts] = useState<Layout[][]>([]);
 
@@ -129,7 +129,7 @@ export const AppContextProvider: React.FC = (props) => {
   const resetTarget = () => {
     setTarget({
       book: 'Gen',
-      chapter: 1,
+      chapter: '1',
     });
   };
 
@@ -171,11 +171,13 @@ export const AppContextProvider: React.FC = (props) => {
         });
         setBooks(newBooks);
         console.log({ newBooks });
+        return newBooks;
       } catch (error) {
         console.log({ error });
         alert(error.message || 'エラーが発生しました。');
       }
     }
+    return books;
   };
 
   const saveSetting = async (

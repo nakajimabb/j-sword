@@ -5,18 +5,6 @@ export interface CustomClaims {
   role?: 'manager' | 'admin';
 }
 
-export interface Article {
-  subject: string;
-  body: string;
-  heading: string;
-  image?: string;
-  imageUrl?: string;
-  thumbnail?: string;
-  thumbnailUrl?: string;
-  createdAt?: firebase.firestore.Timestamp;
-  updatedAt?: firebase.firestore.Timestamp;
-}
-
 export type ModType = 'bible' | 'dictionary' | 'morphology';
 
 export interface Module {
@@ -33,12 +21,22 @@ export interface Module {
 export interface Book {
   title: string;
   published: boolean;
+  headings: {id:string, item: string, title: string}[];
+}
+
+export interface Article {
+  part?: number;
+  chapter?: number;
+  section?: number;
+  title: string;
+  content: string;
+  published: boolean;
 }
 
 export interface TargetType {
   book: string;
-  chapter: number;
-  verse?: number;
+  chapter: string;
+  verse?: string;
 }
 
 export type Layout = {
