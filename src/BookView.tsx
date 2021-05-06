@@ -80,6 +80,9 @@ const BookView: React.FC<Props> = ({ bookId, defaultId, layout, col, row }) => {
   const book = books ? books[modname] : null;
   const title = book?.title;
   const admin = customClaims?.role === 'admin';
+  const dropdowns = admin
+    ? [{ title: '記事を追加', onClick: () => changeArticleId(undefined) }]
+    : [];
 
   const changeArticleId = async (id: string | undefined) => {
     if (id) {
@@ -207,9 +210,7 @@ const BookView: React.FC<Props> = ({ bookId, defaultId, layout, col, row }) => {
             <Icon name="view-list" className="w-4 h-4 mr-2 cursor-pointer" />
           </span>
         }
-        dropdowns={[
-          { title: '記事を追加', onClick: () => changeArticleId(undefined) },
-        ]}
+        dropdowns={dropdowns}
       />
       <FrameView.Body col={col} row={row}>
         <div className="relative h-full">
