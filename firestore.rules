@@ -32,5 +32,9 @@ service cloud.firestore {
       allow read: if resource.data.published || checkRole('admin', request);
       allow write: if checkRole('admin', request);
     }
+    match /{path=**}/articles/{docId} {
+      allow read: if resource.data.published || checkRole('admin', request);
+      allow write: if checkRole('admin', request);
+    }
   }
 }
