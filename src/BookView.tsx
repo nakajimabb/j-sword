@@ -23,11 +23,15 @@ const Sidebar: React.FC<SidebarProps> = ({
   changeArticleId,
   onClose,
 }) => {
-  const { books } = useContext(AppContext);
+  const { books, customClaims } = useContext(AppContext);
   if (!books) return null;
 
   const modname = layout.modname;
   const book = books[modname];
+  const admin = customClaims?.role === 'admin';
+  const headings = admin
+    ? book.headings
+    : book.headings.filter((heading) => heading.published);
 
   return (
     <div className={clsx('', !open && 'hidden')}>
@@ -38,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         onClick={onClose}
       ></div>
       <div className="absolute w-52 h-full top-0 left-0 z-20 bg-white">
-        {book.headings.map((heading, index) => (
+        {headings.map((heading, index) => (
           <p
             key={index}
             className="m-1 cursor-pointer"
