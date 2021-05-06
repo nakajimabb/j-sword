@@ -1,13 +1,10 @@
-import firebase from './firebase';
-import 'firebase/firestore';
-
-export interface CustomClaims {
+export type CustomClaims = {
   role?: 'manager' | 'admin';
 }
 
 export type ModType = 'bible' | 'dictionary' | 'morphology';
 
-export interface Module {
+export type Module = {
   modname: string;
   modtype: ModType;
   secrecy: 'public' | 'protected' | 'private';
@@ -18,13 +15,13 @@ export interface Module {
   referencePath?: string;
 }
 
-export interface Book {
+export type Book = {
   title: string;
   published: boolean;
-  headings: {id:string, item: string, title: string}[];
+  headings: {id:string, item: string, title: string, published: boolean}[];
 }
 
-export interface Article {
+export type Article = {
   part?: number;
   chapter?: number;
   section?: number;
@@ -33,7 +30,7 @@ export interface Article {
   published: boolean;
 }
 
-export interface TargetType {
+export type TargetType = {
   book: string;
   chapter: string;
   verse?: string;
@@ -44,7 +41,7 @@ export type Layout = {
   type: 'bible' | 'dictionary' | 'book';
 };
 
-export interface Setting {
+export type Setting = {
   name: string;
   target: TargetType;
   layouts: Layout[][];

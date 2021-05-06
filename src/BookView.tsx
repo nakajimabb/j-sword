@@ -86,6 +86,7 @@ const BookView: React.FC<Props> = ({ bookId, defaultId, layout, col, row }) => {
         .collection('articles')
         .doc(id)
         .get();
+      setArticleId(id);
       setArticle(doc.data() as Article);
       setModified(false);
     } else {
@@ -124,6 +125,38 @@ const BookView: React.FC<Props> = ({ bookId, defaultId, layout, col, row }) => {
     f2();
   }, [bookId]);
 
+  const updateBookHeading = async (id: string, article: Article) => {
+    if (bookId && book) {
+      try {
+        const headings = book.headings;
+        const index = headings.findIndex((heading) => heading.id === id);
+        const item = [article.part, article.chapter, article.section]
+          .filter((n) => n !== undefined)
+          .join('.');
+        const heading = {
+          id,
+          item,
+          title: article.title,
+          published: article.published,
+        };
+        if (index >= 0) {
+          headings[index] = heading;
+        } else {
+          headings.push(heading);
+        }
+        const db = firebase.firestore();
+        // 社員情報保存
+        await db.collection('books').doc(bookId).update({
+          headings,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      } catch (error) {
+        console.log({ error });
+        alert(error.message || 'エラーが発生しました。');
+      }
+    }
+  };
+
   const onSave = async () => {
     try {
       const db = firebase.firestore();
@@ -134,7 +167,11 @@ const BookView: React.FC<Props> = ({ bookId, defaultId, layout, col, row }) => {
           .doc(bookId)
           .collection('articles')
           .doc(articleId)
-          .update(article);
+          .update({
+            ...article,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          });
+        updateBookHeading(articleId, article);
       } else {
         const result = await db
           .collection('books')
@@ -146,6 +183,7 @@ const BookView: React.FC<Props> = ({ bookId, defaultId, layout, col, row }) => {
             updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
           });
         setArticleId(result.id);
+        updateBookHeading(result.id, article);
       }
       setModified(false);
     } catch (error) {

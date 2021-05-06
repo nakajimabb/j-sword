@@ -71,7 +71,7 @@ const ArticleForm: React.FC<Props> = ({
           onChange={(e) =>
             changeArticle({ ...article, content: e.target.value })
           }
-          className="h-96"
+          style={{ height: 'calc(100vh - 220px)' }}
         />
       </Flex>
     </Form>
