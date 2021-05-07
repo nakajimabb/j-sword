@@ -17,10 +17,15 @@ const ArticlePreview: React.FC<Props> = ({ article, className }) => {
     const target = e.target as Element;
     const lemma = target.getAttribute('data-lemma');
     if (target && lemma) {
+      const lang = lemma[0] === 'H' ? 'he' : 'grc';
       const word = {
         ...targetWords[0],
         lemma,
-        lang: 'he',
+        morph: '',
+        text: '',
+        targetLemma: '',
+        fixed: false,
+        lang,
       };
       setTargetWords([word, ...targetWords.slice(1)]);
     }
@@ -43,18 +48,30 @@ const ArticlePreview: React.FC<Props> = ({ article, className }) => {
   };
 
   useEffect(() => {
-    const elem = document.querySelector('.lemma');
-    if (elem) {
-      elem.addEventListener('click', changeTargetWords);
-      return () => elem.removeEventListener('click', changeTargetWords);
+    const elems = document.querySelectorAll('.lemma');
+    if (elems.length > 0) {
+      elems.forEach((elem) =>
+        elem.addEventListener('click', changeTargetWords)
+      );
+      return () => {
+        elems.forEach((elem) =>
+          elem.removeEventListener('click', changeTargetWords)
+        );
+      };
     }
   }, [article]);
 
   useEffect(() => {
-    const elem = document.querySelector('.bible');
-    if (elem) {
-      elem.addEventListener('click', changeBibleTarget);
-      return () => elem.removeEventListener('click', changeBibleTarget);
+    const elems = document.querySelectorAll('.bible');
+    if (elems.length > 0) {
+      elems.forEach((elem) =>
+        elem.addEventListener('click', changeBibleTarget)
+      );
+      return () => {
+        elems.forEach((elem) =>
+          elem.removeEventListener('click', changeBibleTarget)
+        );
+      };
     }
   }, [article]);
 
