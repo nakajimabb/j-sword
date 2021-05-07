@@ -95,14 +95,9 @@ async function getRawEntry(
                     inPos[inVList[z].chapter - 2].length;
               verseEnd = startPos;
             } else {
-              verseStart =
-                startPos +
-                inPos[inVList[z].chapter - 1].verses[inVList[z].verse - 1]
-                  .startPos;
-              verseEnd =
-                verseStart +
-                inPos[inVList[z].chapter - 1].verses[inVList[z].verse - 1]
-                  .length;
+              const pos = inPos[inVList[z].chapter - 1].verses[inVList[z].verse - 1];
+              verseStart = startPos + (pos?.startPos || 0);
+              verseEnd = verseStart + (pos?.length || 0);
             }
 
             const blob = infBlob.slice(verseStart, verseEnd);

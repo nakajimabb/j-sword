@@ -29,10 +29,12 @@ const BookForm: React.FC<Props> = ({ open, docId, onClose }) => {
         // 社員情報保存
         await db.collection('books').add({
           ...value,
+          headings: [],
           displayName: currentUser.displayName,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         });
+        onClose();
       } catch (error) {
         console.log({ error });
         alert(error.message || 'エラーが発生しました。');

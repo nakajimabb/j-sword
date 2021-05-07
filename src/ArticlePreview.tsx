@@ -75,7 +75,7 @@ const ArticlePreview: React.FC<Props> = ({ article, className }) => {
     }
   }, [article]);
 
-  const item = [article.part, article.chapter, article.section]
+  const item = [article?.part, article?.chapter, article?.section]
     .filter((n) => n !== undefined)
     .join('.');
 

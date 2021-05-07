@@ -29,9 +29,10 @@ const Sidebar: React.FC<SidebarProps> = ({
   const modname = layout.modname;
   const book = books[modname];
   const admin = customClaims?.role === 'admin';
-  const headings = admin
-    ? book.headings
-    : book.headings.filter((heading) => heading.published);
+  const headings =
+    (admin
+      ? book?.headings
+      : book?.headings.filter((heading) => heading.published)) || [];
 
   return (
     <div className={clsx('', !open && 'hidden')}>
@@ -130,7 +131,7 @@ const BookView: React.FC<Props> = ({ bookId, defaultId, layout, col, row }) => {
       }
     };
     f2();
-  }, [bookId]);
+  }, [bookId, customClaims]);
 
   const updateBookHeading = async (id: string, article: Article) => {
     if (bookId && book) {
