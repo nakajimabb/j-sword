@@ -3,15 +3,13 @@ import clsx from 'clsx';
 
 import { Flex, Form } from './components';
 import { Article } from './types';
+import { str } from './tools';
 
 type Props = {
   article: Article;
   changeArticle: (doc: Article) => void;
   className?: string;
 };
-
-const str = (value: number | undefined) =>
-  value !== undefined ? String(value) : undefined;
 
 const ArticleForm: React.FC<Props> = ({
   article,

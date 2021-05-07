@@ -53,6 +53,7 @@ const Input: (type: InputType) => React.FC<InputProps> = (type) => ({
   placeholder,
   size = 'md',
   onChange,
+  onKeyPress,
   className,
   children,
   style,
@@ -73,6 +74,7 @@ const Input: (type: InputType) => React.FC<InputProps> = (type) => ({
       required={required}
       placeholder={placeholder}
       onChange={onChange}
+      onKeyPress={onKeyPress}
       className={clsx(
         baseClass,
         textSize[size],

@@ -124,19 +124,23 @@ const BookOpener: React.FC<Props> = ({ className }) => {
   const [position, setPosition] = useState('');
 
   useEffect(() => {
-    setPosition(`${target.book}.${target.chapter}`);
+    if (target.verse !== undefined) {
+      setPosition(`${target.book}.${target.chapter}.${target.verse}`);
+    } else {
+      setPosition(`${target.book}.${target.chapter}`);
+    }
   }, [target]);
 
   const increment = (inc: number) => () => {
     if (target.chapter && target.verse) {
       const newVerse = +target.verse + inc;
       if (newVerse > 0) {
-        setTarget({ ...target, verse: target.verse + inc });
+        setTarget({ ...target, verse: String(+target.verse + inc) });
       }
     } else if (target.chapter) {
       const newChapter = +target.chapter + inc;
       if (newChapter > 0) {
-        setTarget({ ...target, chapter: target.chapter + inc });
+        setTarget({ ...target, chapter: String(+target.chapter + inc) });
       }
     }
   };
@@ -179,11 +183,12 @@ const BookOpener: React.FC<Props> = ({ className }) => {
         }}
         onKeyPress={(e) => {
           if (e.charCode === 13 && position) {
-            const m = position.match(/(\w+)\.(\w+)/);
+            const m = position.match(/^(\w+).(\d+)(:(\d+))*$/);
             if (m) {
               const newTarget = {
                 book: m[1],
                 chapter: String(+m[2]),
+                verse: m[4] ? String(+m[4]) : undefined,
               };
               setTarget(newTarget);
               saveSetting(newTarget, layouts);
