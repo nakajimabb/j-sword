@@ -30,12 +30,12 @@ const ArticlePreview: React.FC<Props> = ({ article, className }) => {
     const target = e.target as Element;
     const pos = target.getAttribute('data-bible');
     if (target && pos) {
-      const m = pos.match(/^(\w+).(\d+)(:(\d+))*$/);
+      const m = pos.match(/^(\w+).(\d+)(:([\d-,]+))*$/);
       if (m) {
         const newTarget = {
           book: m[1],
           chapter: String(+m[2]),
-          verse: m[4] ? String(+m[4]) : undefined,
+          verse: m[4],
         };
         setTarget(newTarget);
       }

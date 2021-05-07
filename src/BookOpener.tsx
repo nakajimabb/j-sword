@@ -125,7 +125,7 @@ const BookOpener: React.FC<Props> = ({ className }) => {
 
   useEffect(() => {
     if (target.verse !== undefined) {
-      setPosition(`${target.book}.${target.chapter}.${target.verse}`);
+      setPosition(`${target.book}.${target.chapter}:${target.verse}`);
     } else {
       setPosition(`${target.book}.${target.chapter}`);
     }
@@ -183,12 +183,12 @@ const BookOpener: React.FC<Props> = ({ className }) => {
         }}
         onKeyPress={(e) => {
           if (e.charCode === 13 && position) {
-            const m = position.match(/^(\w+).(\d+)(:(\d+))*$/);
+            const m = position.match(/^(\w+).(\d+)(:([\d-,]+))*$/);
             if (m) {
               const newTarget = {
                 book: m[1],
                 chapter: String(+m[2]),
-                verse: m[4] ? String(+m[4]) : undefined,
+                verse: m[4],
               };
               setTarget(newTarget);
               saveSetting(newTarget, layouts);

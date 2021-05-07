@@ -326,61 +326,56 @@ class Sword {
     this.reference = reference;
   }
 
-  static parseVkey(inVKey: string, inV11n: string) {
-    const m = inVKey.match(/^(\w+).(\d+)(:(\d+))*$/);
-    if (m) {
-      return {
-        book: m[1],
-        chapter: +m[2],
-        bookNum: Canon.getBookNum(m[1], inV11n),
-        verse: +m[4],
-        osisRef: inVKey,
-      };
-    }
-  }
-
-  static parseVerseList(inVKey: string, inV11n: string): BookPos[] {
-    let verseList: BookPos[] = [];
-    let key = Sword.parseVkey(inVKey, inV11n);
-    if (key) {
-      //Check if we have a passage range like John.3.10-John.3.16 or Gen.3-Gen.4
-      if (key.osisRef.search('-') !== -1) {
-        let singlePassages = key.osisRef.split('-'),
-          start = singlePassages[0].split('.'),
-          end = singlePassages[1].split('.');
-
-        if (!isNaN(key.verse) && end.length === 3) {
-          var bookNum = Canon.getBookNum(key.book, inV11n); // added
-          for (let z = key.verse; z < parseInt(end[2], 10) + 1; z++) {
-            verseList.push({
-              osisRef: key.book + '.' + key.chapter + '.' + z,
-              book: key.book,
-              bookNum: bookNum,
-              chapter: key.chapter,
-              verse: z,
-            });
-          }
-        }
-        //check if we have a passage like Mt 3 or Ps 123
-      } else if (isNaN(key.verse)) {
-        const bookNum = Canon.getBookNum(key.book, inV11n);
-        const verseMax = Canon.getVersesInChapter(bookNum, key.chapter, inV11n);
-        if (verseMax) {
-          for (let i = 0; i < verseMax; i++) {
-            verseList.push({
-              osisRef: key.book + '.' + key.chapter + '.' + (i + 1),
-              book: key.book,
-              bookNum: bookNum,
-              chapter: key.chapter,
-              verse: i + 1,
-            });
-          }
-        }
+  static parseVerse(str: string) {
+    const strs = str.split(',');
+    const verses: number[] = [];
+    strs.forEach(s => {
+      const strs2 = s.split('-').filter(s2 => s2);
+      if(strs2.length === 1) {
+        verses.push(+strs2[0]);
       } else {
-        verseList.push(key);
+        const v1 = strs2[0];
+        const v2 = strs2[1];
+        for(let i = +v1; i <= +v2; ++i) {
+          verses.push(i);
+        }
+      }
+    })
+    return verses;
+  }
+  
+  static parseVKey(inVKey: string, inV11n: string) {
+    const bookPos: BookPos[] = [];
+    const m = inVKey.match(/^(\w+).(\d+)(:([\d-,]+))*$/);
+    if (m) {
+      const book = m[1];
+      const chapter = +m[2];
+      const bookNum= Canon.getBookNum(book, inV11n);
+      if(m[4]) {
+        const verses = Sword.parseVerse(m[4]);
+        verses.forEach(verse => {
+          bookPos.push({
+            book,
+            chapter,
+            bookNum,
+            verse,
+            osisRef: `${book}.${chapter}:${verse}`,
+          })
+        })
+      } else {
+        const verseMax = Canon.getVersesInChapter(bookNum, chapter, inV11n) || 1;
+        for(let verse = 1; verse <= verseMax; ++verse) {
+          bookPos.push({
+            book,
+            chapter,
+            bookNum,
+            verse,
+            osisRef: `${book}.${chapter}:${verse}`,
+          });
+          }
       }
     }
-    return verseList;
+    return bookPos;
   }
 
   isValid() {
@@ -425,7 +420,7 @@ class Sword {
     const blobs = this.blob || (await SwordDB.getBlob(this.modname));
     if (this.conf && indexes && blobs) {
       const inV11n = String(this.conf.Versification);
-      let vList = Sword.parseVerseList(inVKey, inV11n);
+      const vList = Sword.parseVKey(inVKey, inV11n);
       if (vList.length !== 0 && vList[0].osisRef !== '') {
         let index_bible: BookIndex[] | undefined;
         let index_dict: DictIndex | undefined;
