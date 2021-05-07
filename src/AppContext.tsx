@@ -5,18 +5,18 @@ import { CustomClaims, TargetType, Layout, Book } from './types';
 import Sword from './sword/Sword';
 import SettingDB from './SettingDB';
 
-export interface Word {
+export type Word = {
   lemma: string;
   morph: string;
   text: string;
   lang: string;
   targetLemma: string;
   fixed: boolean;
-}
+};
 
 export type MenuMode = 'bible' | 'truth' | 'hebrew';
 
-export interface ContextType {
+export type ContextType = {
   bibles: { [key: string]: Sword };
   dictionaries: { [key: string]: Sword };
   morphologies: { [key: string]: Sword };
@@ -38,7 +38,9 @@ export interface ContextType {
   setSelectLayout: (layout: Layout | null) => void;
   books: { [docId: string]: Book } | null;
   loadBooks: (reload: boolean) => Promise<{ [docId: string]: Book } | null>;
-}
+  interlocked: boolean;
+  setInterlocked: React.Dispatch<boolean>;
+};
 
 const AppContext = createContext({
   bibles: {},
@@ -66,6 +68,8 @@ const AppContext = createContext({
   setSelectLayout: (layout: Layout | null) => {},
   books: null,
   loadBooks: async (reload: boolean) => ({}),
+  interlocked: true,
+  setInterlocked: (interlocked: boolean) => {},
 } as ContextType);
 
 export const AppContextProvider: React.FC = (props) => {
@@ -87,6 +91,8 @@ export const AppContextProvider: React.FC = (props) => {
   ]);
   const [selectLayout, setSelectLayout] = useState<Layout | null>(null);
   const [books, setBooks] = useState<{ [docId: string]: Book } | null>(null);
+  const [interlocked, setInterlocked] = useState(true);
+
   const admin = customClaims?.role === 'admin';
 
   useEffect(() => {
@@ -212,6 +218,8 @@ export const AppContextProvider: React.FC = (props) => {
         setSelectLayout,
         books,
         loadBooks,
+        interlocked,
+        setInterlocked,
       }}
     >
       {props.children}

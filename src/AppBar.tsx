@@ -18,7 +18,14 @@ const AppBar: React.FC = () => {
   const [opener, setOpener] = useState<
     'installer' | 'selector' | 'book-form' | null
   >(null);
-  const { bibles, layouts, currentUser, customClaims } = useContext(AppContext);
+  const {
+    bibles,
+    layouts,
+    currentUser,
+    customClaims,
+    interlocked,
+    setInterlocked,
+  } = useContext(AppContext);
   const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
   const emptyBibles = Object.keys(bibles).length === 0;
   const emptyLayout = layouts?.length === 0;
@@ -165,6 +172,22 @@ const AppBar: React.FC = () => {
               }
             />
             <Dropdown.Divider />
+            <Dropdown.Item
+              // title={`${interlocked ? '✓ ' : ''}聖書ビュー連動`}
+              title={
+                <Flex>
+                  {interlocked && (
+                    <Icon
+                      name="check-circle"
+                      variant="solid"
+                      className="w-5 h-5 mr-1"
+                    />
+                  )}
+                  聖書ビュー連動
+                </Flex>
+              }
+              onClick={() => setInterlocked(!interlocked)}
+            />
             {admin && (
               <Dropdown.Item title="ユーザ情報取得" onClick={getAuthUser} />
             )}

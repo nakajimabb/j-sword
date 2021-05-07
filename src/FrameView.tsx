@@ -117,15 +117,31 @@ const Nav: React.FC<NavProps> = ({ title, col, row, leftMenu, dropdowns }) => {
 type BodyProps = {
   col: number;
   row: number;
+  id?: string;
+  onScroll?: (e: React.UIEvent<HTMLDivElement>) => void;
   className?: string;
 };
 
-const Body: React.FC<BodyProps> = ({ col, row, children, className }) => {
+const Body: React.FC<BodyProps> = ({
+  col,
+  row,
+  id,
+  onScroll,
+  className,
+  children,
+}) => {
   const { selectLayout } = useContext(AppContext);
 
   return (
-    <div className={clsx('w-full h-full pt-6', className)}>
-      <div className="w-full h-full overflow-scroll overflow-x-auto">
+    <div className="w-full h-full pt-6">
+      <div
+        id={id}
+        className={clsx(
+          'w-full h-full overflow-scroll overflow-x-auto',
+          className
+        )}
+        onScroll={onScroll}
+      >
         {children}
         {selectLayout && <Selection col={col} row={row} position="top" />}
         {selectLayout && (

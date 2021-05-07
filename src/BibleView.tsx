@@ -20,7 +20,7 @@ type Props = {
 
 const BibleView: React.FC<Props> = ({ modname, col, row }) => {
   const [raw_texts, setRawTexts] = useState<Raw[]>([]);
-  const { bibles, target } = useContext(AppContext);
+  const { bibles, target, interlocked } = useContext(AppContext);
   const { book, chapter, verse } = target;
   const bible = bibles[modname];
   const direction = bible?.conf?.Direction === 'RtoL' && 'rtl';
@@ -83,6 +83,8 @@ const BibleView: React.FC<Props> = ({ modname, col, row }) => {
   };
 
   const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (!interlocked) return;
+
     const now = new Date();
     const target = e.currentTarget;
     if (!g_scroll.id || !g_scroll.time || +now - +g_scroll.time > 100) {
@@ -91,7 +93,7 @@ const BibleView: React.FC<Props> = ({ modname, col, row }) => {
     if (g_scroll.id && target.id && g_scroll.id === target.id) {
       const scroll_pos =
         target.scrollTop / (target.scrollHeight - target.clientHeight);
-      const contents = document.querySelectorAll('.pane');
+      const contents = document.querySelectorAll('.bible-view');
       contents.forEach((content) => {
         if (content.id !== target.id) {
           content.scrollTop =
@@ -105,9 +107,15 @@ const BibleView: React.FC<Props> = ({ modname, col, row }) => {
   return (
     <FrameView>
       <FrameView.Nav title={title} col={col} row={row} />
-      <FrameView.Body col={col} row={row}>
+      <FrameView.Body
+        id={`${modname}`}
+        col={col}
+        row={row}
+        onScroll={onScroll}
+        className="bible-view"
+      >
         {valid_params && (
-          <div id={`pane-${modname}`} className="pane p-2" onScroll={onScroll}>
+          <div className="p-2">
             <div className={clsx(direction, lang)}>
               {raw_texts.map((raw, index: number) => (
                 <div
