@@ -25,6 +25,8 @@ const AppBar: React.FC = () => {
     customClaims,
     interlocked,
     setInterlocked,
+    targetHistory,
+    setTargetHistory,
   } = useContext(AppContext);
   const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
   const emptyBibles = Object.keys(bibles).length === 0;
@@ -35,6 +37,9 @@ const AppBar: React.FC = () => {
   const references = useRef<HTMLInputElement>(null);
   const admin = customClaims?.role === 'admin';
   const manager = admin || customClaims?.role === 'manager';
+  const enablePrev = targetHistory.currentIndex > 0;
+  const enableNext =
+    targetHistory.currentIndex < targetHistory.history.length - 1;
 
   const logout = () => {
     if (window.confirm('ログアウトしますか？')) {
@@ -96,7 +101,7 @@ const AppBar: React.FC = () => {
 
   return (
     <Navbar fixed className="bg-gray-100 flex justify-between h-12">
-      <Flex>
+      <Flex align_items="center">
         <img src="j-sword.png" className="h-10 mx-2 my-1 hidden sm:block" />
         <Tooltip title="モジュールダウンロード" className="text-left">
           <Button
@@ -105,7 +110,7 @@ const AppBar: React.FC = () => {
             color="none"
             onClick={() => setOpener('installer')}
             className={clsx(
-              'mx-1 my-2 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300',
+              'ml-1 my-2 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300',
               !emptyBibles && 'text-gray-500',
               emptyBibles && 'text-blue-400 animate-pulse'
             )}
@@ -121,7 +126,7 @@ const AppBar: React.FC = () => {
                 size="sm"
                 color="none"
                 className={clsx(
-                  'mx-1 my-2 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300',
+                  'ml-1 mr-2 my-2 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300',
                   !emptyLayout && 'text-gray-500',
                   !emptyBibles && emptyLayout && 'text-blue-400 animate-pulse'
                 )}
@@ -131,9 +136,49 @@ const AppBar: React.FC = () => {
             }
           />
         </Tooltip>
-        <BookOpener className="mx-2" />
+        <Tooltip title="前へ">
+          <Button
+            variant="icon"
+            size="xs"
+            color="none"
+            disabled={!enablePrev}
+            onClick={() => {
+              if (targetHistory.moveHistory(-1)) {
+                setTargetHistory(targetHistory.dup());
+              }
+            }}
+            className={clsx(
+              'ml-1 my-2 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300',
+              enablePrev && 'text-gray-500',
+              !enablePrev && 'text-gray-300'
+            )}
+          >
+            <Icon name="arrow-left" />
+          </Button>
+        </Tooltip>
+        <Tooltip title="次へ">
+          <Button
+            variant="icon"
+            size="xs"
+            color="none"
+            disabled={!enableNext}
+            onClick={() => {
+              if (targetHistory.moveHistory(1)) {
+                setTargetHistory(targetHistory.dup());
+              }
+            }}
+            className={clsx(
+              'ml-1 my-2 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300',
+              enableNext && 'text-gray-500',
+              !enableNext && 'text-gray-300'
+            )}
+          >
+            <Icon name="arrow-right" />
+          </Button>
+        </Tooltip>
+        <BookOpener className="mx-1" />
       </Flex>
-      <Flex>
+      <Flex align_items="center">
         {admin && (
           <Tooltip title="ブックを追加" className="text-left">
             <Button

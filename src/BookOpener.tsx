@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { Button, Form, Grid, Icon, Modal, Tabs } from './components';
 import { canons } from './sword/Canon';
 import canon_jp from './sword/canons/locale/ja.json';
+import { parseBibleTarget } from './TargetHistory';
 import AppContext from './AppContext';
 
 import './App.css';
@@ -14,7 +15,9 @@ type DialogProps = {
 };
 
 const Dialog: React.FC<DialogProps> = ({ open, onClose }) => {
-  const { target, setTarget, layouts, saveSetting } = useContext(AppContext);
+  const { targetHistory, setTargetHistory, layouts, saveSetting } = useContext(
+    AppContext
+  );
   const canon = canons.nrsv;
   const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
   const [tab, setTab] = useState('0');
@@ -23,9 +26,15 @@ const Dialog: React.FC<DialogProps> = ({ open, onClose }) => {
   const [maxChapter, setMaxChapter] = useState<number>(canon.ot[0].maxChapter);
 
   useEffect(() => {
-    setModname(target.book);
-    setChapter(+target.chapter);
-  }, [target]);
+    const current = targetHistory.current();
+    if (current && current.mode === 'bible') {
+      const result = parseBibleTarget(current.search);
+      if (result) {
+        setModname(result.book);
+        setChapter(+result.chapter);
+      }
+    }
+  }, [targetHistory]);
 
   return (
     <Modal open={open} onClose={onClose} size="7xl">
@@ -90,13 +99,13 @@ const Dialog: React.FC<DialogProps> = ({ open, onClose }) => {
                 <div
                   key={index}
                   onClick={() => {
-                    const newTarget = {
-                      book: modname,
-                      chapter: String(chap),
-                    };
                     setChapter(chap);
-                    setTarget(newTarget);
-                    saveSetting(newTarget, layouts);
+                    if (
+                      targetHistory.addHistory(`${modname}.${String(chap)}`)
+                    ) {
+                      setTargetHistory(targetHistory.dup());
+                      saveSetting(targetHistory.history, layouts);
+                    }
                     onClose();
                   }}
                   className={clsx(
@@ -119,29 +128,22 @@ type Props = {
 };
 
 const BookOpener: React.FC<Props> = ({ className }) => {
-  const { target, setTarget, layouts, saveSetting } = useContext(AppContext);
+  const { targetHistory, setTargetHistory, layouts, saveSetting } = useContext(
+    AppContext
+  );
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState('');
 
   useEffect(() => {
-    if (target.verse !== undefined) {
-      setPosition(`${target.book}.${target.chapter}:${target.verse}`);
-    } else {
-      setPosition(`${target.book}.${target.chapter}`);
+    const current = targetHistory.current();
+    if (current && current.mode === 'bible') {
+      setPosition(current.search);
     }
-  }, [target]);
+  }, [targetHistory]);
 
-  const increment = (inc: number) => () => {
-    if (target.chapter && target.verse) {
-      const newVerse = +target.verse + inc;
-      if (newVerse > 0) {
-        setTarget({ ...target, verse: String(+target.verse + inc) });
-      }
-    } else if (target.chapter) {
-      const newChapter = +target.chapter + inc;
-      if (newChapter > 0) {
-        setTarget({ ...target, chapter: String(+target.chapter + inc) });
-      }
+  const increment = (increment: number) => () => {
+    if (targetHistory.incrementCurent(increment)) {
+      setTargetHistory(targetHistory.dup());
     }
   };
 
@@ -183,15 +185,9 @@ const BookOpener: React.FC<Props> = ({ className }) => {
         }}
         onKeyPress={(e) => {
           if (e.charCode === 13 && position) {
-            const m = position.match(/^(\w+).(\d+)(:([\d-,]+))*$/);
-            if (m) {
-              const newTarget = {
-                book: m[1],
-                chapter: String(+m[2]),
-                verse: m[4],
-              };
-              setTarget(newTarget);
-              saveSetting(newTarget, layouts);
+            if (targetHistory.addHistory(position)) {
+              setTargetHistory(targetHistory.dup());
+              saveSetting(targetHistory.history, layouts);
             }
           }
         }}

@@ -9,9 +9,12 @@ type Props = {
 };
 
 const ArticlePreview: React.FC<Props> = ({ article, className }) => {
-  const { targetWords, setTargetWords, layouts, setTarget } = useContext(
-    AppContext
-  );
+  const {
+    targetWords,
+    setTargetWords,
+    targetHistory,
+    setTargetHistory,
+  } = useContext(AppContext);
 
   const changeTargetWords = (e: Event) => {
     const target = e.target as Element;
@@ -33,16 +36,10 @@ const ArticlePreview: React.FC<Props> = ({ article, className }) => {
 
   const changeBibleTarget = (e: Event) => {
     const target = e.target as Element;
-    const pos = target.getAttribute('data-bible');
-    if (target && pos) {
-      const m = pos.match(/^(\w+).(\d+)(:([\d-,]+))*$/);
-      if (m) {
-        const newTarget = {
-          book: m[1],
-          chapter: String(+m[2]),
-          verse: m[4],
-        };
-        setTarget(newTarget);
+    const position = target.getAttribute('data-bible');
+    if (target && position) {
+      if (targetHistory.addHistory(position)) {
+        setTargetHistory(targetHistory.dup());
       }
     }
   };
@@ -59,7 +56,7 @@ const ArticlePreview: React.FC<Props> = ({ article, className }) => {
         );
       };
     }
-  }, [article]);
+  }, [article, targetHistory]);
 
   useEffect(() => {
     const elems = document.querySelectorAll('.bible');
@@ -73,7 +70,7 @@ const ArticlePreview: React.FC<Props> = ({ article, className }) => {
         );
       };
     }
-  }, [article]);
+  }, [article, targetHistory]);
 
   const item = [article?.part, article?.chapter, article?.section]
     .filter((n) => n !== undefined)

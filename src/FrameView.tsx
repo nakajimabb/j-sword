@@ -13,7 +13,7 @@ type SelectionProps = {
 
 const Selection: React.FC<SelectionProps> = ({ col, row, position }) => {
   const {
-    target,
+    targetHistory,
     layouts,
     setLayouts,
     selectLayout,
@@ -35,7 +35,7 @@ const Selection: React.FC<SelectionProps> = ({ col, row, position }) => {
           ...layouts.slice(col + 1),
         ];
         setLayouts(newLayout);
-        saveSetting(target, newLayout);
+        saveSetting(targetHistory.history, newLayout);
       } else {
         const newLayout = [
           ...layouts.slice(0, col),
@@ -43,7 +43,7 @@ const Selection: React.FC<SelectionProps> = ({ col, row, position }) => {
           ...layouts.slice(col),
         ];
         setLayouts(newLayout);
-        saveSetting(target, newLayout);
+        saveSetting(targetHistory.history, newLayout);
       }
     }
     setSelectLayout(null);
@@ -72,7 +72,9 @@ type NavProps = {
 };
 
 const Nav: React.FC<NavProps> = ({ title, col, row, leftMenu, dropdowns }) => {
-  const { target, layouts, setLayouts, saveSetting } = useContext(AppContext);
+  const { targetHistory, layouts, setLayouts, saveSetting } = useContext(
+    AppContext
+  );
 
   const onClose = (col: number, row: number) => () => {
     const newLayout = [
@@ -81,7 +83,7 @@ const Nav: React.FC<NavProps> = ({ title, col, row, leftMenu, dropdowns }) => {
       ...layouts.slice(col + 1),
     ].filter((arr) => arr.length > 0);
     setLayouts(newLayout);
-    saveSetting(target, newLayout);
+    saveSetting(targetHistory.history, newLayout);
   };
 
   return (

@@ -30,11 +30,10 @@ export type Article = {
   published: boolean;
 }
 
-export type TargetType = {
-  book: string;
-  chapter: string;
-  verse?: string;
-}
+export type Target = {
+  mode: 'bible' | 'word' | 'text';
+  search: string;
+};
 
 export type Layout = {
   modname: string;  // or docId
@@ -43,6 +42,6 @@ export type Layout = {
 
 export type Setting = {
   name: string;
-  target: TargetType;
+  history: Target[];
   layouts: Layout[][];
-}
+};

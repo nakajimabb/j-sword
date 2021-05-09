@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Button, Dropdown, Icon } from './components';
+import { Dropdown } from './components';
 import AppContext from './AppContext';
 import { Layout } from './types';
 
@@ -12,7 +12,7 @@ type Props = {
 const BookSelecter: React.FC<Props> = ({ col = -1, row = -1, trigger }) => {
   const {
     bibles,
-    target,
+    targetHistory,
     layouts,
     setLayouts,
     setSelectLayout,
@@ -30,13 +30,13 @@ const BookSelecter: React.FC<Props> = ({ col = -1, row = -1, trigger }) => {
       const newLayouts = [...layouts];
       newLayouts[col][row] = layout;
       setLayouts(newLayouts);
-      saveSetting(target, newLayouts);
+      saveSetting(targetHistory.history, newLayouts);
     } else {
       if (layouts.length > 0) {
         setSelectLayout(layout);
       } else {
         setLayouts([[layout]]);
-        saveSetting(target, [[layout]]);
+        saveSetting(targetHistory.history, [[layout]]);
       }
     }
   };

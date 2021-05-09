@@ -20,19 +20,18 @@ type Props = {
 
 const BibleView: React.FC<Props> = ({ modname, col, row }) => {
   const [raw_texts, setRawTexts] = useState<Raw[]>([]);
-  const { bibles, target, interlocked } = useContext(AppContext);
-  const { book, chapter, verse } = target;
+  const { bibles, targetHistory, interlocked } = useContext(AppContext);
+  const current = targetHistory.current();
   const bible = bibles[modname];
   const direction = bible?.conf?.Direction === 'RtoL' && 'rtl';
   const lang = String(bible?.lang);
-  const valid_params = bible && book && chapter;
+  const valid_params = current && current.mode === 'bible' && current.search;
   const title = bible?.title;
 
   useEffect(() => {
     const f = async () => {
       if (valid_params) {
-        let book_pos = book + '.' + chapter; // + ':1-3';
-        if (verse) book_pos += ':' + verse;
+        const book_pos = String(current?.search);
         try {
           const new_raw_texts = await bible.renderText(book_pos, {
             footnotes: false,
@@ -53,7 +52,7 @@ const BibleView: React.FC<Props> = ({ modname, col, row }) => {
       }
     };
     f();
-  }, [book, chapter, verse, bible, valid_params]);
+  }, [targetHistory]);
 
   const hoverPassage = (
     event: React.MouseEvent,
@@ -121,7 +120,7 @@ const BibleView: React.FC<Props> = ({ modname, col, row }) => {
                 <div
                   key={index}
                   className="passage"
-                  data-pos={`${book}-${chapter}-${raw.verse}`}
+                  data-pos={raw.osisRef}
                   onMouseOver={onMouseOver}
                   onMouseLeave={onMouseLeave}
                 >

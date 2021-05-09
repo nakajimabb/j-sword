@@ -1,9 +1,10 @@
 import React, { useState, useEffect, createContext } from 'react';
 
 import firebase from './firebase';
-import { CustomClaims, TargetType, Layout, Book } from './types';
+import { CustomClaims, Target, Layout, Book } from './types';
 import Sword from './sword/Sword';
 import SettingDB from './SettingDB';
+import TargetHistory from './TargetHistory';
 
 export type Word = {
   lemma: string;
@@ -23,11 +24,11 @@ export type ContextType = {
   setSwordModule: (module: Sword) => void;
   currentUser: firebase.User | null;
   customClaims: CustomClaims;
-  target: TargetType;
-  setTarget: React.Dispatch<TargetType>;
+  targetHistory: TargetHistory;
+  setTargetHistory: React.Dispatch<TargetHistory>;
   layouts: Layout[][];
   setLayouts: (layouts: Layout[][]) => void;
-  saveSetting: (target: TargetType, layouts: Layout[][], name?: string) => void;
+  saveSetting: (history: Target[], layouts: Layout[][], name?: string) => void;
   targetWords: Word[];
   setTargetWords: React.Dispatch<Word[]>;
   touchDevice: boolean;
@@ -49,12 +50,12 @@ const AppContext = createContext({
   setSwordModule: (module: Sword) => {},
   currentUser: null,
   customClaims: {},
-  target: { book: '', chapter: '1' },
-  setTarget: (target: TargetType) => {},
+  targetHistory: new TargetHistory(),
+  setTargetHistory: (targetHistory: TargetHistory) => {},
   layouts: [],
   setLayouts: (layouts: Layout[][]) => {},
   saveSetting: (
-    target: TargetType,
+    history: Target[],
     layouts: Layout[][],
     name: string = '&last'
   ) => {},
@@ -80,10 +81,6 @@ export const AppContextProvider: React.FC = (props) => {
   const [customClaims, setCustomClaims] = useState<CustomClaims>({});
   const [touchDevice, SetTouchDevice] = useState<boolean>(false);
   const [currentMode, setCurrentMode] = useState<MenuMode>('bible');
-  const [target, setTarget] = useState<TargetType>({
-    book: 'Gen',
-    chapter: '1',
-  });
   const [layouts, setLayouts] = useState<Layout[][]>([]);
 
   const [targetWords, setTargetWords] = useState<Word[]>([
@@ -92,6 +89,9 @@ export const AppContextProvider: React.FC = (props) => {
   const [selectLayout, setSelectLayout] = useState<Layout | null>(null);
   const [books, setBooks] = useState<{ [docId: string]: Book } | null>(null);
   const [interlocked, setInterlocked] = useState(true);
+  const [targetHistory, setTargetHistory] = useState<TargetHistory>(
+    new TargetHistory()
+  );
 
   const admin = customClaims?.role === 'admin';
 
@@ -112,10 +112,15 @@ export const AppContextProvider: React.FC = (props) => {
         setCurrentUser(user);
         const setting = await SettingDB.getSetting('&last');
         if (setting) {
-          setTarget(setting.target);
-          setLayouts(setting.layouts);
-        } else {
-          resetTarget();
+          if (setting.history) {
+            const history = setting.history;
+            if (history && history.length > 0) {
+              setTargetHistory(new TargetHistory(history, history.length - 1));
+            }
+          }
+          if (setting.layouts) {
+            setLayouts(setting.layouts);
+          }
         }
         try {
           if (user) {
@@ -131,13 +136,6 @@ export const AppContextProvider: React.FC = (props) => {
     };
     f();
   }, []);
-
-  const resetTarget = () => {
-    setTarget({
-      book: 'Gen',
-      chapter: '1',
-    });
-  };
 
   const loadModules = async () => {
     const new_bibles = await Sword.loadAll('bible');
@@ -187,11 +185,11 @@ export const AppContextProvider: React.FC = (props) => {
   };
 
   const saveSetting = async (
-    target: TargetType,
+    history: Target[],
     layouts: Layout[][],
     name: string = '&last'
   ) => {
-    await SettingDB.saveSetting({ target, layouts, name });
+    await SettingDB.saveSetting({ history, layouts, name });
   };
 
   return (
@@ -203,8 +201,8 @@ export const AppContextProvider: React.FC = (props) => {
         setSwordModule,
         currentUser,
         customClaims,
-        target,
-        setTarget,
+        targetHistory,
+        setTargetHistory,
         layouts,
         setLayouts,
         saveSetting,

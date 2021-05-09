@@ -49,7 +49,7 @@ const Pagination: React.FC<Props> = ({
           {i > 0 && pp - pages[i - 1] > 1 && <>...</>}
           <div
             className={clsx(
-              'rounded-full border mx-1 flex justify-center items-center',
+              'rounded-full border mx-1 flex justify-center items-center cursor-pointer',
               pp === page && 'bg-gray-300',
               pp !== page && 'hover:bg-gray-200',
               `w-${wh} h-${wh} text-${size} `
