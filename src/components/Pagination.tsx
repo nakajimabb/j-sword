@@ -7,6 +7,7 @@ type Props = {
   page: number;
   count: number;
   size: 'sm' | 'md';
+  color?: string;
   onChange?: (value: number) => void;
   className?: string;
 };
@@ -15,6 +16,7 @@ const Pagination: React.FC<Props> = ({
   page,
   count,
   size,
+  color,
   onChange,
   className,
   children,
@@ -50,6 +52,7 @@ const Pagination: React.FC<Props> = ({
           <div
             className={clsx(
               'rounded-full border mx-1 flex justify-center items-center cursor-pointer',
+              color && `bg-${color}`,
               pp === page && 'bg-gray-300',
               pp !== page && 'hover:bg-gray-200',
               `w-${wh} h-${wh} text-${size} `

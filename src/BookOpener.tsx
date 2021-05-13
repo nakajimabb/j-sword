@@ -4,10 +4,11 @@ import clsx from 'clsx';
 import { Button, Form, Grid, Icon, Modal, Tabs } from './components';
 import { canons } from './sword/Canon';
 import canon_jp from './sword/canons/locale/ja.json';
-import { parseBibleTarget } from './TargetHistory';
-import AppContext from './AppContext';
+import { parseBibleTarget } from './sword/parseTarget';
+import AppContext, { Word } from './AppContext';
 
 import './App.css';
+import TargetHistory from './TargetHistory';
 
 type DialogProps = {
   open: boolean;
@@ -15,9 +16,8 @@ type DialogProps = {
 };
 
 const Dialog: React.FC<DialogProps> = ({ open, onClose }) => {
-  const { targetHistory, setTargetHistory, layouts, saveSetting } = useContext(
-    AppContext
-  );
+  const { targetHistory, setTargetHistory, layouts, saveSetting } =
+    useContext(AppContext);
   const canon = canons.nrsv;
   const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
   const [tab, setTab] = useState('0');
@@ -128,27 +128,60 @@ type Props = {
 };
 
 const BookOpener: React.FC<Props> = ({ className }) => {
-  const { targetHistory, setTargetHistory, layouts, saveSetting } = useContext(
-    AppContext
-  );
+  const {
+    targetHistory,
+    setTargetHistory,
+    layouts,
+    saveSetting,
+    setTargetWords,
+  } = useContext(AppContext);
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState('');
 
   useEffect(() => {
     const current = targetHistory.current();
-    if (current && current.mode === 'bible') {
+    if (current) {
       setPosition(current.search);
     }
   }, [targetHistory]);
 
   const increment = (increment: number) => () => {
     if (targetHistory.incrementCurent(increment)) {
-      setTargetHistory(targetHistory.dup());
+      changeTargetHistory(targetHistory.dup());
+    }
+  };
+
+  const iconName = () => {
+    const current = targetHistory.current();
+    if (current) {
+      if (current.mode === 'bible') return 'book-open';
+      else if (current.mode === 'word') return 'document-search';
+    }
+    return 'book-open';
+  };
+
+  const changeTargetHistory = (history: TargetHistory) => {
+    setTargetHistory(history);
+    saveSetting(history.history, layouts);
+    const current = history.current();
+    if (current) {
+      if (history.current()?.mode === 'word') {
+        const lang = current.search[0] === 'H' ? 'he' : 'grc';
+        const word: Word = {
+          lemma: current.search,
+          morph: '',
+          text: '',
+          lang,
+          targetLemma: current.search,
+          fixed: true,
+        };
+        setTargetWords([word]);
+      }
     }
   };
 
   return (
-    <div className={clsx('relative w-36 h-8 my-2', className)}>
+    <div className={clsx('relative w-48 h-8 my-2', className)}>
       <Button
         variant="icon"
         size="none"
@@ -156,7 +189,7 @@ const BookOpener: React.FC<Props> = ({ className }) => {
         onClick={() => setOpen(true)}
         className="absolute top-0 left-0 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 z-10 w-6 h-6 p-0.5 m-1"
       >
-        <Icon name="book-open" />
+        <Icon name={iconName()} />
       </Button>
       <Button
         variant="text"
@@ -185,9 +218,9 @@ const BookOpener: React.FC<Props> = ({ className }) => {
         }}
         onKeyPress={(e) => {
           if (e.charCode === 13 && position) {
-            if (targetHistory.addHistory(position)) {
-              setTargetHistory(targetHistory.dup());
-              saveSetting(targetHistory.history, layouts);
+            const mode = targetHistory.addHistory(position);
+            if (mode) {
+              changeTargetHistory(targetHistory.dup());
             }
           }
         }}

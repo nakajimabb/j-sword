@@ -34,13 +34,13 @@ export interface IndexesType {
   dict?: { [key: string]: DictIndex };
 }
 
-export interface References {
-  [modname: string]: { [book: string]: { [chapter: number]: number[] } };
+export interface OsisLocation {
+  [book: string]: { [chapter: number]: {[verse: number]: number} };
 }
 
 export interface ReferencesType {
   modname: string;
-  indexes: References;
+  indexes: {[modname: string]: OsisLocation};
 }
 
 export type ModType = 'bible' | 'dictionary' | 'morphology';

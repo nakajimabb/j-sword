@@ -169,7 +169,7 @@ const Phrase = React.memo(
 
 interface PassageProps {
   raw: Raw;
-  show_verse: boolean;
+  showPosition: 'chapter verse' | 'verse' | 'none';
   target_lemma?: string;
   lang: string;
   depth: number;
@@ -177,7 +177,7 @@ interface PassageProps {
 
 const MuiPassage: React.FC<PassageProps> = ({
   raw,
-  show_verse = true,
+  showPosition,
   target_lemma,
   lang,
   depth,
@@ -207,9 +207,20 @@ const MuiPassage: React.FC<PassageProps> = ({
     }
   }, [raw.text]);
 
+  const getPosition = (osisRef: string) => {
+    const m = osisRef.match(/(\d+):(\d+)$/);
+    if (m) {
+      if (showPosition === 'chapter verse') {
+        return m[0];
+      } else if (showPosition === 'verse') {
+        return m[2];
+      }
+    }
+  };
+
   return (
     <>
-      {show_verse && raw.verse > 0 && <div className="verse">{raw.verse}.</div>}
+      {<div className={showPosition}>{getPosition(raw.osisRef)}</div>}
       <Phrase
         nodeObj={nodeObj}
         target_lemma={target_lemma}

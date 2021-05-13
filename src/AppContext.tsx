@@ -2,9 +2,11 @@ import React, { useState, useEffect, createContext } from 'react';
 
 import firebase from './firebase';
 import { CustomClaims, Target, Layout, Book } from './types';
+import { OsisLocation } from './sword/types';
 import Sword from './sword/Sword';
 import SettingDB from './SettingDB';
 import TargetHistory from './TargetHistory';
+import { parseWordTarget } from './sword/parseTarget';
 
 export type Word = {
   lemma: string;
@@ -41,6 +43,9 @@ export type ContextType = {
   loadBooks: (reload: boolean) => Promise<{ [docId: string]: Book } | null>;
   interlocked: boolean;
   setInterlocked: React.Dispatch<boolean>;
+  osisLocations: { [modname: string]: OsisLocation };
+  targetOsisRefs: string[];
+  setTargetOsisRefs: React.Dispatch<string[]>;
 };
 
 const AppContext = createContext({
@@ -71,10 +76,13 @@ const AppContext = createContext({
   loadBooks: async (reload: boolean) => ({}),
   interlocked: true,
   setInterlocked: (interlocked: boolean) => {},
+  osisLocations: {},
+  targetOsisRefs: [],
+  setTargetOsisRefs: (positions: string[]) => {},
 } as ContextType);
 
 export const AppContextProvider: React.FC = (props) => {
-  const [bibles, setBibles] = useState({});
+  const [bibles, setBibles] = useState<{ [key: string]: Sword }>({});
   const [dictionaries, setDictionaries] = useState({});
   const [morphologies, setMorphologies] = useState({});
   const [currentUser, setCurrentUser] = useState<firebase.User | null>(null);
@@ -92,6 +100,10 @@ export const AppContextProvider: React.FC = (props) => {
   const [targetHistory, setTargetHistory] = useState<TargetHistory>(
     new TargetHistory()
   );
+  const [osisLocations, setOsisLocations] = useState<{
+    [modname: string]: OsisLocation;
+  }>({});
+  const [targetOsisRefs, setTargetOsisRefs] = useState<string[]>([]);
 
   const admin = customClaims?.role === 'admin';
 
@@ -116,6 +128,20 @@ export const AppContextProvider: React.FC = (props) => {
             const history = setting.history;
             if (history && history.length > 0) {
               setTargetHistory(new TargetHistory(history, history.length - 1));
+              const current = history[history.length - 1];
+              if (current.mode === 'word') {
+                const position = current.search;
+                const lang = position[0] === 'H' ? 'he' : 'grc';
+                const word: Word = {
+                  lemma: position,
+                  morph: '',
+                  text: '',
+                  lang,
+                  targetLemma: position,
+                  fixed: true,
+                };
+                setTargetWords([word]);
+              }
             }
           }
           if (setting.layouts) {
@@ -136,6 +162,90 @@ export const AppContextProvider: React.FC = (props) => {
     };
     f();
   }, []);
+
+  useEffect(() => {
+    const current = targetHistory.current();
+    if (current) {
+      if (current.mode === 'word') {
+        updateOsisLocations(current.search);
+      }
+    }
+  }, [targetHistory]);
+
+  const UnionOsisRefs = (refs1: OsisLocation, refs2: OsisLocation) => {
+    const refs = { ...refs1 };
+    Object.entries(refs2).forEach(([book, cvRef]) => {
+      if (refs[book]) {
+        Object.entries(cvRef).forEach(([chap, vRef]) => {
+          if (refs[book][+chap]) {
+            Object.entries(vRef).forEach(([vers, cnt]) => {
+              if (refs[book][+chap][+vers]) {
+                refs[book][+chap][+vers] =
+                  Number(refs[book][+chap][+vers]) + Number(cnt);
+              } else {
+                refs[book][+chap][+vers] = cnt;
+              }
+            });
+          } else {
+            refs[book][+chap] = vRef;
+          }
+        });
+      } else {
+        refs[book] = cvRef;
+      }
+    });
+    return refs;
+  };
+
+  const IntersecOsisRefs = (refs1: OsisLocation, refs2: OsisLocation) => {
+    console.log({ refs1, refs2 });
+    const refs: OsisLocation = {};
+    Object.entries(refs2).forEach(([book, cvRef]) => {
+      if (refs1[book]) {
+        Object.entries(cvRef).forEach(([chap, vRef]) => {
+          if (refs1[book][+chap]) {
+            Object.entries(vRef).forEach(([vers, cnt]) => {
+              if (refs1[book][+chap][+vers]) {
+                if (!refs[book]) refs[book] = {};
+                if (!refs[book][+chap]) refs[book][+chap] = {};
+                refs[book][+chap][+vers] =
+                  Number(refs1[book][+chap][+vers]) + Number(cnt);
+              }
+            });
+          }
+        });
+      }
+    });
+    return refs;
+  };
+
+  const updateOsisLocations = async (search: string) => {
+    const res = parseWordTarget(search);
+    if (res) {
+      const { lemmas, separator } = res;
+      const tasks = Object.entries(bibles).map(async ([modname, bible]) => {
+        let loc: OsisLocation | null = null;
+        for await (const lemma of lemmas) {
+          const refers = await bible.getReference(lemma);
+          if (refers) {
+            if (loc) {
+              if (separator === ',') loc = UnionOsisRefs(loc, refers);
+              else loc = IntersecOsisRefs(loc, refers);
+            } else {
+              loc = refers;
+            }
+          }
+        }
+        return { modname, loc };
+      });
+      const result = await Promise.all(tasks);
+      let locations: { [modname: string]: OsisLocation } = {};
+      result.forEach(({ modname, loc }) => {
+        if (loc) locations[modname] = loc;
+      });
+      setOsisLocations(locations);
+    }
+  };
 
   const loadModules = async () => {
     const new_bibles = await Sword.loadAll('bible');
@@ -218,6 +328,9 @@ export const AppContextProvider: React.FC = (props) => {
         loadBooks,
         interlocked,
         setInterlocked,
+        osisLocations,
+        targetOsisRefs,
+        setTargetOsisRefs,
       }}
     >
       {props.children}

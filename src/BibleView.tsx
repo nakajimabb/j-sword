@@ -20,39 +20,53 @@ type Props = {
 
 const BibleView: React.FC<Props> = ({ modname, col, row }) => {
   const [raw_texts, setRawTexts] = useState<Raw[]>([]);
-  const { bibles, targetHistory, interlocked } = useContext(AppContext);
+  const { bibles, targetHistory, interlocked, targetOsisRefs } =
+    useContext(AppContext);
   const current = targetHistory.current();
   const bible = bibles[modname];
   const direction = bible?.conf?.Direction === 'RtoL' && 'rtl';
   const lang = String(bible?.lang);
-  const valid_params = current && current.mode === 'bible' && current.search;
   const title = bible?.title;
+  const mode = current?.mode || 'bible';
 
   useEffect(() => {
     const f = async () => {
-      if (valid_params) {
-        const book_pos = String(current?.search);
-        try {
-          const new_raw_texts = await bible.renderText(book_pos, {
-            footnotes: false,
-            crossReferences: true,
-            oneVersePerLine: true,
-            headings: true,
-            wordsOfChristInRed: true,
-            intro: true,
-            array: false,
-          });
-          if (new_raw_texts) setRawTexts(new_raw_texts);
-        } catch (error) {
-          console.log({ error });
-          setRawTexts([]);
+      if (current) {
+        if (current.mode === 'bible') {
+          updateRawTexts([current.search]);
+        } else if (current.mode === 'word') {
+          updateRawTexts(targetOsisRefs);
         }
       } else {
-        return null;
+        setRawTexts([]);
       }
     };
     f();
-  }, [targetHistory]);
+  }, [modname, targetHistory, targetOsisRefs]);
+
+  const updateRawTexts = async (osisRefs: string[]) => {
+    try {
+      const new_raw_texts: Raw[] = [];
+      for await (const osisRef of osisRefs) {
+        const texts = await bible.renderText(osisRef, {
+          footnotes: false,
+          crossReferences: true,
+          oneVersePerLine: true,
+          headings: true,
+          wordsOfChristInRed: true,
+          intro: true,
+          array: false,
+        });
+        if (texts) {
+          new_raw_texts.push(...texts);
+        }
+      }
+      setRawTexts(new_raw_texts);
+    } catch (error) {
+      console.log({ error });
+      setRawTexts([]);
+    }
+  };
 
   const hoverPassage = (
     event: React.MouseEvent,
@@ -113,7 +127,7 @@ const BibleView: React.FC<Props> = ({ modname, col, row }) => {
         onScroll={onScroll}
         className="bible-view"
       >
-        {valid_params && (
+        {raw_texts.length > 0 && (
           <div className="p-2">
             <div className={clsx(direction, lang)}>
               {raw_texts.map((raw, index: number) => (
@@ -124,7 +138,13 @@ const BibleView: React.FC<Props> = ({ modname, col, row }) => {
                   onMouseOver={onMouseOver}
                   onMouseLeave={onMouseLeave}
                 >
-                  <Passage depth={0} lang={lang} raw={raw} show_verse={true} />
+                  <Passage
+                    depth={0}
+                    lang={lang}
+                    raw={raw}
+                    showPosition={mode !== 'bible' ? 'chapter verse' : 'verse'}
+                  />
+                  {mode !== 'bible' && <br />}
                 </div>
               ))}
             </div>

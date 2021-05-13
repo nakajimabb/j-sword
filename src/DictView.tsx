@@ -20,7 +20,14 @@ type Props = {
 
 const DictView: React.FC<Props> = ({ depth, layout, col, row }) => {
   const [shapedLemma, setShapedLemma] = useState<string>('');
-  const { targetWords, setTargetWords } = useContext(AppContext);
+  const {
+    targetWords,
+    setTargetWords,
+    layouts,
+    targetHistory,
+    setTargetHistory,
+    saveSetting,
+  } = useContext(AppContext);
   const word = targetWords[depth];
   const { text: wordText, lang, lemma, morph, fixed } = word;
 
@@ -73,6 +80,24 @@ const DictView: React.FC<Props> = ({ depth, layout, col, row }) => {
     changeLemma(String(e.currentTarget.value));
   };
 
+  const setTarget = () => {
+    const mode = targetHistory.addHistory(lemma);
+    setTargetHistory(targetHistory.dup());
+    saveSetting(targetHistory.history, layouts);
+    if (mode === 'word') {
+      const lang = lemma === 'H' ? 'he' : 'grc';
+      const word = {
+        lemma,
+        morph: '',
+        text: '',
+        lang,
+        targetLemma: lemma,
+        fixed: true,
+      };
+      setTargetWords([word]);
+    }
+  };
+
   const contents = (
     <div className="p-2">
       {lemma && (
@@ -102,6 +127,15 @@ const DictView: React.FC<Props> = ({ depth, layout, col, row }) => {
             <Icon name="chevron-right" variant="outline" />
           </Button>
           <BibleReference lemma={shapedLemma} depth={depth + 1} />
+          <Button
+            variant="icon"
+            size="none"
+            color="none"
+            onClick={setTarget}
+            className="ml-1 p-1 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 w-8 h-8"
+          >
+            <Icon name="search" />
+          </Button>
           <Button
             variant="icon"
             size="none"

@@ -15,12 +15,8 @@ import {
   DictIndex,
 } from './types';
 import { shapeLemma } from '../NodeObj';
-
-type References = {
-  [lemma: string]: {
-    [book: string]: { [chapter: number]: { [verse: number]: number } };
-  };
-};
+import { OsisLocation } from './types';
+import { parseBibleTarget } from './parseTarget';
 
 function parseConf(str: string) {
   const lines = str.split(/[\r\n]+/g);
@@ -307,7 +303,6 @@ class Sword {
   blob: BlobsType | null;
   index: IndexesType | null;
   reference: ReferencesType | null;
-  // modtype: 'bible', 'dictionary', 'morphology',
   constructor(
     modname: string,
     modtype: ModType | null,
@@ -346,13 +341,12 @@ class Sword {
   
   static parseVKey(inVKey: string, inV11n: string) {
     const bookPos: BookPos[] = [];
-    const m = inVKey.match(/^(\w+).(\d+)(:([\d-,]+))*$/);
-    if (m) {
-      const book = m[1];
-      const chapter = +m[2];
+    const result = parseBibleTarget(inVKey);
+    if (result) {
+      const {book, chapter, verse} = result;
       const bookNum= Canon.getBookNum(book, inV11n);
-      if(m[4]) {
-        const verses = Sword.parseVerse(m[4]);
+      if(verse) {
+        const verses = Sword.parseVerse(verse);
         verses.forEach(verse => {
           bookPos.push({
             book,
@@ -415,12 +409,10 @@ class Sword {
     });
   }
 
-  async renderText(inVKey: string, inOptions: { [key: string]: boolean }) {
+  async renderText2(vList: BookPos[], inOptions: { [key: string]: boolean }) {
     const indexes = this.index || (await SwordDB.getIndex(this.modname));
     const blobs = this.blob || (await SwordDB.getBlob(this.modname));
     if (this.conf && indexes && blobs) {
-      const inV11n = String(this.conf.Versification);
-      const vList = Sword.parseVKey(inVKey, inV11n);
       if (vList.length !== 0 && vList[0].osisRef !== '') {
         let index_bible: BookIndex[] | undefined;
         let index_dict: DictIndex | undefined;
@@ -478,6 +470,16 @@ class Sword {
       } else {
         throw 'Wrong passage. The requested chapter is not available in this module.';
       }
+    }
+  }
+
+  async renderText(inVKey: string, inOptions: { [key: string]: boolean }) {
+    const indexes = this.index || (await SwordDB.getIndex(this.modname));
+    const blobs = this.blob || (await SwordDB.getBlob(this.modname));
+    if (this.conf && indexes && blobs) {
+      const inV11n = String(this.conf.Versification);
+      const vList = Sword.parseVKey(inVKey, inV11n);
+      return this.renderText2(vList, inOptions);
     }
   }
 
@@ -721,7 +723,7 @@ class Sword {
           book_poses.push(book + '.' + chapter);
         }
       }
-      const references: References = {};
+      const locations: { [lemma: string]: OsisLocation } = {};
       for await (let book_pos of book_poses) {
         const raws = await this.renderText(book_pos, {
           footnotes: false,
@@ -732,9 +734,9 @@ class Sword {
           intro: true,
           array: false,
         });
-        if (raws) raws.forEach((raw) => countLemma(raw, references, lang));
+        if (raws) raws.forEach((raw) => countLemma(raw, locations, lang));
       }
-      return references;
+      return locations;
     }
   }
 
@@ -746,7 +748,7 @@ class Sword {
 export const extractLemma = (
   node: Node,
   pos: { book: string; chapter: number; verse: number },
-  references: References,
+  locations: { [lemma: string]: OsisLocation },
   lang: string
 ) => {
   const attrs =
@@ -762,21 +764,23 @@ export const extractLemma = (
     let lemma: string = attrs.lemma.split(':').pop() || '';
     if (lemma) {
       lemma = shapeLemma(lemma, lang);
-      if (!references[lemma]) references[lemma] = {};
-      if (!references[lemma][pos.book]) references[lemma][pos.book] = {};
-      if (!references[lemma][pos.book][pos.chapter])
-        references[lemma][pos.book][pos.chapter] = {};
-      if (!references[lemma][pos.book][pos.chapter][pos.verse])
-        references[lemma][pos.book][pos.chapter][pos.verse] = 0;
-      references[lemma][pos.book][pos.chapter][pos.verse] += 1;
+      if (!locations[lemma]) { locations[lemma] = {}; }
+      if (!locations[lemma][pos.book]) { locations[lemma][pos.book] = {}; }
+      if (!locations[lemma][pos.book][pos.chapter]) {
+        locations[lemma][pos.book][pos.chapter] = {};
+      }
+      if (!locations[lemma][pos.book][pos.chapter][pos.verse]) {
+        locations[lemma][pos.book][pos.chapter][pos.verse] = 0;
+      }
+      locations[lemma][pos.book][pos.chapter][pos.verse] += 1;
     }
   }
   node.childNodes.forEach((child) => {
-    extractLemma(child, pos, references, lang);
+    extractLemma(child, pos, locations, lang);
   });
 };
 
-const countLemma = (raw_text: Raw, references: References, lang: string) => {
+const countLemma = (raw_text: Raw, locations: { [lemma: string]: OsisLocation }, lang: string) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(
     '<root>' + raw_text.text + '</root>',
@@ -788,11 +792,11 @@ const countLemma = (raw_text: Raw, references: References, lang: string) => {
     extractLemma(
       root,
       { book: m[1], chapter: +m[2], verse: +m[3] },
-      references,
+      locations,
       lang
     );
   }
-  return references;
+  return locations;
 };
 
 export default Sword;

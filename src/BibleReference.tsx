@@ -5,28 +5,33 @@ import Sword from './sword/Sword';
 import Passage from './Passage';
 import DictView from './DictView';
 import AppContext from './AppContext';
-import { Raw, References } from './sword/types';
+import { Raw, OsisLocation } from './sword/types';
 import canon_jp from './sword/canons/locale/ja.json';
 import './passage.css';
 import clsx from 'clsx';
 
-const countByModKey = (references: References) => {
+const countByModKey = (osisLocations: { [modname: string]: OsisLocation }) => {
   let sum: { [modname: string]: { [book: string]: number } } = {};
-  for (let modname in references) {
+  for (let modname in osisLocations) {
     if (modname !== 'lemma') {
-      sum[modname] = countByBook(modname, references);
+      sum[modname] = countByBook(modname, osisLocations);
     }
   }
   return sum;
 };
 
-const countByBook = (modKey: string, references: References) => {
+const countByBook = (
+  modKey: string,
+  osisLocations: {
+    [modname: string]: OsisLocation;
+  }
+) => {
   let sum: { [book: string]: number } = {};
-  for (let book in references[modKey]) {
-    for (let chapter in references[modKey][book]) {
+  for (let book in osisLocations[modKey]) {
+    for (let chapter in osisLocations[modKey][book]) {
       if (!sum.hasOwnProperty(book)) sum[book] = 0;
-      for (let verse in references[modKey][book][chapter]) {
-        sum[book] += references[modKey][book][chapter][verse];
+      for (let verse in osisLocations[modKey][book][chapter]) {
+        sum[book] += osisLocations[modKey][book][chapter][verse];
       }
     }
   }
@@ -54,7 +59,7 @@ const RefPassage: React.FC<RefPassageProps> = ({
     <div className={clsx('border-b p-2', direction, lang)}>
       <Passage
         raw={raw}
-        show_verse={false}
+        showPosition="none"
         target_lemma={target_lemma}
         lang={lang}
         depth={depth}
@@ -120,7 +125,6 @@ const RefPassages: React.FC<RefPassagesProps> = ({
     const m = book_pos.match(reg);
 
     if (m && m[1] && m[2]) {
-      console.log(m);
       const name = canonjp[m[1]]?.abbrev;
       return !!name ? name + m[2] : book_pos;
     } else {
@@ -162,7 +166,9 @@ const RefPassages: React.FC<RefPassagesProps> = ({
 interface ModalDictIndexProps {
   depth: number;
   lemma: string;
-  references: References;
+  osisLocations: {
+    [modname: string]: OsisLocation;
+  };
   open: boolean;
   onClose: () => void;
 }
@@ -170,7 +176,7 @@ interface ModalDictIndexProps {
 const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
   depth,
   lemma,
-  references,
+  osisLocations,
   open,
   onClose,
 }) => {
@@ -183,7 +189,7 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
     book: null,
   });
   const [page, setPage] = useState<number>(1);
-  const counts = countByModKey(references);
+  const counts = countByModKey(osisLocations);
   const count_per_page = 10;
   const page_count = Math.ceil(indexes.length / count_per_page);
   const start_index = count_per_page * (page - 1);
@@ -193,9 +199,9 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
   );
   const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
 
-  const references_options = Object.keys(references)
+  const references_options = Object.keys(osisLocations)
     .map((modKey: string) =>
-      Object.keys(references[modKey]).map((book) => ({
+      Object.keys(osisLocations[modKey]).map((book) => ({
         mod_key: modKey,
         book,
       }))
@@ -211,17 +217,17 @@ const ModalDictIndex: React.FC<ModalDictIndexProps> = ({
   }));
 
   useEffect(() => {
-    const references2 = references || {};
+    const references2 = osisLocations || {};
     const modKey = Object.keys(references2)[0];
     const book = Object.keys(references2[modKey] || {})[0];
     setTarget({ mod_key: modKey, book: book });
     setIndexes(bookDictIndex(modKey, book));
     setPage(1);
-  }, [references]);
+  }, [osisLocations]);
 
   const bookDictIndex = (modKey: string, book: string) => {
     let indexes = [];
-    const book_indexes = ((references || {})[modKey] || {})[book];
+    const book_indexes = ((osisLocations || {})[modKey] || {})[book];
     for (let chapter in book_indexes) {
       for (let verse in book_indexes[chapter]) {
         indexes.push(`${book}.${chapter}:${verse}`);
@@ -300,7 +306,9 @@ interface BibleReferenceProps {
 }
 
 const BibleReference: React.FC<BibleReferenceProps> = ({ lemma, depth }) => {
-  const [references, setReferences] = useState<References>({});
+  const [osisLocations, setOsisLocations] = useState<{
+    [modname: string]: OsisLocation;
+  }>({});
   const [label, setLabel] = useState<string>('');
   const [open, setOpen] = useState<boolean>(false);
   const { bibles } = useContext(AppContext);
@@ -313,12 +321,15 @@ const BibleReference: React.FC<BibleReferenceProps> = ({ lemma, depth }) => {
           return { modname, reference };
         });
         const result = await Promise.all(tasks);
-        let new_references: References = {};
+        let locations: {
+          [modname: string]: OsisLocation;
+        } = {};
         result.forEach(({ modname, reference }) => {
-          if (reference) new_references[modname] = reference;
+          if (reference) locations[modname] = reference;
         });
-        setReferences(new_references);
-        const counts = countByModKey(new_references);
+        setOsisLocations(locations);
+        const counts = countByModKey(locations);
+        // console.log({ new_references, counts });
         const new_label = Object.keys(counts)
           .map(
             (modname) =>
@@ -330,7 +341,7 @@ const BibleReference: React.FC<BibleReferenceProps> = ({ lemma, depth }) => {
           .join(' ');
         setLabel(new_label);
       } else {
-        setReferences({});
+        setOsisLocations({});
         setLabel('');
       }
     };
@@ -353,7 +364,7 @@ const BibleReference: React.FC<BibleReferenceProps> = ({ lemma, depth }) => {
         <ModalDictIndex
           depth={depth}
           lemma={lemma}
-          references={references}
+          osisLocations={osisLocations}
           open={open}
           onClose={() => setOpen(false)}
         />

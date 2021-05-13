@@ -1,15 +1,6 @@
-import {Target } from './types';
-
-export function parseBibleTarget(search: string) {
-  const m = search.match(/^(\w+).(\d+)(:([\d-,]+))*$/);
-  if(m) {
-    return {
-        book: m[1],
-        chapter: String(+m[2]),
-        verse: m[4],
-    }
-  }
-}
+import { zeroPadding } from './tools';
+import { Target } from './types';
+import { parseBibleTarget, parseWordTarget } from './sword/parseTarget';
 
 class TargetHistory {
   history: Target[];
@@ -38,19 +29,26 @@ class TargetHistory {
     }
   }
 
-  addHistory(target: string) {
-    if(parseBibleTarget(target)) {
-      this.history = this.history.slice(0, this.currentIndex + 1);
-      this.history.push({mode: 'bible', search: target});
-      this.currentIndex = this.history.length - 1;
-      return true;
+  addHistory(search: string) {
+    let mode: 'bible' | 'word' | null = null;
+    if(parseBibleTarget(search)) {
+      mode = 'bible';
+    } else if(parseWordTarget(search)) {
+      mode = 'word';
     }
-    return false;
+    if(mode) {
+      this.history = this.history.slice(0, this.currentIndex + 1);
+      this.history.push({mode, search});
+      this.currentIndex = this.history.length - 1;
+    }
+    return mode;
   }
 
   incrementCurent(increment: number) {
     const current = this.current();
-    if(current && current.mode === 'bible') {
+    if(!current) return false;
+
+    if(current.mode === 'bible') {
       const result = parseBibleTarget(current.search);
       if(result) {
         if(result.verse) {
@@ -71,6 +69,15 @@ class TargetHistory {
               return true;
             }
           }
+        }
+      }
+    } else if(current.mode === 'word'){
+      const m = current.search.match(/^([GH])(\d+)$/);
+      if(m) {
+        const number = +m[2] + increment;
+        if(number > 0) {
+          this.history[this.currentIndex].search = `${m[1]}${zeroPadding(number, 4)}`;
+          return true;
         }
       }
     }
