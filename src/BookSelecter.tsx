@@ -58,6 +58,8 @@ const BookSelecter: React.FC<Props> = ({ col = -1, row = -1, trigger }) => {
               storeSetting({
                 modname: item.modname,
                 type: 'bible',
+                minimized: false,
+                disabled: false,
               })
             }
           />
@@ -65,7 +67,14 @@ const BookSelecter: React.FC<Props> = ({ col = -1, row = -1, trigger }) => {
       </Dropdown.Item>
       <Dropdown.Item
         title="辞書"
-        onClick={() => storeSetting({ modname: '', type: 'dictionary' })}
+        onClick={() =>
+          storeSetting({
+            modname: '',
+            type: 'dictionary',
+            minimized: false,
+            disabled: false,
+          })
+        }
       />
       <Dropdown.Item title="記事">
         {books &&
@@ -74,7 +83,12 @@ const BookSelecter: React.FC<Props> = ({ col = -1, row = -1, trigger }) => {
               key={index}
               title={books[docId].title}
               onClick={() => {
-                storeSetting({ modname: docId, type: 'book' });
+                storeSetting({
+                  modname: docId,
+                  type: 'book',
+                  minimized: false,
+                  disabled: false,
+                });
               }}
             />
           ))}

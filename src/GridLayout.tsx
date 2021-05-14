@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import clsx from 'clsx';
 
 import { Grid } from './components';
@@ -8,6 +8,58 @@ import BibleView from './BibleView';
 import BookView from './BookView';
 import DictView from './DictView';
 import './App.css';
+
+type Props = {
+  col: number;
+};
+
+const GridCols: React.FC<Props> = ({ col }) => {
+  const [templateRows, setTemplateRows] =
+    useState<string | undefined>(undefined);
+  const { layouts, selectLayout } = useContext(AppContext);
+  const layouts_col = layouts[col];
+
+  useEffect(() => {
+    if (layouts_col.some((layout) => layout.minimized || layout.disabled)) {
+      const trows = layouts_col.map((layout) =>
+        layout.minimized || layout.disabled ? '1.5rem' : '1fr'
+      );
+      setTemplateRows(trows.join(' '));
+    } else {
+      setTemplateRows(undefined);
+    }
+  }, [layouts]);
+
+  return (
+    <Grid
+      cols={1}
+      rows={layouts_col.length}
+      gap="0"
+      flow="col"
+      template_rows={templateRows}
+      className={clsx('h-full', selectLayout && 'relative')}
+    >
+      {layouts_col.map((layout, index2) => (
+        <React.Fragment key={index2}>
+          {layout.type === 'bible' && (
+            <BibleView modname={layout.modname} col={col} row={index2} />
+          )}
+          {layout.type === 'book' && (
+            <BookView
+              bookId={layout.modname}
+              layout={layout}
+              col={col}
+              row={index2}
+            />
+          )}
+          {layout.type === 'dictionary' && (
+            <DictView depth={0} layout={layout} col={col} row={index2} />
+          )}
+        </React.Fragment>
+      ))}
+    </Grid>
+  );
+};
 
 const GridLayout: React.FC = () => {
   const { layouts, selectLayout } = useContext(AppContext);
@@ -21,43 +73,8 @@ const GridLayout: React.FC = () => {
         flow="row"
         className="w-full h-full"
       >
-        {layouts.map((layouts_col, index1) => (
-          <Grid
-            key={index1}
-            cols={1}
-            rows={layouts_col.length}
-            gap="0"
-            flow="col"
-            className={clsx(selectLayout && 'relative')}
-          >
-            {layouts_col.map((layout, index2) => (
-              <React.Fragment key={index2}>
-                {layout.type === 'bible' && (
-                  <BibleView
-                    modname={layout.modname}
-                    col={index1}
-                    row={index2}
-                  />
-                )}
-                {layout.type === 'book' && (
-                  <BookView
-                    bookId={layout.modname}
-                    layout={layout}
-                    col={index1}
-                    row={index2}
-                  />
-                )}
-                {layout.type === 'dictionary' && (
-                  <DictView
-                    depth={0}
-                    layout={layout}
-                    col={index1}
-                    row={index2}
-                  />
-                )}
-              </React.Fragment>
-            ))}
-          </Grid>
+        {layouts.map((_, index1) => (
+          <GridCols key={index1} col={index1} />
         ))}
       </Grid>
     </div>

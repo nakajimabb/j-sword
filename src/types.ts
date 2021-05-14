@@ -38,6 +38,8 @@ export type Target = {
 export type Layout = {
   modname: string;  // or docId
   type: 'bible' | 'dictionary' | 'book';
+  minimized: boolean;
+  disabled: boolean;
 };
 
 export type Setting = {

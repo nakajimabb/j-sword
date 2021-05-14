@@ -20,8 +20,14 @@ type Props = {
 
 const BibleView: React.FC<Props> = ({ modname, col, row }) => {
   const [raw_texts, setRawTexts] = useState<Raw[]>([]);
-  const { bibles, targetHistory, interlocked, targetOsisRefs } =
-    useContext(AppContext);
+  const {
+    bibles,
+    targetHistory,
+    interlocked,
+    targetOsisRefs,
+    layouts,
+    setLayouts,
+  } = useContext(AppContext);
   const current = targetHistory.current();
   const bible = bibles[modname];
   const direction = bible?.conf?.Direction === 'RtoL' && 'rtl';
@@ -37,12 +43,20 @@ const BibleView: React.FC<Props> = ({ modname, col, row }) => {
         } else if (current.mode === 'word') {
           updateRawTexts(targetOsisRefs);
         }
+        disableLayout(false);
       } else {
         setRawTexts([]);
+        disableLayout(true);
       }
     };
     f();
   }, [modname, targetHistory, targetOsisRefs]);
+
+  const disableLayout = (disabled: boolean) => {
+    const newLayouts = [...layouts];
+    newLayouts[col][row].disabled = disabled;
+    setLayouts(newLayouts);
+  };
 
   const updateRawTexts = async (osisRefs: string[]) => {
     try {
@@ -65,6 +79,7 @@ const BibleView: React.FC<Props> = ({ modname, col, row }) => {
     } catch (error) {
       console.log({ error });
       setRawTexts([]);
+      disableLayout(true);
     }
   };
 

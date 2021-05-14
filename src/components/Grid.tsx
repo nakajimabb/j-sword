@@ -9,6 +9,8 @@ type GridProps = {
   flow?: 'row' | 'col' | 'row-dense' | 'col-dense';
   auto_cols?: 'auto' | 'min' | 'max' | 'fr';
   auto_rows?: 'auto' | 'min' | 'max' | 'fr';
+  template_columns?: string;
+  template_rows?: string;
   className?: string;
 };
 
@@ -19,6 +21,8 @@ const Grid: React.FC<GridProps> = ({
   flow,
   auto_cols,
   auto_rows,
+  template_columns,
+  template_rows,
   className,
   children,
 }) => {
@@ -34,6 +38,10 @@ const Grid: React.FC<GridProps> = ({
         auto_rows && `auto-rows-${auto_rows}`,
         className
       )}
+      style={{
+        gridTemplateColumns: template_columns,
+        gridTemplateRows: template_rows,
+      }}
     >
       {children}
     </div>

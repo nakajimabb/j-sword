@@ -72,9 +72,10 @@ type NavProps = {
 };
 
 const Nav: React.FC<NavProps> = ({ title, col, row, leftMenu, dropdowns }) => {
-  const { targetHistory, layouts, setLayouts, saveSetting } = useContext(
-    AppContext
-  );
+  const { targetHistory, layouts, setLayouts, saveSetting } =
+    useContext(AppContext);
+  const disabled = layouts[col][row].disabled;
+  const minimized = layouts[col][row].minimized;
 
   const onClose = (col: number, row: number) => () => {
     const newLayout = [
@@ -86,8 +87,20 @@ const Nav: React.FC<NavProps> = ({ title, col, row, leftMenu, dropdowns }) => {
     saveSetting(targetHistory.history, newLayout);
   };
 
+  const minimizeLayout = (minimized: boolean) => () => {
+    const newLayouts = [...layouts];
+    newLayouts[col][row].minimized = minimized;
+    setLayouts(newLayouts);
+  };
+
   return (
-    <nav className="w-full h-6 px-2 absolute shadow top-0 bg-yellow-100">
+    <nav
+      className={clsx(
+        'w-full h-6 px-2 absolute shadow top-0',
+        disabled && 'bg-yellow-50 text-gray-400',
+        !disabled && 'bg-yellow-100'
+      )}
+    >
       <Flex justify_content="between" align_items="center" className="h-full">
         <Flex align_items="center">
           {leftMenu}
@@ -97,20 +110,31 @@ const Nav: React.FC<NavProps> = ({ title, col, row, leftMenu, dropdowns }) => {
             trigger={<small className="cursor-pointer">{title}</small>}
           />
         </Flex>
-        <Dropdown
-          icon={<Icon name="menu-alt-1" className="w-4 h-4 cursor-pointer" />}
-          align="right"
-        >
-          {dropdowns &&
-            dropdowns.map((dropdown, index) => (
-              <Dropdown.Item
-                key={index}
-                title={dropdown.title}
-                onClick={dropdown.onClick}
+        <Flex>
+          {!disabled && (
+            <span onClick={minimizeLayout(!minimized)}>
+              <Icon
+                name={minimized ? 'plus-circle' : 'minus-circle'}
+                variant="solid"
+                className="w-4 h-4 text-gray-500 cursor-pointer mx-1  hover:text-gray-300"
               />
-            ))}
-          <Dropdown.Item title="閉じる" onClick={onClose(col, row)} />
-        </Dropdown>
+            </span>
+          )}
+          <Dropdown
+            icon={<Icon name="menu-alt-1" className="w-4 h-4 cursor-pointer" />}
+            align="right"
+          >
+            {dropdowns &&
+              dropdowns.map((dropdown, index) => (
+                <Dropdown.Item
+                  key={index}
+                  title={dropdown.title}
+                  onClick={dropdown.onClick}
+                />
+              ))}
+            <Dropdown.Item title="閉じる" onClick={onClose(col, row)} />
+          </Dropdown>
+        </Flex>
       </Flex>
     </nav>
   );
@@ -139,7 +163,7 @@ const Body: React.FC<BodyProps> = ({
       <div
         id={id}
         className={clsx(
-          'w-full h-full overflow-scroll overflow-x-auto',
+          'w-full h-full overflow-x-auto overflow-y-scroll',
           className
         )}
         onScroll={onScroll}
@@ -164,7 +188,7 @@ type FrameViewType = React.FC & {
 };
 
 const FrameView: FrameViewType = ({ children }) => {
-  return <div className="relative">{children}</div>;
+  return <div className="relative h-full overflow-hidden">{children}</div>;
 };
 FrameView.Nav = Nav;
 FrameView.Body = Body;
