@@ -311,19 +311,6 @@ const AppBar: React.FC = () => {
         )}
       </Flex>
       <Flex align_items="center">
-        {admin && (
-          <Tooltip title="ブックを追加" className="text-left">
-            <Button
-              variant="icon"
-              size="sm"
-              color="none"
-              onClick={() => setOpener('book-form')}
-              className="mx-1 my-2 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300"
-            >
-              <Icon name="document-add" />
-            </Button>
-          </Tooltip>
-        )}
         {currentUser ? (
           <Dropdown
             icon={
@@ -365,6 +352,12 @@ const AppBar: React.FC = () => {
               }
               onClick={() => setInterlocked(!interlocked)}
             />
+            {admin && (
+              <Dropdown.Item
+                title="ブックを追加"
+                onClick={() => setOpener('book-form')}
+              />
+            )}
             {admin && (
               <Dropdown.Item title="ユーザ情報取得" onClick={getAuthUser} />
             )}

@@ -3,7 +3,7 @@ import firebase from './firebase';
 import 'firebase/firestore';
 import clsx from 'clsx';
 
-import { Button, Flex, Icon, Tabs } from './components';
+import { Button, Flex, Icon, Tabs, Tooltip } from './components';
 import AppContext from './AppContext';
 import FrameView from './FrameView';
 import ArticleForm from './ArticleForm';
@@ -81,9 +81,6 @@ const BookView: React.FC<Props> = ({ bookId, defaultId, layout, col, row }) => {
   const book = books ? books[modname] : null;
   const title = book?.title;
   const admin = customClaims?.role === 'admin';
-  const dropdowns = admin
-    ? [{ title: '記事を追加', onClick: () => changeArticleId(undefined) }]
-    : [];
 
   const changeArticleId = async (id: string | undefined) => {
     if (id) {
@@ -211,7 +208,19 @@ const BookView: React.FC<Props> = ({ bookId, defaultId, layout, col, row }) => {
             <Icon name="view-list" className="w-4 h-4 mr-2 cursor-pointer" />
           </span>
         }
-        dropdowns={dropdowns}
+        rightMenu={
+          admin ? (
+            <Tooltip title="記事を追加" className="text-left">
+              <span onClick={() => changeArticleId(undefined)}>
+                <Icon
+                  name="document-add"
+                  variant="solid"
+                  className="w-4 h-4 text-gray-500 cursor-pointer ml-1  hover:text-gray-300"
+                />
+              </span>
+            </Tooltip>
+          ) : undefined
+        }
       />
       <FrameView.Body col={col} row={row}>
         <div className="relative h-full">

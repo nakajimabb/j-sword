@@ -68,23 +68,25 @@ type NavProps = {
   col: number;
   row: number;
   leftMenu?: React.ReactElement;
-  dropdowns?: { title: string; onClick: () => void }[];
+  rightMenu?: React.ReactElement;
 };
 
-const Nav: React.FC<NavProps> = ({ title, col, row, leftMenu, dropdowns }) => {
+const Nav: React.FC<NavProps> = ({ title, col, row, leftMenu, rightMenu }) => {
   const { targetHistory, layouts, setLayouts, saveSetting } =
     useContext(AppContext);
   const disabled = layouts[col][row].disabled;
   const minimized = layouts[col][row].minimized;
 
   const onClose = (col: number, row: number) => () => {
-    const newLayout = [
-      ...layouts.slice(0, col),
-      [...layouts[col].slice(0, row), ...layouts[col].slice(row + 1)],
-      ...layouts.slice(col + 1),
-    ].filter((arr) => arr.length > 0);
-    setLayouts(newLayout);
-    saveSetting(targetHistory.history, newLayout);
+    if (window.confirm('ビューを閉じますか？')) {
+      const newLayout = [
+        ...layouts.slice(0, col),
+        [...layouts[col].slice(0, row), ...layouts[col].slice(row + 1)],
+        ...layouts.slice(col + 1),
+      ].filter((arr) => arr.length > 0);
+      setLayouts(newLayout);
+      saveSetting(targetHistory.history, newLayout);
+    }
   };
 
   const minimizeLayout = (minimized: boolean) => () => {
@@ -112,28 +114,24 @@ const Nav: React.FC<NavProps> = ({ title, col, row, leftMenu, dropdowns }) => {
         </Flex>
         <Flex>
           {!disabled && (
-            <span onClick={minimizeLayout(!minimized)}>
-              <Icon
-                name={minimized ? 'plus-circle' : 'minus-circle'}
-                variant="solid"
-                className="w-4 h-4 text-gray-500 cursor-pointer mx-1  hover:text-gray-300"
-              />
-            </span>
-          )}
-          <Dropdown
-            icon={<Icon name="menu-alt-1" className="w-4 h-4 cursor-pointer" />}
-            align="right"
-          >
-            {dropdowns &&
-              dropdowns.map((dropdown, index) => (
-                <Dropdown.Item
-                  key={index}
-                  title={dropdown.title}
-                  onClick={dropdown.onClick}
+            <>
+              {rightMenu}
+              <span onClick={minimizeLayout(!minimized)}>
+                <Icon
+                  name={minimized ? 'plus-circle' : 'minus-circle'}
+                  variant="solid"
+                  className="w-4 h-4 text-gray-500 cursor-pointer ml-1  hover:text-gray-300"
                 />
-              ))}
-            <Dropdown.Item title="閉じる" onClick={onClose(col, row)} />
-          </Dropdown>
+              </span>
+              <span onClick={onClose(col, row)}>
+                <Icon
+                  name="x-circle"
+                  variant="solid"
+                  className="w-4 h-4 text-gray-500 cursor-pointer ml-1  hover:text-gray-300"
+                />
+              </span>
+            </>
+          )}
         </Flex>
       </Flex>
     </nav>
