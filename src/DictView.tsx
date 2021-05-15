@@ -167,7 +167,7 @@ const DictView: React.FC<Props> = ({ depth, layout, col, row }) => {
   );
 
   return col !== undefined && row !== undefined && layout !== undefined ? (
-    <FrameView>
+    <FrameView col={col} row={row}>
       <FrameView.Nav title="辞書" col={col} row={row} />
       <FrameView.Body col={col} row={row}>
         {contents}

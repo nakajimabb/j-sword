@@ -133,7 +133,7 @@ const BibleView: React.FC<Props> = ({ modname, col, row }) => {
   };
 
   return (
-    <FrameView>
+    <FrameView col={col} row={row}>
       <FrameView.Nav title={title} col={col} row={row} />
       <FrameView.Body
         id={`${modname}`}

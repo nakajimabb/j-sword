@@ -3,7 +3,7 @@ import clsx from 'clsx';
 
 import AppContext from './AppContext';
 import BookSelecter from './BookSelecter';
-import { Flex, Dropdown, Icon } from './components';
+import { Flex, Icon } from './components';
 
 type SelectionProps = {
   col: number;
@@ -171,22 +171,35 @@ const Body: React.FC<BodyProps> = ({
         {selectLayout && (
           <Selection col={col} row={row + 1} position="bottom" />
         )}
-        {selectLayout && row === 0 && <Selection col={col} position="left" />}
-        {selectLayout && row === 0 && (
-          <Selection col={col + 1} position="right" />
-        )}
       </div>
     </div>
   );
 };
 
-type FrameViewType = React.FC & {
+type Props = {
+  col: number;
+  row: number;
+  className?: string;
+};
+
+type FrameViewType = React.FC<Props> & {
   Nav: typeof Nav;
   Body: typeof Body;
 };
 
-const FrameView: FrameViewType = ({ children }) => {
-  return <div className="relative h-full overflow-hidden">{children}</div>;
+const FrameView: FrameViewType = ({ col, row, className, children }) => {
+  const { selectLayout } = useContext(AppContext);
+  return (
+    <>
+      <div className={clsx('relative h-full overflow-hidden', className)}>
+        {children}
+      </div>
+      {selectLayout && row === 0 && <Selection col={col} position="left" />}
+      {selectLayout && row === 0 && (
+        <Selection col={col + 1} position="right" />
+      )}
+    </>
+  );
 };
 FrameView.Nav = Nav;
 FrameView.Body = Body;

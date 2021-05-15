@@ -16,8 +16,13 @@ type Props = {
 const GridCols: React.FC<Props> = ({ col }) => {
   const [templateRows, setTemplateRows] =
     useState<string | undefined>(undefined);
-  const { layouts, selectLayout } = useContext(AppContext);
+  const { layouts, selectLayout, setSelectLayout } = useContext(AppContext);
   const layouts_col = layouts[col];
+
+  useEffect(() => {
+    document.addEventListener('keydown', esc, false);
+    return document.removeEventListener('keydown', esc);
+  }, []);
 
   useEffect(() => {
     if (layouts_col.some((layout) => layout.minimized || layout.disabled)) {
@@ -29,6 +34,13 @@ const GridCols: React.FC<Props> = ({ col }) => {
       setTemplateRows(undefined);
     }
   }, [layouts]);
+
+  const esc = (e: KeyboardEvent) => {
+    // ESC
+    if (e.keyCode === 27) {
+      setSelectLayout(null);
+    }
+  };
 
   return (
     <Grid

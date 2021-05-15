@@ -198,7 +198,7 @@ const BookView: React.FC<Props> = ({ bookId, defaultId, layout, col, row }) => {
   };
 
   return (
-    <FrameView>
+    <FrameView col={col} row={row}>
       <FrameView.Nav
         title={title ? title : ''}
         col={col}
