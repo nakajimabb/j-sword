@@ -25,10 +25,16 @@ const GridCols: React.FC<Props> = ({ col }) => {
   }, []);
 
   useEffect(() => {
-    if (layouts_col.some((layout) => layout.minimized || layout.disabled)) {
-      const trows = layouts_col.map((layout) =>
-        layout.minimized || layout.disabled ? '1.5rem' : '1fr'
-      );
+    if (
+      layouts_col.some(
+        (layout) => layout.resize !== 'normal' || layout.disabled
+      )
+    ) {
+      const trows = layouts_col.map((layout) => {
+        if (layout.resize === 'minimize' || layout.disabled) return '1.5rem';
+        else if (layout.resize === 'normal') return '1fr';
+        else if (layout.resize === 'double') return '2fr';
+      });
       setTemplateRows(trows.join(' '));
     } else {
       setTemplateRows(undefined);
@@ -74,7 +80,25 @@ const GridCols: React.FC<Props> = ({ col }) => {
 };
 
 const GridLayout: React.FC = () => {
-  const { layouts, selectLayout } = useContext(AppContext);
+  const [templateCols, setTemplateCols] =
+    useState<string | undefined>(undefined);
+  const { layouts } = useContext(AppContext);
+  const resizes = layouts.map((layout_rows) =>
+    layout_rows.some((layout) => layout.resize === 'double')
+      ? 'double'
+      : 'normal'
+  );
+
+  useEffect(() => {
+    if (resizes.some((resize) => resize === 'double')) {
+      const tcols = resizes.map((resize) =>
+        resize === 'double' ? '2fr' : '1fr'
+      );
+      setTemplateCols(tcols.join(' '));
+    } else {
+      setTemplateCols(undefined);
+    }
+  }, [layouts]);
 
   return (
     <div className="pt-12 h-screen">
@@ -83,6 +107,7 @@ const GridLayout: React.FC = () => {
         rows={`${layouts.length} md:1`}
         gap="0"
         flow="row"
+        template_cols={templateCols}
         className="w-full h-full"
       >
         {layouts.map((_, index1) => (

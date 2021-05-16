@@ -58,8 +58,9 @@ const BookSelecter: React.FC<Props> = ({ col = -1, row = -1, trigger }) => {
               storeSetting({
                 modname: item.modname,
                 type: 'bible',
-                minimized: false,
+                resize: 'normal',
                 disabled: false,
+                textSize: 0,
               })
             }
           />
@@ -71,8 +72,9 @@ const BookSelecter: React.FC<Props> = ({ col = -1, row = -1, trigger }) => {
           storeSetting({
             modname: '',
             type: 'dictionary',
-            minimized: false,
+            resize: 'normal',
             disabled: false,
+            textSize: 0,
           })
         }
       />
@@ -86,8 +88,9 @@ const BookSelecter: React.FC<Props> = ({ col = -1, row = -1, trigger }) => {
                 storeSetting({
                   modname: docId,
                   type: 'book',
-                  minimized: false,
+                  resize: 'normal',
                   disabled: false,
+                  textSize: 0,
                 });
               }}
             />

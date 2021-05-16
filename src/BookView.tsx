@@ -214,7 +214,7 @@ const BookView: React.FC<Props> = ({ bookId, defaultId, layout, col, row }) => {
               <span onClick={() => changeArticleId(undefined)}>
                 <Icon
                   name="document-add"
-                  variant="solid"
+                  variant="outline"
                   className="w-4 h-4 text-gray-500 cursor-pointer ml-1  hover:text-gray-300"
                 />
               </span>

@@ -38,7 +38,8 @@ export type Target = {
 export type Layout = {
   modname: string;  // or docId
   type: 'bible' | 'dictionary' | 'book';
-  minimized: boolean;
+  resize: 'normal' | 'minimize' | 'double';
+  textSize: number;
   disabled: boolean;
 };
 

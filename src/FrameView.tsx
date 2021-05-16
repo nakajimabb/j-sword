@@ -3,7 +3,17 @@ import clsx from 'clsx';
 
 import AppContext from './AppContext';
 import BookSelecter from './BookSelecter';
-import { Flex, Icon } from './components';
+import { Flex, Icon, Tooltip } from './components';
+
+const textSizes = [
+  'text-base',
+  'text-lg',
+  'text-xl',
+  'text-2xl',
+  'text-3xl',
+  'text-4xl',
+  'text-5xl',
+];
 
 type SelectionProps = {
   col: number;
@@ -75,7 +85,8 @@ const Nav: React.FC<NavProps> = ({ title, col, row, leftMenu, rightMenu }) => {
   const { targetHistory, layouts, setLayouts, saveSetting } =
     useContext(AppContext);
   const disabled = layouts[col][row].disabled;
-  const minimized = layouts[col][row].minimized;
+  const resize = layouts[col][row].resize;
+  const textSize = layouts[col][row].textSize || 0;
 
   const onClose = (col: number, row: number) => () => {
     if (window.confirm('ビューを閉じますか？')) {
@@ -89,9 +100,27 @@ const Nav: React.FC<NavProps> = ({ title, col, row, leftMenu, rightMenu }) => {
     }
   };
 
-  const minimizeLayout = (minimized: boolean) => () => {
+  const incrementTextSize = (increment: number) => () => {
     const newLayouts = [...layouts];
-    newLayouts[col][row].minimized = minimized;
+    let newTextSize = textSize + increment;
+    if (newTextSize < 0) newTextSize = 0;
+    if (newTextSize >= textSizes.length) newTextSize = textSizes.length - 1;
+    newLayouts[col][row].textSize = newTextSize;
+    setLayouts(newLayouts);
+  };
+
+  const resizeLayout = (resize: 'normal' | 'minimize' | 'double') => () => {
+    const newLayouts = [...layouts];
+    if (resize === 'double') {
+      newLayouts.forEach((layout_cols, c) =>
+        layout_cols.forEach((layout, r) => {
+          newLayouts[c][r].resize =
+            col === c && row === r ? 'double' : 'normal';
+        })
+      );
+    } else {
+      newLayouts[col][row].resize = resize;
+    }
     setLayouts(newLayouts);
   };
 
@@ -116,9 +145,57 @@ const Nav: React.FC<NavProps> = ({ title, col, row, leftMenu, rightMenu }) => {
           {!disabled && (
             <>
               {rightMenu}
-              <span onClick={minimizeLayout(!minimized)}>
+              <Tooltip
+                title="文字を小さくする"
+                disabled={textSize <= 0}
+                className="text-left"
+              >
+                <span onClick={incrementTextSize(-1)}>
+                  <Icon
+                    name="zoom-out"
+                    variant="outline"
+                    className="w-4 h-4 text-gray-500 cursor-pointer ml-1  hover:text-gray-300"
+                  />
+                </span>
+              </Tooltip>
+              <Tooltip
+                title="文字を大きくする"
+                disabled={textSize >= textSizes.length - 1}
+                className="text-left"
+              >
+                <span onClick={incrementTextSize(1)}>
+                  <Icon
+                    name="zoom-in"
+                    variant="outline"
+                    className="w-4 h-4 text-gray-500 cursor-pointer ml-1  hover:text-gray-300"
+                  />
+                </span>
+              </Tooltip>
+              <Tooltip
+                title={resize !== 'double' ? '画面を拡げる' : '画面を戻す'}
+                className="text-left"
+              >
+                <span
+                  onClick={resizeLayout(
+                    resize !== 'double' ? 'double' : 'normal'
+                  )}
+                >
+                  <Icon
+                    name={
+                      resize !== 'double' ? 'arrows-expand' : 'arrows-reduce'
+                    }
+                    variant="outline"
+                    className="w-4 h-4 text-gray-500 cursor-pointer ml-1  hover:text-gray-300"
+                  />
+                </span>
+              </Tooltip>
+              <span
+                onClick={resizeLayout(
+                  resize !== 'minimize' ? 'minimize' : 'normal'
+                )}
+              >
                 <Icon
-                  name={minimized ? 'plus-circle' : 'minus-circle'}
+                  name={resize !== 'minimize' ? 'minus-circle' : 'plus-circle'}
                   variant="solid"
                   className="w-4 h-4 text-gray-500 cursor-pointer ml-1  hover:text-gray-300"
                 />
@@ -154,7 +231,12 @@ const Body: React.FC<BodyProps> = ({
   className,
   children,
 }) => {
-  const { selectLayout } = useContext(AppContext);
+  const { selectLayout, layouts } = useContext(AppContext);
+  const layout = layouts[col][row];
+  const textSize =
+    0 <= layout.textSize && layout.textSize < textSizes.length
+      ? textSizes[layout.textSize]
+      : textSizes[0];
 
   return (
     <div className="w-full h-full pt-6">
@@ -162,6 +244,7 @@ const Body: React.FC<BodyProps> = ({
         id={id}
         className={clsx(
           'w-full h-full overflow-x-auto overflow-y-scroll',
+          textSize,
           className
         )}
         onScroll={onScroll}
