@@ -27,13 +27,13 @@ const GridCols: React.FC<Props> = ({ col }) => {
   useEffect(() => {
     if (
       layouts_col.some(
-        (layout) => layout.resize !== 'normal' || layout.disabled
+        (layout) => layout.doubled || layout.minimized || layout.disabled
       )
     ) {
       const trows = layouts_col.map((layout) => {
-        if (layout.resize === 'minimize' || layout.disabled) return '1.5rem';
-        else if (layout.resize === 'normal') return '1fr';
-        else if (layout.resize === 'double') return '2fr';
+        if (layout.minimized || layout.disabled) return '1.5rem';
+        else if (layout.doubled) return '2fr';
+        else return '1fr';
       });
       setTemplateRows(trows.join(' '));
     } else {
@@ -83,17 +83,13 @@ const GridLayout: React.FC = () => {
   const [templateCols, setTemplateCols] =
     useState<string | undefined>(undefined);
   const { layouts } = useContext(AppContext);
-  const resizes = layouts.map((layout_rows) =>
-    layout_rows.some((layout) => layout.resize === 'double')
-      ? 'double'
-      : 'normal'
+  const doubleds = layouts.map((layout_rows) =>
+    layout_rows.some((layout) => layout.doubled)
   );
 
   useEffect(() => {
-    if (resizes.some((resize) => resize === 'double')) {
-      const tcols = resizes.map((resize) =>
-        resize === 'double' ? '2fr' : '1fr'
-      );
+    if (doubleds.some((doubled) => doubled)) {
+      const tcols = doubleds.map((doubled) => (doubled ? '2fr' : '1fr'));
       setTemplateCols(tcols.join(' '));
     } else {
       setTemplateCols(undefined);

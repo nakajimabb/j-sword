@@ -84,8 +84,9 @@ type NavProps = {
 const Nav: React.FC<NavProps> = ({ title, col, row, leftMenu, rightMenu }) => {
   const { targetHistory, layouts, setLayouts, saveSetting } =
     useContext(AppContext);
+  const doubled = layouts[col][row].doubled;
+  const minimized = layouts[col][row].minimized;
   const disabled = layouts[col][row].disabled;
-  const resize = layouts[col][row].resize;
   const textSize = layouts[col][row].textSize || 0;
 
   const onClose = (col: number, row: number) => () => {
@@ -109,18 +110,23 @@ const Nav: React.FC<NavProps> = ({ title, col, row, leftMenu, rightMenu }) => {
     setLayouts(newLayouts);
   };
 
-  const resizeLayout = (resize: 'normal' | 'minimize' | 'double') => () => {
+  const doubleLayout = (doubled: boolean) => () => {
     const newLayouts = [...layouts];
-    if (resize === 'double') {
+    if (doubled) {
       newLayouts.forEach((layout_cols, c) =>
         layout_cols.forEach((layout, r) => {
-          newLayouts[c][r].resize =
-            col === c && row === r ? 'double' : 'normal';
+          newLayouts[c][r].doubled = col === c && row === r;
         })
       );
     } else {
-      newLayouts[col][row].resize = resize;
+      newLayouts[col][row].doubled = false;
     }
+    setLayouts(newLayouts);
+  };
+
+  const minimizeLayout = (minimized: boolean) => () => {
+    const newLayouts = [...layouts];
+    newLayouts[col][row].minimized = minimized;
     setLayouts(newLayouts);
   };
 
@@ -142,7 +148,7 @@ const Nav: React.FC<NavProps> = ({ title, col, row, leftMenu, rightMenu }) => {
           />
         </Flex>
         <Flex>
-          {!disabled && (
+          {!disabled && !minimized && (
             <>
               {rightMenu}
               <Tooltip
@@ -172,43 +178,35 @@ const Nav: React.FC<NavProps> = ({ title, col, row, leftMenu, rightMenu }) => {
                 </span>
               </Tooltip>
               <Tooltip
-                title={resize !== 'double' ? '画面を拡げる' : '画面を戻す'}
+                title={doubled ? '画面を戻す' : '画面を拡げる'}
                 className="text-left"
               >
-                <span
-                  onClick={resizeLayout(
-                    resize !== 'double' ? 'double' : 'normal'
-                  )}
-                >
+                <span onClick={doubleLayout(!doubled)}>
                   <Icon
-                    name={
-                      resize !== 'double' ? 'arrows-expand' : 'arrows-reduce'
-                    }
+                    name={doubled ? 'arrows-reduce' : 'arrows-expand'}
                     variant="outline"
                     className="w-4 h-4 text-gray-500 cursor-pointer ml-1  hover:text-gray-300"
                   />
                 </span>
               </Tooltip>
-              <span
-                onClick={resizeLayout(
-                  resize !== 'minimize' ? 'minimize' : 'normal'
-                )}
-              >
-                <Icon
-                  name={resize !== 'minimize' ? 'minus-circle' : 'plus-circle'}
-                  variant="solid"
-                  className="w-4 h-4 text-gray-500 cursor-pointer ml-1  hover:text-gray-300"
-                />
-              </span>
-              <span onClick={onClose(col, row)}>
-                <Icon
-                  name="x-circle"
-                  variant="solid"
-                  className="w-4 h-4 text-gray-500 cursor-pointer ml-1  hover:text-gray-300"
-                />
-              </span>
             </>
           )}
+          {!disabled && (
+            <span onClick={minimizeLayout(!minimized)}>
+              <Icon
+                name={minimized ? 'plus-circle' : 'minus-circle'}
+                variant="solid"
+                className="w-4 h-4 text-gray-500 cursor-pointer ml-1  hover:text-gray-300"
+              />
+            </span>
+          )}
+          <span onClick={onClose(col, row)}>
+            <Icon
+              name="x-circle"
+              variant="solid"
+              className="w-4 h-4 text-gray-500 cursor-pointer ml-1  hover:text-gray-300"
+            />
+          </span>
         </Flex>
       </Flex>
     </nav>
