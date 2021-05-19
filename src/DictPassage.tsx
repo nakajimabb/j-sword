@@ -3,7 +3,8 @@ import { NodeObj, createNodeObj } from './NodeObj';
 import AppContext from './AppContext';
 import './passage.css';
 
-const INVALID_CHAR = /[^\x09\x0A\x0D\x20-\xFF\x85\xA0-\uD7FF\uE000-\uFDCF\uFDE0-\uFFFD]/gm;
+const INVALID_CHAR =
+  /[^\x09\x0A\x0D\x20-\xFF\x85\xA0-\uD7FF\uE000-\uFDCF\uFDE0-\uFFFD]/gm;
 
 interface PhraseProps {
   nodeObj: NodeObj;
@@ -38,24 +39,31 @@ const Phrase: React.FC<PhraseProps> = ({ nodeObj, lang, className }) => {
   );
 };
 
-interface DictPassageProps {
+type Props = {
   lemma: string;
   lang: string;
+  showTitle?: boolean;
+  modnames?: string[];
   className?: string;
-}
+};
 
-const DictPassage: React.FC<DictPassageProps> = ({
+const DictPassage: React.FC<Props> = ({
   lemma,
   lang,
+  showTitle = true,
+  modnames,
   className,
 }) => {
   const [nodeObjs, setNodeObjs] = useState<{ [modname: string]: NodeObj }>({});
   const { dictionaries } = useContext(AppContext);
+  const dicts = modnames
+    ? modnames.map((modname) => dictionaries[modname]).filter((dict) => dict)
+    : dictionaries;
 
   useEffect(() => {
     const f = async () => {
       if (lemma) {
-        const tasks = Object.entries(dictionaries).map(
+        const tasks = Object.entries(dicts).map(
           async ([modname, dictionary]) => {
             const rawText = await dictionary.getRawText(lemma);
             return { modname, rawText: rawText.replace(INVALID_CHAR, '') };
@@ -89,9 +97,11 @@ const DictPassage: React.FC<DictPassageProps> = ({
     <div className={className}>
       {Object.entries(nodeObjs).map(([modname, nodeObj], index) => (
         <React.Fragment key={index}>
-          <div className="text-xs bg-yellow-50 rounded-full border border-gray-400 px-2 py-0.5 w-max">
-            {dictionaries[modname].title}
-          </div>
+          {showTitle && (
+            <div className="text-xs bg-yellow-50 rounded-full border border-gray-400 px-2 py-0.5 w-max">
+              {dictionaries[modname].title}
+            </div>
+          )}
           <Phrase nodeObj={nodeObj} lang={lang} className="mb-4" />
         </React.Fragment>
       ))}

@@ -153,7 +153,7 @@ const DictView: React.FC<Props> = ({ depth, layout, col, row }) => {
       )}
 
       {wordText && lemma && (
-        <span className={clsx(lang, 'tex-2xl')}>{wordText}</span>
+        <span className={clsx(lang, 'text-2xl')}>{wordText}</span>
       )}
 
       <MorphPassage morph={morph} className="mb-1" />

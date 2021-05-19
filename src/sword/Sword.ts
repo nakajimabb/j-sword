@@ -321,6 +321,76 @@ class Sword {
     this.reference = reference;
   }
 
+  async search(str: string, callback: (delta: number) => void) {
+    const index = this.index || (await SwordDB.getIndex(this.modname));
+    if(this.modtype === 'dictionary') {
+      if(index && index.dict) {
+        const keys = Object.keys(index.dict);
+        const taskCount = 100;
+        const unitCount = Math.ceil(keys.length / taskCount);
+        const splitKeys: string[][] = [];
+        for(let i = 0; i < taskCount; i++) {
+          splitKeys.push(keys.slice(i*unitCount, (i+1)*unitCount))
+        }
+
+        const t1 = new Date();
+        const tasks = splitKeys.map(async (keys2, i) => {
+          const res: {key: string, raw: string}[] = [];
+          for await(const key of keys2) {
+            const raw = await this.getRawText(key);
+            const m = raw.match(str);
+            callback(100.0 / keys.length);
+            if(m) res.push({key, raw});
+          }
+          return res;
+        });
+        const results = await Promise.all(tasks);
+        const t2 = new Date();
+        console.log({total: (t2.getTime() - t1.getTime())/1000});
+        return results.flat();
+      }
+    } else if(this.modtype === 'bible') {
+      if(index && (index.ot || index.nt)) {
+        const all_book_indexes = Object.assign(
+          {},
+          index.ot || {},
+          index.nt || {}
+        );
+        const bookSize = Object.keys(all_book_indexes).length;
+        const osisRefs: string[] = [];
+        for (const book in all_book_indexes) {
+          const book_indexes = all_book_indexes[book];
+          for (let chapter = 1; chapter <= book_indexes.length; ++chapter) {
+            osisRefs.push(book + '.' + chapter);
+          }
+        }
+
+        const tasks = osisRefs.map(async osisRef => {
+          const raws = await this.renderText(osisRef, {
+            footnotes: false,
+            crossReferences: true,
+            oneVersePerLine: true,
+            headings: true,
+            wordsOfChristInRed: true,
+            intro: true,
+            array: false,
+          });
+          const results: {key: string, raw: string}[] = [];
+          if(raws && raws.length > 0) {
+            for(const raw of raws) {
+              const m = raw.text.match(str);
+              if(m) results.push({key: raw.osisRef, raw: raw.text});
+            }
+          }
+          return results;
+        });
+        const results = await Promise.all(tasks);
+        return results.filter(result => result).flat();
+      }
+    }
+    return [];
+  }
+
   static parseVerse(str: string) {
     const strs = str.split(',');
     const verses: number[] = [];

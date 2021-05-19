@@ -84,6 +84,7 @@ type ModalProps = {
   open: boolean;
   size?: Size2;
   onClose?(): void;
+  className?: string;
 };
 
 type ModalType = React.FC<ModalProps> & {
@@ -92,13 +93,18 @@ type ModalType = React.FC<ModalProps> & {
   Footer: typeof ModalFooter;
 };
 
-const Modal: ModalType = ({ open, size = 'lg', onClose, children }) => {
+const Modal: ModalType = ({
+  open,
+  size = 'lg',
+  onClose,
+  className,
+  children,
+}) => {
   if (!open) return null;
 
   return (
     <div
-      // className="fixed z-20 inset-0 overflow-y-auto"
-      className="fixed z-20 inset-0"
+      className="fixed z-20 inset-0 overflow-y-auto"
       aria-labelledby="modal-title"
       role="dialog"
       aria-modal="true"
@@ -112,8 +118,9 @@ const Modal: ModalType = ({ open, size = 'lg', onClose, children }) => {
         ></div>
         <div
           className={clsx(
-            'inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all max-w-full',
-            `sm:max-w-${size}`
+            'inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all',
+            size !== 'none' && `w-${size}`,
+            className
           )}
         >
           {children}
