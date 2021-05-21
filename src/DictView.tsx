@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import clsx from 'clsx';
 
 import { Button, Flex, Form, Icon } from './components';
-import BibleReference from './BibleReference';
 import DictPassage from './DictPassage';
 import MorphPassage from './MorphPassage';
 import AppContext from './AppContext';
@@ -11,58 +10,64 @@ import { Layout } from './types';
 import { shapeLemma } from './NodeObj';
 
 type Props = {
-  depth: number;
   col?: number;
   row?: number;
   layout?: Layout;
   onClose?: () => void;
 };
 
-const DictView: React.FC<Props> = ({ depth, layout, col, row }) => {
+const DictView: React.FC<Props> = ({ layout, col, row }) => {
   const [shapedLemma, setShapedLemma] = useState<string>('');
+  const [wordCounts, setWordCounts] = useState<{ [modname: string]: number }>(
+    {}
+  );
   const {
-    targetWords,
-    setTargetWords,
+    bibles,
+    targetWord,
+    setTargetWord,
     layouts,
     targetHistory,
     setTargetHistory,
     saveSetting,
   } = useContext(AppContext);
-  const word = targetWords[depth];
-  const { text: wordText, lang, lemma, morph, fixed } = word;
-
-  useEffect(() => {
-    // 次の要素が存在しなければ前もって追加しておく
-    if (targetWords.length <= depth + 1) {
-      setTargetWords([...targetWords, targetWords[targetWords.length - 1]]);
-    }
-  }, []);
+  const { text: wordText, lemma, morph, fixed } = targetWord;
+  const lang = lemma[0] === 'H' ? 'he' : 'grc';
 
   useEffect(() => {
     const m = lemma.match(/(\d+)/);
     if (m && m[1]) {
+      const lang = lemma[0] === 'H' ? 'he' : 'grc';
       const newLemma = shapeLemma(m[1], lang);
       setShapedLemma(newLemma);
     }
   }, [lemma]);
 
+  useEffect(() => {
+    const f = async () => {
+      const modnames = layouts
+        .flat()
+        .filter((layout) => layout.type === 'bible')
+        .map((layout) => layout.modname);
+      const tasks = modnames.map(async (modname) => {
+        const count = await bibles[modname].countWord(lemma);
+        return { modname, count };
+      });
+      const results = await Promise.all(tasks);
+      const counts: { [modname: string]: number } = {};
+      results.forEach((result) => {
+        if (result.count) counts[result.modname] = result.count;
+      });
+      setWordCounts(counts);
+    };
+    f();
+  }, [lemma, bibles, layouts, targetHistory]); // layouts circular dependency?
+
   const reverseFixed = () => {
-    let words = [...targetWords];
-    words[depth] = { ...word, fixed: !word.fixed };
-    setTargetWords(words);
+    setTargetWord({ ...targetWord, fixed: !targetWord.fixed });
   };
 
   const changeLemma = (newLemma: string) => {
-    let words = [...targetWords];
-    const new_word = { ...word, lemma: newLemma, text: '', morph: '' };
-    const next_word = { ...new_word, targetLemma: newLemma };
-    words[depth] = new_word;
-    if (words.length > depth) {
-      words[depth + 1] = next_word;
-    } else {
-      words.push(next_word);
-    }
-    setTargetWords(words);
+    setTargetWord({ ...targetWord, lemma: newLemma, text: '', morph: '' });
   };
 
   const incrementLemma = (inc: number) => () => {
@@ -85,70 +90,77 @@ const DictView: React.FC<Props> = ({ depth, layout, col, row }) => {
     setTargetHistory(targetHistory.dup());
     saveSetting(targetHistory.history, layouts);
     if (mode === 'word') {
-      const lang = lemma === 'H' ? 'he' : 'grc';
-      const word = {
+      setTargetWord({
         lemma,
         morph: '',
         text: '',
-        lang,
-        targetLemma: lemma,
         fixed: true,
-      };
-      setTargetWords([word]);
+      });
     }
   };
 
   const contents = (
     <div className="p-2">
       {lemma && (
-        <Flex align_items="center">
-          <Button
-            variant="icon"
-            size="none"
-            color="none"
-            onClick={incrementLemma(-1)}
-            className="mr-1 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 w-6 h-6"
-          >
-            <Icon name="chevron-left" variant="outline" />
-          </Button>
-          <Form.Text
-            value={lemma}
-            size="sm"
-            onChange={onChangeLemma}
-            className="h-7 w-20"
-          />
-          <Button
-            variant="icon"
-            size="none"
-            color="none"
-            onClick={incrementLemma(1)}
-            className="mx-1 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 w-6 h-6"
-          >
-            <Icon name="chevron-right" variant="outline" />
-          </Button>
-          <BibleReference lemma={shapedLemma} depth={depth + 1} />
-          <Button
-            variant="icon"
-            size="none"
-            color="none"
-            onClick={setTarget}
-            className="ml-1 p-1 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 w-8 h-8"
-          >
-            <Icon name="search" />
-          </Button>
-          <Button
-            variant="icon"
-            size="none"
-            color="none"
-            onClick={reverseFixed}
-            className="ml-1 p-1 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 w-8 h-8"
-          >
-            <Icon
-              name="location-marker"
-              variant={fixed ? 'solid' : 'outline'}
-              className={clsx(fixed && 'text-red-600')}
+        <Flex justify_content="between" align_items="center">
+          <Flex>
+            <Button
+              variant="icon"
+              size="none"
+              color="none"
+              onClick={incrementLemma(-1)}
+              className="mr-1 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 w-6 h-6"
+            >
+              <Icon name="chevron-left" variant="outline" />
+            </Button>
+            <Form.Text
+              value={lemma}
+              size="sm"
+              onChange={onChangeLemma}
+              className="h-7 w-48"
             />
-          </Button>
+            <Button
+              variant="icon"
+              size="none"
+              color="none"
+              onClick={incrementLemma(1)}
+              className="mx-1 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 w-6 h-6"
+            >
+              <Icon name="chevron-right" variant="outline" />
+            </Button>
+            <p>
+              {Object.keys(wordCounts).map((modname, index) => (
+                <small
+                  key={index}
+                  className="pl-1"
+                >{`${modname}(${wordCounts[modname]})`}</small>
+              ))}
+            </p>
+          </Flex>
+          <Flex>
+            <Button
+              variant="icon"
+              size="none"
+              color="none"
+              onClick={setTarget}
+              className="ml-1 p-1 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 w-8 h-8"
+            >
+              <Icon name="document-search" />
+            </Button>
+            <Button
+              variant="icon"
+              size="none"
+              color="none"
+              onClick={reverseFixed}
+              className="ml-1 p-1 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 w-8 h-8"
+            >
+              <Icon
+                name="location-marker"
+                variant={fixed ? 'solid' : 'outline'}
+                className={clsx(fixed && 'text-red-600')}
+              />
+            </Button>
+          </Flex>
         </Flex>
       )}
 
@@ -158,11 +170,7 @@ const DictView: React.FC<Props> = ({ depth, layout, col, row }) => {
 
       <MorphPassage morph={morph} className="mb-1" />
 
-      <DictPassage
-        lemma={shapedLemma}
-        lang={lang}
-        className="mb-1 whitespace-pre-wrap"
-      />
+      <DictPassage lemma={shapedLemma} className="mb-1 whitespace-pre-wrap" />
     </div>
   );
 

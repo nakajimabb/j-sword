@@ -8,20 +8,12 @@ import './passage.css';
 
 interface PhraseProps {
   nodeObj: NodeObj;
-  target_lemma?: string;
   lang: string;
-  depth: number;
 }
 
-const MuiPhrase: React.FC<PhraseProps> = ({
-  nodeObj,
-  target_lemma,
-  lang,
-  depth,
-}) => {
-  const { targetWords, setTargetWords, touchDevice } = useContext(AppContext);
+const MuiPhrase: React.FC<PhraseProps> = ({ nodeObj, lang }) => {
+  const { targetWord, setTargetWord, touchDevice } = useContext(AppContext);
   const excepts = ['note'];
-  const word = targetWords[depth];
   const attrs = nodeObj.attrs;
 
   if (excepts.includes(nodeObj.tag)) return null;
@@ -41,15 +33,8 @@ const MuiPhrase: React.FC<PhraseProps> = ({
 
   const onClick = (e: React.MouseEvent) => {
     onMouseOver(e);
-    if (word.lemma && !touchDevice) {
-      let words = [...targetWords];
-      words[depth] = {
-        ...word,
-        fixed: !word.fixed,
-      };
-      if (!target_lemma)
-        words[depth].targetLemma = word.fixed ? '' : word.lemma;
-      setTargetWords(words);
+    if (targetWord.lemma && !touchDevice) {
+      setTargetWord({ ...targetWord, fixed: !targetWord.fixed });
     }
   };
 
@@ -66,7 +51,7 @@ const MuiPhrase: React.FC<PhraseProps> = ({
   const onMouseOver = async (e: React.MouseEvent) => {
     // const excepts = ['type', 'subType', 'gloss'];
     if (
-      !word.fixed &&
+      !targetWord.fixed &&
       (attrs.hasOwnProperty('lemma') || attrs.hasOwnProperty('morph'))
     ) {
       e.currentTarget.classList.add('highlight2');
@@ -75,24 +60,12 @@ const MuiPhrase: React.FC<PhraseProps> = ({
       let morph: string = str(attrs.morph).split(' ').shift() || '';
       morph = str(morph).split(':').pop() || '';
 
-      let words = [...targetWords];
-      const cur_word = {
-        ...word,
+      setTargetWord({
+        ...targetWord,
         morph,
         lemma,
-        lang,
         text: textValue(nodeObj),
-      };
-      if (!target_lemma) cur_word.targetLemma = lemma;
-
-      const next_word = { ...cur_word, targetLemma: lemma };
-      words[depth] = cur_word;
-      if (words.length > depth) {
-        words[depth + 1] = next_word;
-      } else {
-        words.push(next_word);
-      }
-      setTargetWords(words);
+      });
     }
   };
 
@@ -121,19 +94,12 @@ const MuiPhrase: React.FC<PhraseProps> = ({
   const curLemma = currentLemma();
 
   const contents = () => (
-    // <span style={lemma === word.targetLemma ? { color: 'red' } : {}}>
     <span>
       {/* {renderData()} */}
       {nodeObj.value}
       {nodeObj.children.map((childObj, index) =>
         childObj.tag !== '#text' ? (
-          <Phrase
-            key={index}
-            nodeObj={childObj}
-            target_lemma={target_lemma}
-            lang={lang}
-            depth={depth}
-          />
+          <Phrase key={index} nodeObj={childObj} lang={lang} />
         ) : (
           <React.Fragment key={index}>{childObj.value}</React.Fragment>
         )
@@ -150,7 +116,7 @@ const MuiPhrase: React.FC<PhraseProps> = ({
       onMouseOver={onMouseOver}
       onMouseLeave={onMouseLeave}
       style={
-        word.targetLemma && curLemma === word.targetLemma
+        targetWord.lemma && curLemma === targetWord.lemma
           ? { color: 'red' }
           : {}
       }
@@ -172,16 +138,9 @@ interface PassageProps {
   showPosition: 'chapter verse' | 'verse' | 'none';
   target_lemma?: string;
   lang: string;
-  depth: number;
 }
 
-const MuiPassage: React.FC<PassageProps> = ({
-  raw,
-  showPosition,
-  target_lemma,
-  lang,
-  depth,
-}) => {
+const MuiPassage: React.FC<PassageProps> = ({ raw, showPosition, lang }) => {
   const [nodeObj, setNodeObj] = useState<NodeObj>({
     tag: 'root',
     value: '',
@@ -221,12 +180,7 @@ const MuiPassage: React.FC<PassageProps> = ({
   return (
     <>
       {<div className={showPosition}>{getPosition(raw.osisRef)}</div>}
-      <Phrase
-        nodeObj={nodeObj}
-        target_lemma={target_lemma}
-        lang={lang}
-        depth={depth}
-      />
+      <Phrase nodeObj={nodeObj} lang={lang} />
     </>
   );
 };

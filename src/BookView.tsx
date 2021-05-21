@@ -82,6 +82,42 @@ const BookView: React.FC<Props> = ({ bookId, defaultId, layout, col, row }) => {
   const title = book?.title;
   const admin = customClaims?.role === 'admin';
 
+  useEffect(() => {
+    const f1 = async (bk: Book | null) => {
+      if (bk && bk.headings.length > 0) {
+        const id = bk.headings[0].id;
+        const db = firebase.firestore();
+        const doc = await db
+          .collection('books')
+          .doc(bookId)
+          .collection('articles')
+          .doc(id)
+          .get();
+        setArticleId(id);
+        setArticle(doc.data() as Article);
+        setModified(false);
+      } else {
+        setArticleId(undefined);
+        setArticle({
+          title: '',
+          content: '',
+          published: false,
+        });
+        setModified(false);
+      }
+    };
+    const f2 = async () => {
+      if (!books) {
+        const bks = await loadBooks(false);
+        const bk = bks ? bks[modname] : null;
+        await f1(bk);
+      } else {
+        await f1(book);
+      }
+    };
+    f2();
+  }, [bookId, books, customClaims, loadBooks, modname, book]);
+
   const changeArticleId = async (id: string | undefined) => {
     if (id) {
       const db = firebase.firestore();
@@ -109,26 +145,6 @@ const BookView: React.FC<Props> = ({ bookId, defaultId, layout, col, row }) => {
     setArticle(doc);
     setModified(true);
   };
-
-  useEffect(() => {
-    const f1 = (bk: Book | null) => {
-      if (articleId) {
-        changeArticleId(articleId);
-      } else if (!articleId && bk && bk.headings.length > 0) {
-        changeArticleId(bk.headings[0].id);
-      }
-    };
-    const f2 = async () => {
-      if (!books) {
-        const bks = await loadBooks(false);
-        const bk = bks ? bks[modname] : null;
-        f1(bk);
-      } else {
-        f1(book);
-      }
-    };
-    f2();
-  }, [bookId, customClaims]);
 
   const updateBookHeading = async (id: string, article: Article) => {
     if (bookId && book) {

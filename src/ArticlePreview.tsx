@@ -9,42 +9,24 @@ type Props = {
 };
 
 const ArticlePreview: React.FC<Props> = ({ article, className }) => {
-  const {
-    targetWords,
-    setTargetWords,
-    targetHistory,
-    setTargetHistory,
-  } = useContext(AppContext);
-
-  const changeTargetWords = (e: Event) => {
-    const target = e.target as Element;
-    const lemma = target.getAttribute('data-lemma');
-    if (target && lemma) {
-      const lang = lemma[0] === 'H' ? 'he' : 'grc';
-      const word = {
-        ...targetWords[0],
-        lemma,
-        morph: '',
-        text: '',
-        targetLemma: '',
-        fixed: false,
-        lang,
-      };
-      setTargetWords([word, ...targetWords.slice(1)]);
-    }
-  };
-
-  const changeBibleTarget = (e: Event) => {
-    const target = e.target as Element;
-    const position = target.getAttribute('data-bible');
-    if (target && position) {
-      if (targetHistory.addHistory(position)) {
-        setTargetHistory(targetHistory.dup());
-      }
-    }
-  };
+  const { targetWord, setTargetWord, targetHistory, setTargetHistory } =
+    useContext(AppContext);
 
   useEffect(() => {
+    const changeTargetWords = (e: Event) => {
+      const target = e.target as Element;
+      const lemma = target.getAttribute('data-lemma');
+      if (target && lemma) {
+        setTargetWord({
+          ...targetWord,
+          lemma,
+          morph: '',
+          text: '',
+          fixed: false,
+        });
+      }
+    };
+
     const elems = document.querySelectorAll('.lemma');
     if (elems.length > 0) {
       elems.forEach((elem) =>
@@ -56,9 +38,19 @@ const ArticlePreview: React.FC<Props> = ({ article, className }) => {
         );
       };
     }
-  }, [article, targetHistory]);
+  }, [article, targetWord, setTargetWord]);
 
   useEffect(() => {
+    const changeBibleTarget = (e: Event) => {
+      const target = e.target as Element;
+      const position = target.getAttribute('data-bible');
+      if (target && position) {
+        if (targetHistory.addHistory(position)) {
+          setTargetHistory(targetHistory.dup());
+        }
+      }
+    };
+
     const elems = document.querySelectorAll('.bible');
     if (elems.length > 0) {
       elems.forEach((elem) =>
@@ -70,7 +62,7 @@ const ArticlePreview: React.FC<Props> = ({ article, className }) => {
         );
       };
     }
-  }, [article, targetHistory]);
+  }, [article, targetHistory, setTargetHistory]);
 
   const item = [article?.part, article?.chapter, article?.section]
     .filter((n) => n !== undefined)

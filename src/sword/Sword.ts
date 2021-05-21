@@ -321,6 +321,29 @@ class Sword {
     this.reference = reference;
   }
 
+  async countWordByBook(lemma: string) {
+    const reference = await this.getReference(lemma);
+    if(reference) {
+    let sum: { [book: string]: number } = {};
+    for (let book in reference) {
+      for (let chapter in reference[book]) {
+        if (!sum.hasOwnProperty(book)) sum[book] = 0;
+        for (let verse in reference[book][chapter]) {
+          sum[book] += reference[book][chapter][verse];
+        }
+      }
+    }
+    return sum;
+    }
+  };
+  
+  async countWord(lemma: string) {
+    const counts = await this.countWordByBook(lemma);
+    if(counts) {
+      return Object.values(counts).reduce((i,j) => i + j, 0);
+    }
+  }
+
   async search(str: string, callback: (delta: number) => void) {
     const index = this.index || (await SwordDB.getIndex(this.modname));
     if(this.modtype === 'dictionary') {
@@ -356,7 +379,6 @@ class Sword {
           index.ot || {},
           index.nt || {}
         );
-        const bookSize = Object.keys(all_book_indexes).length;
         const osisRefs: string[] = [];
         for (const book in all_book_indexes) {
           const book_indexes = all_book_indexes[book];

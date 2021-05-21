@@ -483,7 +483,6 @@ You are in control.`;
                   <Table.Cell type="th">Title</Table.Cell>
                   <Table.Cell type="th">Email</Table.Cell>
                   <Table.Cell type="th">Role</Table.Cell>
-                  <Table.Cell type="th"></Table.Cell>
                 </Table.Row>
               </Table.Head>
               <Table.Body>
@@ -492,42 +491,18 @@ You are in control.`;
                   <Table.Cell>Regional Paradigm Technician</Table.Cell>
                   <Table.Cell>jane.cooper@example.com</Table.Cell>
                   <Table.Cell>Admin</Table.Cell>
-                  <Table.Cell textAlign="center">
-                    <a
-                      href="#"
-                      className="text-indigo-600 hover:text-indigo-900"
-                    >
-                      Edit
-                    </a>
-                  </Table.Cell>
                 </Table.Row>
                 <Table.Row>
                   <Table.Cell type="th">Cody Fisher</Table.Cell>
                   <Table.Cell>Product Directives Officer</Table.Cell>
                   <Table.Cell>cody.fisher@example.com</Table.Cell>
                   <Table.Cell>Owner</Table.Cell>
-                  <Table.Cell textAlign="center">
-                    <a
-                      href="#"
-                      className="text-indigo-600 hover:text-indigo-900"
-                    >
-                      Edit
-                    </a>
-                  </Table.Cell>
                 </Table.Row>
                 <Table.Row>
                   <Table.Cell type="th">Kristin Watson</Table.Cell>
                   <Table.Cell>Lead Implementation Liaison</Table.Cell>
                   <Table.Cell>kristin.watson@example.com</Table.Cell>
                   <Table.Cell>Member</Table.Cell>
-                  <Table.Cell textAlign="center">
-                    <a
-                      href="#"
-                      className="text-indigo-600 hover:text-indigo-900"
-                    >
-                      Edit
-                    </a>
-                  </Table.Cell>
                 </Table.Row>
               </Table.Body>
             </Table>

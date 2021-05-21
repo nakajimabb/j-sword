@@ -35,6 +35,13 @@ export type Target = {
   search: string;
 };
 
+export type TargetWord = {
+  lemma: string;
+  morph: string;
+  text: string;
+  fixed: boolean;
+};
+
 export type Layout = {
   modname: string;  // or docId
   type: 'bible' | 'dictionary' | 'book';

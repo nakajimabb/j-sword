@@ -84,8 +84,6 @@ const Tabs: TabsType = ({
   className,
   onChange,
 }) => {
-  const px = size === 'sm' ? 2 : 4;
-
   const children = React.Children.map(childrenProp, (child) => {
     if (!React.isValidElement(child)) return null;
 

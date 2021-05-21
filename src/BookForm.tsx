@@ -3,7 +3,7 @@ import firebase from './firebase';
 import 'firebase/firestore';
 import 'firebase/storage';
 
-import { Alert, Button, Flex, Form, Modal } from './components';
+import { Button, Flex, Form, Modal } from './components';
 
 import AppContext from './AppContext';
 import './passage.css';
@@ -19,7 +19,7 @@ const BookForm: React.FC<Props> = ({ open, docId, onClose }) => {
     title: '',
     published: false,
   });
-  const { currentUser, customClaims } = useContext(AppContext);
+  const { currentUser } = useContext(AppContext);
 
   const save = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

@@ -20,11 +20,18 @@ const GridCols: React.FC<Props> = ({ col }) => {
   const layouts_col = layouts[col];
 
   useEffect(() => {
+    const esc = (e: KeyboardEvent) => {
+      if (e.keyCode === 27) {
+        setSelectLayout(null);
+      }
+    };
+
     document.addEventListener('keydown', esc, false);
     return document.removeEventListener('keydown', esc);
-  }, []);
+  }, [setSelectLayout]);
 
   useEffect(() => {
+    const layouts_col = layouts[col];
     if (
       layouts_col.some(
         (layout) => layout.doubled || layout.minimized || layout.disabled
@@ -39,14 +46,7 @@ const GridCols: React.FC<Props> = ({ col }) => {
     } else {
       setTemplateRows(undefined);
     }
-  }, [layouts]);
-
-  const esc = (e: KeyboardEvent) => {
-    // ESC
-    if (e.keyCode === 27) {
-      setSelectLayout(null);
-    }
-  };
+  }, [col, layouts]);
 
   return (
     <Grid
@@ -71,7 +71,7 @@ const GridCols: React.FC<Props> = ({ col }) => {
             />
           )}
           {layout.type === 'dictionary' && (
-            <DictView depth={0} layout={layout} col={col} row={index2} />
+            <DictView layout={layout} col={col} row={index2} />
           )}
         </React.Fragment>
       ))}
@@ -83,11 +83,11 @@ const GridLayout: React.FC = () => {
   const [templateCols, setTemplateCols] =
     useState<string | undefined>(undefined);
   const { layouts } = useContext(AppContext);
-  const doubleds = layouts.map((layout_rows) =>
-    layout_rows.some((layout) => layout.doubled)
-  );
 
   useEffect(() => {
+    const doubleds = layouts.map((layout_rows) =>
+      layout_rows.some((layout) => layout.doubled)
+    );
     if (doubleds.some((doubled) => doubled)) {
       const tcols = doubleds.map((doubled) => (doubled ? '2fr' : '1fr'));
       setTemplateCols(tcols.join(' '));

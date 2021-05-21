@@ -1,23 +1,12 @@
 import React, { useState, useEffect, createContext } from 'react';
 
 import firebase from './firebase';
-import { CustomClaims, Target, Layout, Book } from './types';
+import { CustomClaims, Target, TargetWord, Layout, Book } from './types';
 import { OsisLocation } from './sword/types';
 import Sword from './sword/Sword';
 import SettingDB from './SettingDB';
 import TargetHistory from './TargetHistory';
 import { parseWordTarget } from './sword/parseTarget';
-
-export type Word = {
-  lemma: string;
-  morph: string;
-  text: string;
-  lang: string;
-  targetLemma: string;
-  fixed: boolean;
-};
-
-export type MenuMode = 'bible' | 'truth' | 'hebrew';
 
 export type ContextType = {
   bibles: { [key: string]: Sword };
@@ -27,25 +16,23 @@ export type ContextType = {
   currentUser: firebase.User | null;
   customClaims: CustomClaims;
   targetHistory: TargetHistory;
-  setTargetHistory: React.Dispatch<TargetHistory>;
+  setTargetHistory: React.Dispatch<React.SetStateAction<TargetHistory>>;
   layouts: Layout[][];
-  setLayouts: (layouts: Layout[][]) => void;
+  setLayouts: React.Dispatch<React.SetStateAction<Layout[][]>>;
   saveSetting: (history: Target[], layouts: Layout[][], name?: string) => void;
-  targetWords: Word[];
-  setTargetWords: React.Dispatch<Word[]>;
+  targetWord: TargetWord;
+  setTargetWord: React.Dispatch<React.SetStateAction<TargetWord>>;
   touchDevice: boolean;
-  currentMode: MenuMode;
-  setCurrentMode: React.Dispatch<MenuMode>;
   loadModules: () => void;
   selectLayout: Layout | null;
   setSelectLayout: (layout: Layout | null) => void;
   books: { [docId: string]: Book } | null;
   loadBooks: (reload: boolean) => Promise<{ [docId: string]: Book } | null>;
   interlocked: boolean;
-  setInterlocked: React.Dispatch<boolean>;
+  setInterlocked: React.Dispatch<React.SetStateAction<boolean>>;
   osisLocations: { [modname: string]: OsisLocation };
   targetOsisRefs: string[];
-  setTargetOsisRefs: React.Dispatch<string[]>;
+  setTargetOsisRefs: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
 const AppContext = createContext({
@@ -64,11 +51,14 @@ const AppContext = createContext({
     layouts: Layout[][],
     name: string = '&last'
   ) => {},
-  targetWords: [],
-  setTargetWords: (value: Word[]) => {},
+  targetWord: {
+    lemma: 'H0001',
+    morph: '',
+    text: '',
+    fixed: false,
+  },
+  setTargetWord: (value: TargetWord) => {},
   touchDevice: false,
-  currentMode: 'bible',
-  setCurrentMode: (value: MenuMode) => {},
   loadModules: () => {},
   selectLayout: null,
   setSelectLayout: (layout: Layout | null) => {},
@@ -88,12 +78,14 @@ export const AppContextProvider: React.FC = (props) => {
   const [currentUser, setCurrentUser] = useState<firebase.User | null>(null);
   const [customClaims, setCustomClaims] = useState<CustomClaims>({});
   const [touchDevice, SetTouchDevice] = useState<boolean>(false);
-  const [currentMode, setCurrentMode] = useState<MenuMode>('bible');
   const [layouts, setLayouts] = useState<Layout[][]>([]);
 
-  const [targetWords, setTargetWords] = useState<Word[]>([
-    { lemma: '', morph: '', text: '', lang: '', targetLemma: '', fixed: false },
-  ]);
+  const [targetWord, setTargetWord] = useState<TargetWord>({
+    lemma: 'H0001',
+    morph: '',
+    text: '',
+    fixed: false,
+  });
   const [selectLayout, setSelectLayout] = useState<Layout | null>(null);
   const [books, setBooks] = useState<{ [docId: string]: Book } | null>(null);
   const [interlocked, setInterlocked] = useState(true);
@@ -130,17 +122,13 @@ export const AppContextProvider: React.FC = (props) => {
               setTargetHistory(new TargetHistory(history, history.length - 1));
               const current = history[history.length - 1];
               if (current.mode === 'word') {
-                const position = current.search;
-                const lang = position[0] === 'H' ? 'he' : 'grc';
-                const word: Word = {
-                  lemma: position,
+                const word: TargetWord = {
+                  lemma: current.search,
                   morph: '',
                   text: '',
-                  lang,
-                  targetLemma: position,
                   fixed: true,
                 };
-                setTargetWords([word]);
+                setTargetWord(word);
               }
             }
           }
@@ -164,13 +152,41 @@ export const AppContextProvider: React.FC = (props) => {
   }, []);
 
   useEffect(() => {
+    const updateOsisLocations = async (search: string) => {
+      const res = parseWordTarget(search);
+      if (res) {
+        const { lemmas, separator } = res;
+        const tasks = Object.entries(bibles).map(async ([modname, bible]) => {
+          let loc: OsisLocation | null = null;
+          for await (const lemma of lemmas) {
+            const refers = await bible.getReference(lemma);
+            if (refers) {
+              if (loc) {
+                if (separator === ',') loc = UnionOsisRefs(loc, refers);
+                else loc = IntersecOsisRefs(loc, refers);
+              } else {
+                loc = refers;
+              }
+            }
+          }
+          return { modname, loc };
+        });
+        const result = await Promise.all(tasks);
+        let locations: { [modname: string]: OsisLocation } = {};
+        result.forEach(({ modname, loc }) => {
+          if (loc) locations[modname] = loc;
+        });
+        setOsisLocations(locations);
+      }
+    };
+
     const current = targetHistory.current();
     if (current) {
       if (current.mode === 'word') {
         updateOsisLocations(current.search);
       }
     }
-  }, [targetHistory]);
+  }, [bibles, targetHistory]);
 
   const UnionOsisRefs = (refs1: OsisLocation, refs2: OsisLocation) => {
     const refs = { ...refs1 };
@@ -217,34 +233,6 @@ export const AppContextProvider: React.FC = (props) => {
       }
     });
     return refs;
-  };
-
-  const updateOsisLocations = async (search: string) => {
-    const res = parseWordTarget(search);
-    if (res) {
-      const { lemmas, separator } = res;
-      const tasks = Object.entries(bibles).map(async ([modname, bible]) => {
-        let loc: OsisLocation | null = null;
-        for await (const lemma of lemmas) {
-          const refers = await bible.getReference(lemma);
-          if (refers) {
-            if (loc) {
-              if (separator === ',') loc = UnionOsisRefs(loc, refers);
-              else loc = IntersecOsisRefs(loc, refers);
-            } else {
-              loc = refers;
-            }
-          }
-        }
-        return { modname, loc };
-      });
-      const result = await Promise.all(tasks);
-      let locations: { [modname: string]: OsisLocation } = {};
-      result.forEach(({ modname, loc }) => {
-        if (loc) locations[modname] = loc;
-      });
-      setOsisLocations(locations);
-    }
   };
 
   const loadModules = async () => {
@@ -316,11 +304,9 @@ export const AppContextProvider: React.FC = (props) => {
         layouts,
         setLayouts,
         saveSetting,
-        targetWords,
-        setTargetWords,
+        targetWord,
+        setTargetWord,
         touchDevice,
-        currentMode,
-        setCurrentMode,
         loadModules,
         selectLayout,
         setSelectLayout,

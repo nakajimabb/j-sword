@@ -20,23 +20,50 @@ type Props = {
 
 const BibleView: React.FC<Props> = ({ modname, col, row }) => {
   const [raw_texts, setRawTexts] = useState<Raw[]>([]);
-  const {
-    bibles,
-    targetHistory,
-    interlocked,
-    targetOsisRefs,
-    layouts,
-    setLayouts,
-  } = useContext(AppContext);
-  const current = targetHistory.current();
+  const { bibles, targetHistory, interlocked, targetOsisRefs, setLayouts } =
+    useContext(AppContext);
   const bible = bibles[modname];
   const direction = bible?.conf?.Direction === 'RtoL' && 'rtl';
   const lang = String(bible?.lang);
   const title = bible?.title;
-  const mode = current?.mode || 'bible';
+  const mode = targetHistory.current()?.mode || 'bible';
 
   useEffect(() => {
+    const disableLayout = (disabled: boolean) => {
+      setLayouts((prev) => {
+        const newLayouts = [...prev];
+        newLayouts[col][row].disabled = disabled;
+        return newLayouts;
+      });
+    };
+
+    const updateRawTexts = async (osisRefs: string[]) => {
+      try {
+        const new_raw_texts: Raw[] = [];
+        for await (const osisRef of osisRefs) {
+          const texts = await bibles[modname].renderText(osisRef, {
+            footnotes: false,
+            crossReferences: true,
+            oneVersePerLine: true,
+            headings: true,
+            wordsOfChristInRed: true,
+            intro: true,
+            array: false,
+          });
+          if (texts) {
+            new_raw_texts.push(...texts);
+          }
+        }
+        setRawTexts(new_raw_texts);
+      } catch (error) {
+        console.log({ error });
+        setRawTexts([]);
+        disableLayout(true);
+      }
+    };
+
     const f = async () => {
+      const current = targetHistory.current();
       if (current) {
         if (current.mode === 'bible') {
           updateRawTexts([current.search]);
@@ -50,38 +77,7 @@ const BibleView: React.FC<Props> = ({ modname, col, row }) => {
       }
     };
     f();
-  }, [modname, targetHistory, targetOsisRefs]);
-
-  const disableLayout = (disabled: boolean) => {
-    const newLayouts = [...layouts];
-    newLayouts[col][row].disabled = disabled;
-    setLayouts(newLayouts);
-  };
-
-  const updateRawTexts = async (osisRefs: string[]) => {
-    try {
-      const new_raw_texts: Raw[] = [];
-      for await (const osisRef of osisRefs) {
-        const texts = await bible.renderText(osisRef, {
-          footnotes: false,
-          crossReferences: true,
-          oneVersePerLine: true,
-          headings: true,
-          wordsOfChristInRed: true,
-          intro: true,
-          array: false,
-        });
-        if (texts) {
-          new_raw_texts.push(...texts);
-        }
-      }
-      setRawTexts(new_raw_texts);
-    } catch (error) {
-      console.log({ error });
-      setRawTexts([]);
-      disableLayout(true);
-    }
-  };
+  }, [modname, col, row, bibles, targetHistory, targetOsisRefs, setLayouts]);
 
   const hoverPassage = (
     event: React.MouseEvent,
@@ -154,7 +150,6 @@ const BibleView: React.FC<Props> = ({ modname, col, row }) => {
                   onMouseLeave={onMouseLeave}
                 >
                   <Passage
-                    depth={0}
                     lang={lang}
                     raw={raw}
                     showPosition={mode !== 'bible' ? 'chapter verse' : 'verse'}

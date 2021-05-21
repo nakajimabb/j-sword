@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Button,
@@ -24,6 +24,51 @@ import { OsisLocation } from './sword/types';
 import './App.css';
 import clsx from 'clsx';
 
+const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
+
+const bookDictIndex = (
+  locations: { [modname: string]: OsisLocation },
+  modname: string,
+  book: string
+) => {
+  let indexes = [];
+  const book_indexes = ((locations || {})[modname] || {})[book];
+  for (let chapter in book_indexes) {
+    for (let verse in book_indexes[chapter]) {
+      indexes.push(`${book}.${chapter}:${verse}`);
+    }
+  }
+  return indexes;
+};
+
+const countByModname = (locations: { [modname: string]: OsisLocation }) => {
+  let sum: { [modname: string]: { [book: string]: number } } = {};
+  for (let modname in locations) {
+    if (modname !== 'lemma') {
+      sum[modname] = countByBook(modname, locations);
+    }
+  }
+  return sum;
+};
+
+const countByBook = (
+  modname: string,
+  locations: {
+    [modname: string]: OsisLocation;
+  }
+) => {
+  let sum: { [book: string]: number } = {};
+  for (let book in locations[modname]) {
+    for (let chapter in locations[modname][book]) {
+      if (!sum.hasOwnProperty(book)) sum[book] = 0;
+      for (let verse in locations[modname][book][chapter]) {
+        sum[book] += locations[modname][book][chapter][verse];
+      }
+    }
+  }
+  return sum;
+};
+
 const AppBar: React.FC = () => {
   const [opener, setOpener] =
     useState<'installer' | 'selector' | 'book-form' | null>(null);
@@ -47,7 +92,6 @@ const AppBar: React.FC = () => {
     osisLocations,
     setTargetOsisRefs,
   } = useContext(AppContext);
-  const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
   const emptyBibles = Object.keys(bibles).length === 0;
   const emptyLayout = layouts?.length === 0;
   // const bible_file = useRef<HTMLInputElement>(null);
@@ -63,11 +107,11 @@ const AppBar: React.FC = () => {
   const mode = targetHistory.current()?.mode;
 
   useEffect(() => {
-    const counts = countByModKey(osisLocations);
+    const counts = countByModname(osisLocations);
     const location_options = Object.keys(osisLocations)
-      .map((modKey: string) =>
-        Object.keys(osisLocations[modKey]).map((book) => ({
-          mod_key: modKey,
+      .map((modname: string) =>
+        Object.keys(osisLocations[modname]).map((book) => ({
+          mod_key: modname,
           book,
         }))
       )
@@ -84,54 +128,15 @@ const AppBar: React.FC = () => {
     if (options.length > 0) {
       const value = options[0].value;
       setWordTarget(value);
-      const [modKey, book] = value.split(':');
+      const [modname, book] = value.split(':');
 
-      const indexes = bookDictIndex(modKey, book);
+      const indexes = bookDictIndex(osisLocations, modname, book);
       const pageCount = Math.ceil(indexes.length / count_per_page);
       setPage({ current: 1, count: pageCount });
 
       setTargetOsisRefs(indexes.slice(0, count_per_page));
     }
-  }, [osisLocations]);
-
-  const countByModKey = (locations: { [modname: string]: OsisLocation }) => {
-    let sum: { [modname: string]: { [book: string]: number } } = {};
-    for (let modname in locations) {
-      if (modname !== 'lemma') {
-        sum[modname] = countByBook(modname, locations);
-      }
-    }
-    return sum;
-  };
-
-  const countByBook = (
-    modKey: string,
-    locations: {
-      [modname: string]: OsisLocation;
-    }
-  ) => {
-    let sum: { [book: string]: number } = {};
-    for (let book in locations[modKey]) {
-      for (let chapter in locations[modKey][book]) {
-        if (!sum.hasOwnProperty(book)) sum[book] = 0;
-        for (let verse in locations[modKey][book][chapter]) {
-          sum[book] += locations[modKey][book][chapter][verse];
-        }
-      }
-    }
-    return sum;
-  };
-
-  const bookDictIndex = (modKey: string, book: string) => {
-    let indexes = [];
-    const book_indexes = ((osisLocations || {})[modKey] || {})[book];
-    for (let chapter in book_indexes) {
-      for (let verse in book_indexes[chapter]) {
-        indexes.push(`${book}.${chapter}:${verse}`);
-      }
-    }
-    return indexes;
-  };
+  }, [osisLocations, setTargetOsisRefs]);
 
   const logout = () => {
     if (window.confirm('ログアウトしますか？')) {
@@ -194,9 +199,9 @@ const AppBar: React.FC = () => {
   const onChangeWordTarget = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value as string;
     setWordTarget(value);
-    const [modKey, book] = value.split(':');
+    const [modname, book] = value.split(':');
 
-    const indexes = bookDictIndex(modKey, book);
+    const indexes = bookDictIndex(osisLocations, modname, book);
     const pageCount = Math.ceil(indexes.length / count_per_page);
     setPage({ current: 1, count: pageCount });
 
@@ -206,9 +211,9 @@ const AppBar: React.FC = () => {
   const onChangePage = (value: number) => {
     setPage({ ...page, current: value });
 
-    const [modKey, book] = wordTarget.split(':');
+    const [modname, book] = wordTarget.split(':');
 
-    const indexes = bookDictIndex(modKey, book);
+    const indexes = bookDictIndex(osisLocations, modname, book);
     const start = count_per_page * (page.current - 1);
     setTargetOsisRefs(indexes.slice(start, start + count_per_page));
   };
@@ -216,7 +221,11 @@ const AppBar: React.FC = () => {
   return (
     <Navbar fixed className="bg-gray-100 flex justify-between h-12">
       <Flex align_items="center">
-        <img src="j-sword.png" className="h-10 mx-2 my-1 hidden sm:block" />
+        <img
+          src="j-sword.png"
+          alt="logo"
+          className="h-10 mx-2 my-1 hidden sm:block"
+        />
         <Tooltip title="モジュールダウンロード" className="text-left">
           <Button
             variant="icon"

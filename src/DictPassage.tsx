@@ -41,29 +41,23 @@ const Phrase: React.FC<PhraseProps> = ({ nodeObj, lang, className }) => {
 
 type Props = {
   lemma: string;
-  lang: string;
   showTitle?: boolean;
-  modnames?: string[];
   className?: string;
 };
 
 const DictPassage: React.FC<Props> = ({
   lemma,
-  lang,
   showTitle = true,
-  modnames,
   className,
 }) => {
   const [nodeObjs, setNodeObjs] = useState<{ [modname: string]: NodeObj }>({});
   const { dictionaries } = useContext(AppContext);
-  const dicts = modnames
-    ? modnames.map((modname) => dictionaries[modname]).filter((dict) => dict)
-    : dictionaries;
+  const lang = lemma[0] === 'H' ? 'he' : 'grc';
 
   useEffect(() => {
     const f = async () => {
       if (lemma) {
-        const tasks = Object.entries(dicts).map(
+        const tasks = Object.entries(dictionaries).map(
           async ([modname, dictionary]) => {
             const rawText = await dictionary.getRawText(lemma);
             return { modname, rawText: rawText.replace(INVALID_CHAR, '') };

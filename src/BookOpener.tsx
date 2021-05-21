@@ -15,7 +15,7 @@ import { canons } from './sword/Canon';
 import canon_jp from './sword/canons/locale/ja.json';
 import { parseBibleTarget } from './sword/parseTarget';
 import DictPassage from './DictPassage';
-import AppContext, { Word } from './AppContext';
+import AppContext from './AppContext';
 
 import './App.css';
 import TargetHistory from './TargetHistory';
@@ -84,7 +84,7 @@ const WordSearch: React.FC<WordSearchProps> = ({ onClose, className }) => {
     targetHistory,
     setTargetHistory,
     saveSetting,
-    setTargetWords,
+    setTargetWord,
   } = useContext(AppContext);
   const [tab, setTab] = useState('');
 
@@ -116,7 +116,7 @@ const WordSearch: React.FC<WordSearchProps> = ({ onClose, className }) => {
 
   const switchModname = (modname: string) => () => {
     if (modnames.includes(modname)) {
-      setModnames(modnames.filter((name) => name != modname));
+      setModnames(modnames.filter((name) => name !== modname));
     } else {
       setModnames([...modnames, modname]);
     }
@@ -141,15 +141,12 @@ const WordSearch: React.FC<WordSearchProps> = ({ onClose, className }) => {
     setTargetHistory(targetHistory.dup());
     saveSetting(targetHistory.history, layouts);
     if (mode === 'word') {
-      const word = {
+      setTargetWord({
         lemma: search,
         morph: '',
         text: '',
-        lang: 'he', // TODO:後で変更
-        targetLemma: search,
         fixed: true,
-      };
-      setTargetWords([word]);
+      });
       onClose();
     }
   };
@@ -272,9 +269,7 @@ const WordSearch: React.FC<WordSearchProps> = ({ onClose, className }) => {
                   <div className="p-3">
                     <DictPassage
                       lemma={raw.key}
-                      // modnames={[wordResult.modname]}
                       showTitle={false}
-                      lang="he"
                       className="my-2 whitespace-pre-wrap"
                     />
                   </div>
@@ -476,7 +471,7 @@ const BookOpener: React.FC<Props> = ({ className }) => {
     setTargetHistory,
     layouts,
     saveSetting,
-    setTargetWords,
+    setTargetWord,
   } = useContext(AppContext);
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState('');
@@ -509,16 +504,12 @@ const BookOpener: React.FC<Props> = ({ className }) => {
     const current = history.current();
     if (current) {
       if (history.current()?.mode === 'word') {
-        const lang = current.search[0] === 'H' ? 'he' : 'grc';
-        const word: Word = {
+        setTargetWord({
           lemma: current.search,
           morph: '',
           text: '',
-          lang,
-          targetLemma: current.search,
           fixed: true,
-        };
-        setTargetWords([word]);
+        });
       }
     }
   };
