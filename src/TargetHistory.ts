@@ -30,16 +30,19 @@ class TargetHistory {
   }
 
   addHistory(search: string) {
-    let mode: 'bible' | 'word' | null = null;
-    if(parseBibleTarget(search)) {
-      mode = 'bible';
-    } else if(parseWordTarget(search)) {
-      mode = 'word';
-    }
-    if(mode) {
-      this.history = this.history.slice(0, this.currentIndex + 1);
-      this.history.push({mode, search});
-      this.currentIndex = this.history.length - 1;
+    const current = this.current();
+    let mode: 'bible' | 'word' | 'text' | undefined = current?.mode;
+    if(current && current.search !== search) {
+      if(parseBibleTarget(search)) {
+        mode = 'bible';
+      } else if(parseWordTarget(search)) {
+        mode = 'word';
+      }
+      if(mode) {
+        this.history = this.history.slice(0, this.currentIndex + 1);
+        this.history.push({mode, search});
+        this.currentIndex = this.history.length - 1;
+      }
     }
     return mode;
   }

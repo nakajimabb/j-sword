@@ -16,19 +16,8 @@ type Props = {
 const GridCols: React.FC<Props> = ({ col }) => {
   const [templateRows, setTemplateRows] =
     useState<string | undefined>(undefined);
-  const { layouts, selectLayout, setSelectLayout } = useContext(AppContext);
+  const { layouts, selectLayout } = useContext(AppContext);
   const layouts_col = layouts[col];
-
-  useEffect(() => {
-    const esc = (e: KeyboardEvent) => {
-      if (e.keyCode === 27) {
-        setSelectLayout(null);
-      }
-    };
-
-    document.addEventListener('keydown', esc, false);
-    return document.removeEventListener('keydown', esc);
-  }, [setSelectLayout]);
 
   useEffect(() => {
     const layouts_col = layouts[col];
@@ -82,7 +71,18 @@ const GridCols: React.FC<Props> = ({ col }) => {
 const GridLayout: React.FC = () => {
   const [templateCols, setTemplateCols] =
     useState<string | undefined>(undefined);
-  const { layouts } = useContext(AppContext);
+  const { layouts, setSelectLayout } = useContext(AppContext);
+
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => {
+      if (e.keyCode === 27) {
+        setSelectLayout(null);
+      }
+    };
+
+    window.addEventListener('keydown', esc, false);
+    return () => window.removeEventListener('keydown', esc);
+  }, [setSelectLayout]);
 
   useEffect(() => {
     const doubleds = layouts.map((layout_rows) =>
