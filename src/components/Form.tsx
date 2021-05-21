@@ -42,60 +42,62 @@ type InputProps = {
   style?: CSSProperties;
 };
 
-const Input: (type: InputType) => React.FC<InputProps> = (type) => ({
-  id,
-  name,
-  value,
-  label,
-  checked,
-  disabled,
-  required,
-  placeholder,
-  size = 'md',
-  onChange,
-  onKeyPress,
-  className,
-  children,
-  style,
-}) => {
-  const padding = { sm: 'px-2 py-1', md: 'px-3 py-1.5', lg: 'px-4 py-2' };
-  const textSize = { sm: 'text-sm', md: 'text-base', lg: 'text-lg' };
-  const baseClass = 'rounded border leading-tight border-gray-300 shadow-md';
-  const checkbox = type === 'checkbox' || type === 'radio';
+const Input: (type: InputType) => React.FC<InputProps> =
+  (type) =>
+  ({
+    id,
+    name,
+    value,
+    label,
+    checked,
+    disabled,
+    required,
+    placeholder,
+    size = 'md',
+    onChange,
+    onKeyPress,
+    className,
+    children,
+    style,
+  }) => {
+    const padding = { sm: 'px-2 py-1', md: 'px-3 py-1.5', lg: 'px-4 py-2' };
+    const textSize = { sm: 'text-sm', md: 'text-base', lg: 'text-lg' };
+    const baseClass = 'rounded border leading-tight border-gray-300 shadow-md';
+    const checkbox = type === 'checkbox' || type === 'radio';
 
-  const input = (
-    <input
-      type={type}
-      id={id}
-      name={name}
-      value={value}
-      checked={checked}
-      disabled={disabled}
-      required={required}
-      placeholder={placeholder}
-      onChange={onChange}
-      onKeyPress={onKeyPress}
-      className={clsx(
-        baseClass,
-        textSize[size],
-        padding[size],
-        !checkbox && 'block',
-        // checkbox && 'focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500',
-        className
-      )}
-      style={style}
-    />
-  );
+    const input = (
+      <input
+        type={type}
+        id={id}
+        name={name}
+        value={value}
+        checked={checked}
+        disabled={disabled}
+        required={required}
+        placeholder={placeholder}
+        onChange={onChange}
+        onKeyPress={onKeyPress}
+        className={clsx(
+          baseClass,
+          textSize[size],
+          padding[size],
+          !checkbox && 'block',
+          // checkbox && 'focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500',
+          className
+        )}
+        style={style}
+      />
+    );
 
-  return checkbox && label ? (
-    <Label htmlFor={id}>
-      {input}
-      <span className="pl-2">{label}</span>
-    </Label>
-  ) : (
-    input
-  );
-};
+    return checkbox && label ? (
+      <Label htmlFor={id}>
+        {input}
+        <span className="pl-2">{label}</span>
+      </Label>
+    ) : (
+      input
+    );
+  };
 
 type SelectProps = {
   id?: string;
@@ -134,12 +136,17 @@ const Select: React.FC<SelectProps> = ({
       style={style}
     >
       {label && <option value="">{label}</option>}
-      {options.map((option: { label: string; value: string } | string) =>
-        typeof option === 'string' ? (
-          <option value={option}>{option}</option>
-        ) : (
-          <option value={option.value}>{option.label}</option>
-        )
+      {options.map(
+        (option: { label: string; value: string } | string, index: number) =>
+          typeof option === 'string' ? (
+            <option key={index} value={option}>
+              {option}
+            </option>
+          ) : (
+            <option key={index} value={option.value}>
+              {option.label}
+            </option>
+          )
       )}
     </select>
   );

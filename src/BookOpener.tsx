@@ -169,8 +169,8 @@ const WordSearch: React.FC<WordSearchProps> = ({ onClose, className }) => {
           辞書検索
         </Button>
       </Flex>
-      {Object.keys(dictionaries).map((modname) => (
-        <div>
+      {Object.keys(dictionaries).map((modname, index) => (
+        <div key={index}>
           <Form.Checkbox
             checked={modnames.includes(modname)}
             size="md"
@@ -266,10 +266,11 @@ const WordSearch: React.FC<WordSearchProps> = ({ onClose, className }) => {
                   height={40}
                   className="my-2"
                 >
-                  <div className="p-3">
+                  <div className="px-3 py-1">
                     <DictPassage
                       lemma={raw.key}
-                      showTitle={false}
+                      showTitle
+                      showWordCount={false}
                       className="my-2 whitespace-pre-wrap"
                     />
                   </div>

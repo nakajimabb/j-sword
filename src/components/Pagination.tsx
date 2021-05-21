@@ -47,7 +47,7 @@ const Pagination: React.FC<Props> = ({
         <Icon name="chevron-left" variant="outline" />
       </Button>
       {pages.map((pp, i) => (
-        <>
+        <React.Fragment key={i}>
           {i > 0 && pp - pages[i - 1] > 1 && <>...</>}
           <div
             className={clsx(
@@ -61,7 +61,7 @@ const Pagination: React.FC<Props> = ({
           >
             {pp}
           </div>
-        </>
+        </React.Fragment>
       ))}
       <Button
         variant="icon"
