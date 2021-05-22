@@ -6,10 +6,19 @@ import { NodeObj, createNodeObj, shapeLemma } from './NodeObj';
 import AppContext from './AppContext';
 import './passage.css';
 
-interface PhraseProps {
+const colors = [
+  'text-red-600',
+  'text-yellow-500',
+  'text-pink-400',
+  'text-red-800',
+  'text-purple-600',
+  'text-green-500',
+];
+
+type PhraseProps = {
   nodeObj: NodeObj;
   lang: string;
-}
+};
 
 const MuiPhrase: React.FC<PhraseProps> = ({ nodeObj, lang }) => {
   const { targetWord, setTargetWord, touchDevice } = useContext(AppContext);
@@ -41,7 +50,7 @@ const MuiPhrase: React.FC<PhraseProps> = ({ nodeObj, lang }) => {
   const currentLemma = () => {
     if (attrs.hasOwnProperty('lemma') && attrs.lemma) {
       let lemma: string = attrs.lemma.split(':').pop() || '';
-      if (lemma) lemma = shapeLemma(lemma, lang);
+      if (lemma) lemma = shapeLemma(lemma);
       return lemma;
     } else {
       return '';
@@ -56,7 +65,8 @@ const MuiPhrase: React.FC<PhraseProps> = ({ nodeObj, lang }) => {
     ) {
       e.currentTarget.classList.add('highlight2');
       let lemma: string = str(attrs.lemma).split(':').pop() || '';
-      if (lemma) lemma = shapeLemma(lemma, lang);
+      if (lemma) lemma = shapeLemma(lemma);
+
       let morph: string = str(attrs.morph).split(' ').shift() || '';
       morph = str(morph).split(':').pop() || '';
 
@@ -92,6 +102,8 @@ const MuiPhrase: React.FC<PhraseProps> = ({ nodeObj, lang }) => {
   // };
 
   const curLemma = currentLemma();
+  const lemmas = targetWord.lemma.split(/[,&]/).map((lem) => shapeLemma(lem));
+  const color = lemmas.findIndex((lemma) => lemma === curLemma);
 
   const contents = () => (
     <span>
@@ -111,15 +123,10 @@ const MuiPhrase: React.FC<PhraseProps> = ({ nodeObj, lang }) => {
     contents()
   ) : (
     <div
-      className={clsx('phrase', nodeObj.tag)}
+      className={clsx('phrase', colors[color], nodeObj.tag)}
       onClick={onClick}
       onMouseOver={onMouseOver}
       onMouseLeave={onMouseLeave}
-      style={
-        targetWord.lemma && curLemma === targetWord.lemma
-          ? { color: 'red' }
-          : {}
-      }
     >
       {contents()}
     </div>

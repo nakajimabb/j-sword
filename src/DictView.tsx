@@ -9,6 +9,15 @@ import FrameView from './FrameView';
 import { Layout } from './types';
 import { shapeLemma } from './NodeObj';
 
+const colors = [
+  'text-red-600',
+  'text-yellow-500',
+  'text-pink-400',
+  'text-red-800',
+  'text-purple-600',
+  'text-green-500',
+];
+
 type Props = {
   col: number;
   row: number;
@@ -17,7 +26,7 @@ type Props = {
 };
 
 const DictView: React.FC<Props> = ({ layout, col, row }) => {
-  const [shapedLemma, setShapedLemma] = useState<string>('');
+  const [lemmas, setLemmas] = useState<string[]>([]);
   const {
     targetWord,
     setTargetWord,
@@ -30,12 +39,8 @@ const DictView: React.FC<Props> = ({ layout, col, row }) => {
   const lang = lemma[0] === 'H' ? 'he' : 'grc';
 
   useEffect(() => {
-    const m = lemma.match(/(\d+)/);
-    if (m && m[1]) {
-      const lang = lemma[0] === 'H' ? 'he' : 'grc';
-      const newLemma = shapeLemma(m[1], lang);
-      setShapedLemma(newLemma);
-    }
+    const newLemmas = lemma.split(/[,&]/);
+    setLemmas(newLemmas.map((lem) => shapeLemma(lem)));
   }, [lemma]);
 
   const reverseFixed = () => {
@@ -47,11 +52,11 @@ const DictView: React.FC<Props> = ({ layout, col, row }) => {
   };
 
   const incrementLemma = (inc: number) => () => {
-    const m = lemma.match(/(\d+)/);
-    if (m && m[1]) {
-      const number = +m[1] + inc;
+    let m = lemma.match(/([GH])(\d+)/);
+    if (m && m[1] && m[2]) {
+      const number = +m[2] + inc;
       if (number > 0) {
-        const newLemma = shapeLemma(String(number), lang);
+        const newLemma = shapeLemma(m[1] + String(number));
         changeLemma(newLemma);
       }
     }
@@ -132,18 +137,22 @@ const DictView: React.FC<Props> = ({ layout, col, row }) => {
           )}
 
           {wordText && lemma && (
-            <div className="bg-gray-50 rounded-md p-1 shadow mb-2">
+            <div className="bg-gray-50 rounded-md px-3 py-1 shadow mb-2">
               <span className={clsx(lang, 'text-2xl')}>{wordText}</span>
               <MorphPassage morph={morph} className="mb-1" />
             </div>
           )}
 
-          <DictPassage
-            lemma={shapedLemma}
-            showTitle
-            showWordCount
-            className="whitespace-pre-wrap bg-gray-50 rounded-md shadow p-1 mb-2"
-          />
+          {lemmas.map((lem, index) => (
+            <DictPassage
+              key={index}
+              color={colors[index]}
+              lemma={lem}
+              showTitle
+              showWordCount
+              className="whitespace-pre-wrap bg-gray-50 rounded-md shadow px-3 py-1 mb-2"
+            />
+          ))}
         </div>
       </FrameView.Body>
     </FrameView>

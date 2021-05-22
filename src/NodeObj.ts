@@ -33,17 +33,11 @@ const createSelfNodeObj = (node: Node): NodeObj => {
   };
 };
 
-export const shapeLemma = (lemma: string, lang: string) => {
-  let reg = /([GH])(\d+)/;
-  let m = lemma.match(reg);
-  if (m) {
-    return m[1] && m[2] ? m[1] + zeroPadding(+m[2], 4) : '';
+export const shapeLemma = (lemma: string) => {
+  let m = lemma.match(/([GH])(\d+)/);
+  if (m && m[1] && m[2]) {
+    return m[1] + zeroPadding(+m[2], 4);
+  } else {
+    return lemma;
   }
-  reg = /(\d+)/;
-  m = lemma.match(reg);
-  if (m) {
-    const prefix = lang === 'he' ? 'H' : 'G';
-    return m[1] ? prefix + zeroPadding(+m[1], 4) : '';
-  }
-  return '';
 };

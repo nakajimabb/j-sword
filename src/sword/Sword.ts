@@ -855,7 +855,7 @@ export const extractLemma = (
   if (attrs.lemma) {
     let lemma: string = attrs.lemma.split(':').pop() || '';
     if (lemma) {
-      lemma = shapeLemma(lemma, lang);
+      lemma = shapeLemma(lemma);
       if (!locations[lemma]) { locations[lemma] = {}; }
       if (!locations[lemma][pos.book]) { locations[lemma][pos.book] = {}; }
       if (!locations[lemma][pos.book][pos.chapter]) {

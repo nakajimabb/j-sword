@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
+import clsx from 'clsx';
+
 import { NodeObj, createNodeObj } from './NodeObj';
 import AppContext from './AppContext';
 import './passage.css';
@@ -52,6 +54,7 @@ const Phrase: React.FC<PhraseProps> = ({
 
 type Props = {
   lemma: string;
+  color?: string;
   showTitle?: boolean;
   showWordCount?: boolean;
   className?: string;
@@ -59,6 +62,7 @@ type Props = {
 
 const DictPassage: React.FC<Props> = ({
   lemma,
+  color,
   showTitle = true,
   showWordCount = false,
   className,
@@ -79,7 +83,7 @@ const DictPassage: React.FC<Props> = ({
           .filter((layout) => layout.type === 'bible')
           .map((layout) => layout.modname);
         const tasks = modnames.map(async (modname) => {
-          const count = await bibles[modname].countWord(lemma);
+          const count = await bibles[modname]?.countWord(lemma);
           return { modname, count };
         });
         const results = await Promise.all(tasks);
@@ -137,7 +141,7 @@ const DictPassage: React.FC<Props> = ({
                 lang={lang}
                 header={true}
                 meaning={false}
-                className="mb-1"
+                className={clsx(color, 'mb-1')}
               />
               {showWordCount && (
                 <div className="mx-1 mb-1">
@@ -153,7 +157,7 @@ const DictPassage: React.FC<Props> = ({
             </>
           )}
           {showTitle && (
-            <div className="text-xs text-gray-700 bg-yellow-50 rounded-full border border-gray-400 px-2 w-max">
+            <div className="text-xs text-gray-700 bg-yellow-50 rounded-full border border-gray-300 px-2 w-max">
               {dictionaries[modname].title}
             </div>
           )}
