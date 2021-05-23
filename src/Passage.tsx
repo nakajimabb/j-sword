@@ -103,7 +103,7 @@ const MuiPhrase: React.FC<PhraseProps> = ({ nodeObj, lang }) => {
 
   const curLemma = currentLemma();
   const lemmas = targetWord.lemma.split(/[,&]/).map((lem) => shapeLemma(lem));
-  const color = lemmas.findIndex((lemma) => lemma === curLemma);
+  const color = lemmas.findIndex((lemma) => lemma && lemma === curLemma);
 
   const contents = () => (
     <span>

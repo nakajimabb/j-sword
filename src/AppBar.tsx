@@ -21,9 +21,9 @@ import BookOpener from './BookOpener';
 import BookSelecter from './BookSelecter';
 import canon_jp from './sword/canons/locale/ja.json';
 import { OsisLocation } from './sword/types';
+import SettingDB from './SettingDB';
 import './App.css';
 import clsx from 'clsx';
-import TargetHistory from './TargetHistory';
 
 const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
 
@@ -81,6 +81,7 @@ const AppBar: React.FC = () => {
     current: 0,
     count: 0,
   });
+  const [settingNames, setSettingNames] = useState<string[]>([]);
   const {
     bibles,
     layouts,
@@ -92,6 +93,8 @@ const AppBar: React.FC = () => {
     setTargetHistory,
     osisLocations,
     setTargetOsisRefs,
+    saveSetting,
+    loadSetting,
   } = useContext(AppContext);
   const emptyBibles = Object.keys(bibles).length === 0;
   const emptyLayout = layouts?.length === 0;
@@ -138,6 +141,17 @@ const AppBar: React.FC = () => {
       setTargetOsisRefs(indexes.slice(0, count_per_page));
     }
   }, [osisLocations, setTargetOsisRefs]);
+
+  useEffect(() => {
+    updateSettingNames();
+  }, []);
+
+  const updateSettingNames = async () => {
+    const names = await (
+      await SettingDB.settings.where('name').notEqual('&last').toArray()
+    ).map((s) => s.name);
+    setSettingNames(names);
+  };
 
   const logout = () => {
     if (window.confirm('ログアウトしますか？')) {
@@ -217,6 +231,14 @@ const AppBar: React.FC = () => {
     const indexes = bookDictIndex(osisLocations, modname, book);
     const start = count_per_page * (page.current - 1);
     setTargetOsisRefs(indexes.slice(start, start + count_per_page));
+  };
+
+  const saveLayouts = async () => {
+    const fname = window.prompt('レイアウトの名前をつけてください。')?.trim();
+    if (fname) {
+      saveSetting(targetHistory.history, layouts, fname);
+      await updateSettingNames();
+    }
   };
 
   return (
@@ -351,6 +373,25 @@ const AppBar: React.FC = () => {
         )}
       </Flex>
       <Flex align_items="center">
+        <Dropdown
+          icon={
+            <Button
+              variant="icon"
+              size="sm"
+              color="none"
+              className="m-2 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300"
+            >
+              <Icon name="template" />
+            </Button>
+          }
+          align="right"
+        >
+          {settingNames.map((name, index) => (
+            <Dropdown.Item title={name} onClick={() => loadSetting(name)} />
+          ))}
+          <Dropdown.Divider />
+          <Dropdown.Item title="レイアウトを保存" onClick={saveLayouts} />
+        </Dropdown>
         {currentUser ? (
           <Dropdown
             icon={

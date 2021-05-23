@@ -33,6 +33,7 @@ export type ContextType = {
   osisLocations: { [modname: string]: OsisLocation };
   targetOsisRefs: string[];
   setTargetOsisRefs: React.Dispatch<React.SetStateAction<string[]>>;
+  loadSetting: (name: string) => void;
 };
 
 const AppContext = createContext({
@@ -52,7 +53,7 @@ const AppContext = createContext({
     name: string = '&last'
   ) => {},
   targetWord: {
-    lemma: 'H0001',
+    lemma: '',
     morph: '',
     text: '',
     fixed: false,
@@ -69,6 +70,7 @@ const AppContext = createContext({
   osisLocations: {},
   targetOsisRefs: [],
   setTargetOsisRefs: (positions: string[]) => {},
+  loadSetting: (name: string) => {},
 } as ContextType);
 
 export const AppContextProvider: React.FC = (props) => {
@@ -81,7 +83,7 @@ export const AppContextProvider: React.FC = (props) => {
   const [layouts, setLayouts] = useState<Layout[][]>([]);
 
   const [targetWord, setTargetWord] = useState<TargetWord>({
-    lemma: 'H0001',
+    lemma: '',
     morph: '',
     text: '',
     fixed: false,
@@ -114,28 +116,7 @@ export const AppContextProvider: React.FC = (props) => {
     const f = async () => {
       firebase.auth().onAuthStateChanged(async (user) => {
         setCurrentUser(user);
-        const setting = await SettingDB.getSetting('&last');
-        if (setting) {
-          if (setting.history) {
-            const history = setting.history;
-            if (history && history.length > 0) {
-              setTargetHistory(new TargetHistory(history, history.length - 1));
-              const current = history[history.length - 1];
-              if (current.mode === 'word') {
-                const word: TargetWord = {
-                  lemma: current.search,
-                  morph: '',
-                  text: '',
-                  fixed: true,
-                };
-                setTargetWord(word);
-              }
-            }
-          }
-          if (setting.layouts) {
-            setLayouts(setting.layouts);
-          }
-        }
+        loadSetting('&last');
         try {
           if (user) {
             const token = await user.getIdTokenResult();
@@ -187,6 +168,31 @@ export const AppContextProvider: React.FC = (props) => {
       }
     }
   }, [bibles, targetHistory]);
+
+  const loadSetting = async (name: string) => {
+    const setting = await SettingDB.getSetting(name);
+    if (setting) {
+      if (setting.history) {
+        const history = setting.history;
+        if (history && history.length > 0) {
+          setTargetHistory(new TargetHistory(history, history.length - 1));
+          const current = history[history.length - 1];
+          if (current.mode === 'word') {
+            const word: TargetWord = {
+              lemma: current.search,
+              morph: '',
+              text: '',
+              fixed: true,
+            };
+            setTargetWord(word);
+          }
+        }
+      }
+      if (setting.layouts) {
+        setLayouts(setting.layouts);
+      }
+    }
+  };
 
   const UnionOsisRefs = (refs1: OsisLocation, refs2: OsisLocation) => {
     const refs = { ...refs1 };
@@ -317,6 +323,7 @@ export const AppContextProvider: React.FC = (props) => {
         osisLocations,
         targetOsisRefs,
         setTargetOsisRefs,
+        loadSetting,
       }}
     >
       {props.children}

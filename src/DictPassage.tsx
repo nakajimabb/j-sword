@@ -144,7 +144,7 @@ const DictPassage: React.FC<Props> = ({
                 className={clsx(color, 'mb-1')}
               />
               {showWordCount && (
-                <div className="mx-1 mb-1">
+                <div className="mb-1">
                   <b>{lemma}</b>
                   &nbsp;
                   {Object.keys(wordCounts).map((modname, index) => (

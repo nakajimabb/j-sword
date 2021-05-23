@@ -32,7 +32,9 @@ const BibleView: React.FC<Props> = ({ modname, col, row }) => {
     const disableLayout = (disabled: boolean) => {
       setLayouts((prev) => {
         const newLayouts = [...prev];
-        newLayouts[col][row].disabled = disabled;
+        if (col < newLayouts.length && row < newLayouts[col].length) {
+          newLayouts[col][row].disabled = disabled;
+        }
         return newLayouts;
       });
     };
