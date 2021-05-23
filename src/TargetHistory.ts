@@ -19,6 +19,14 @@ class TargetHistory {
     return {history: this.history, currentIndex: this.currentIndex};
   }
 
+  prevHistory(size: number) {
+    return this.history.slice(this.currentIndex - size, this.currentIndex).reverse();
+  }
+
+  nextHistory(size: number) {
+    return this.history.slice(this.currentIndex + 1, this.currentIndex + size + 1);
+  }
+
   moveHistory(increment: number) {
     const index = this.currentIndex + increment;
     if (0 <= index && index < this.history.length) {

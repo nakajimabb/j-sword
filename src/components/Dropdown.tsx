@@ -1,4 +1,4 @@
-import React, { SetStateAction, useState } from 'react';
+import React, { useState } from 'react';
 import clsx from 'clsx';
 
 import { Flex } from './';
@@ -7,7 +7,8 @@ import './Dropdown.css';
 type ItemProps = {
   title: React.ReactElement | string;
   onClick?(e: React.MouseEvent<HTMLDivElement>): void;
-  setShow?: React.Dispatch<SetStateAction<boolean>>;
+  setShow?: React.Dispatch<React.SetStateAction<boolean>>;
+  trigger?: 'clicked' | 'downup';
   className?: string;
 };
 
@@ -15,17 +16,29 @@ const DropdownItem: React.FC<ItemProps> = ({
   title,
   onClick,
   setShow,
+  trigger = 'clicked',
   className,
   children,
 }) => {
   return (
     <div
       onClick={(e) => {
-        if (onClick) {
-          onClick(e);
-          if (setShow) setShow(false);
+        if (trigger === 'clicked') {
+          if (onClick) {
+            onClick(e);
+            if (setShow) setShow(false);
+          }
+          e.stopPropagation();
         }
-        e.stopPropagation();
+      }}
+      onMouseUp={(e) => {
+        if (trigger === 'downup') {
+          if (onClick) {
+            onClick(e);
+            if (setShow) setShow(false);
+          }
+          e.stopPropagation();
+        }
       }}
       className={clsx(
         'relative overflow-hidden hover-overflow-visible',
@@ -43,7 +56,7 @@ const DropdownItem: React.FC<ItemProps> = ({
             {React.Children.map(children, (child) => {
               if (!React.isValidElement(child)) return null;
 
-              return React.cloneElement(child, { setShow });
+              return React.cloneElement(child, { setShow, trigger });
             })}
           </div>
         </>
@@ -66,6 +79,7 @@ type DropdownProps = {
   icon?: React.ReactElement;
   align: 'right' | 'left';
   onEnter?: () => void;
+  trigger?: 'clicked' | 'downup';
   className?: string;
 };
 
@@ -78,9 +92,11 @@ const Dropdown: DropdownType = ({
   icon,
   align = 'right',
   onEnter,
+  trigger = 'clicked',
   children,
 }) => {
   const [show, setShow] = useState(false);
+  var clicking = false;
 
   return (
     <>
@@ -94,8 +110,22 @@ const Dropdown: DropdownType = ({
       )}
       <span
         onClick={async () => {
-          if (!show && onEnter) await onEnter();
-          setShow((prev) => !prev);
+          if (trigger === 'clicked') {
+            if (!show && onEnter) await onEnter();
+            setShow((prev) => !prev);
+          }
+        }}
+        onMouseDown={() => {
+          clicking = true;
+          if (trigger === 'downup' && !show) {
+            setTimeout(() => {
+              if (clicking) setShow((prev) => !prev);
+            }, 250);
+          }
+        }}
+        onMouseUp={() => {
+          clicking = false;
+          if (trigger === 'downup' && show) setShow(false);
         }}
         className="relative"
       >
@@ -115,7 +145,7 @@ const Dropdown: DropdownType = ({
             {React.Children.map(children, (child) => {
               if (!React.isValidElement(child)) return null;
 
-              return React.cloneElement(child, { setShow });
+              return React.cloneElement(child, { setShow, trigger });
             })}
           </div>
         )}

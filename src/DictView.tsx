@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import clsx from 'clsx';
 
-import { Button, Flex, Form, Icon } from './components';
+import { Button, Flex, Form, Icon, Tooltip } from './components';
 import DictPassage from './DictPassage';
 import MorphPassage from './MorphPassage';
 import AppContext from './AppContext';
@@ -111,28 +111,32 @@ const DictView: React.FC<Props> = ({ layout, col, row }) => {
               >
                 <Icon name="chevron-right" variant="outline" />
               </Button>
-              <Button
-                variant="icon"
-                size="none"
-                color="none"
-                onClick={setTarget}
-                className="p-1 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 w-8 h-8"
-              >
-                <Icon name="document-search" />
-              </Button>
-              <Button
-                variant="icon"
-                size="none"
-                color="none"
-                onClick={reverseFixed}
-                className="p-1 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 w-8 h-8"
-              >
-                <Icon
-                  name="location-marker"
-                  variant={fixed ? 'solid' : 'outline'}
-                  className={clsx(fixed && 'text-red-600')}
-                />
-              </Button>
+              <Tooltip title="聖書出現箇所を検索">
+                <Button
+                  variant="icon"
+                  size="none"
+                  color="none"
+                  onClick={setTarget}
+                  className="p-1 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 w-8 h-8"
+                >
+                  <Icon name="document-search" />
+                </Button>
+              </Tooltip>
+              <Tooltip title="固定する">
+                <Button
+                  variant="icon"
+                  size="none"
+                  color="none"
+                  onClick={reverseFixed}
+                  className="p-1 text-gray-500 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300 w-8 h-8"
+                >
+                  <Icon
+                    name="location-marker"
+                    variant={fixed ? 'solid' : 'outline'}
+                    className={clsx(fixed && 'text-red-600')}
+                  />
+                </Button>
+              </Tooltip>
             </Flex>
           )}
 

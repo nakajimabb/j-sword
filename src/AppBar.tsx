@@ -23,6 +23,7 @@ import canon_jp from './sword/canons/locale/ja.json';
 import { OsisLocation } from './sword/types';
 import './App.css';
 import clsx from 'clsx';
+import TargetHistory from './TargetHistory';
 
 const canonjp: { [key: string]: { abbrev: string; name: string } } = canon_jp;
 
@@ -259,46 +260,76 @@ const AppBar: React.FC = () => {
             }
           />
         </Tooltip>
-        <Tooltip title="前へ">
-          <Button
-            variant="icon"
-            size="xs"
-            color="none"
-            disabled={!enablePrev}
-            onClick={() => {
-              if (targetHistory.moveHistory(-1)) {
-                setTargetHistory(targetHistory.dup());
-              }
-            }}
-            className={clsx(
-              'ml-1 my-2 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300',
-              enablePrev && 'text-gray-500',
-              !enablePrev && 'text-gray-300'
-            )}
-          >
-            <Icon name="arrow-left" />
-          </Button>
-        </Tooltip>
-        <Tooltip title="次へ">
-          <Button
-            variant="icon"
-            size="xs"
-            color="none"
-            disabled={!enableNext}
-            onClick={() => {
-              if (targetHistory.moveHistory(1)) {
-                setTargetHistory(targetHistory.dup());
-              }
-            }}
-            className={clsx(
-              'ml-1 my-2 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300',
-              enableNext && 'text-gray-500',
-              !enableNext && 'text-gray-300'
-            )}
-          >
-            <Icon name="arrow-right" />
-          </Button>
-        </Tooltip>
+        <Dropdown
+          icon={
+            <Button
+              variant="icon"
+              size="xs"
+              color="none"
+              disabled={!enablePrev}
+              onClick={() => {
+                if (targetHistory.moveHistory(-1)) {
+                  setTargetHistory(targetHistory.dup());
+                }
+              }}
+              className={clsx(
+                'ml-1 my-2 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300',
+                enablePrev && 'text-gray-500',
+                !enablePrev && 'text-gray-300'
+              )}
+            >
+              <Icon name="arrow-left" />
+            </Button>
+          }
+          align="right"
+          trigger="downup"
+        >
+          {targetHistory.prevHistory(10).map((target, index) => (
+            <Dropdown.Item
+              title={target.search}
+              onClick={() => {
+                if (targetHistory.moveHistory(-index - 1)) {
+                  setTargetHistory(targetHistory.dup());
+                }
+              }}
+            />
+          ))}
+        </Dropdown>
+        <Dropdown
+          icon={
+            <Button
+              variant="icon"
+              size="xs"
+              color="none"
+              disabled={!enableNext}
+              onClick={() => {
+                if (targetHistory.moveHistory(1)) {
+                  setTargetHistory(targetHistory.dup());
+                }
+              }}
+              className={clsx(
+                'ml-1 my-2 hover:bg-gray-200 focus:ring-inset focus:ring-gray-300',
+                enableNext && 'text-gray-500',
+                !enableNext && 'text-gray-300'
+              )}
+            >
+              <Icon name="arrow-right" />
+            </Button>
+          }
+          align="left"
+          trigger="downup"
+        >
+          {targetHistory.nextHistory(10).map((target, index) => (
+            <Dropdown.Item
+              title={target.search}
+              onClick={() => {
+                if (targetHistory.moveHistory(index + 1)) {
+                  setTargetHistory(targetHistory.dup());
+                }
+              }}
+            />
+          ))}
+        </Dropdown>
         <BookOpener className="mx-1" />
         {mode !== 'bible' && (
           <>
