@@ -20,7 +20,8 @@ class TargetHistory {
   }
 
   prevHistory(size: number) {
-    return this.history.slice(this.currentIndex - size, this.currentIndex).reverse();
+    const start = this.currentIndex - size < 0 ? 0 : this.currentIndex - size;
+    return this.history.slice(start, this.currentIndex).reverse();
   }
 
   nextHistory(size: number) {
@@ -45,6 +46,8 @@ class TargetHistory {
         mode = 'bible';
       } else if(parseWordTarget(search)) {
         mode = 'word';
+      } else {
+        mode = 'text';
       }
       if(mode) {
         this.history = this.history.slice(0, this.currentIndex + 1);
