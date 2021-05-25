@@ -59,9 +59,7 @@ const GridCols: React.FC<Props> = ({ col }) => {
               row={index2}
             />
           )}
-          {layout.type === 'dictionary' && (
-            <DictView layout={layout} col={col} row={index2} />
-          )}
+          {layout.type === 'dictionary' && <DictView col={col} row={index2} />}
         </React.Fragment>
       ))}
     </Grid>

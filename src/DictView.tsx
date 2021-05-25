@@ -21,20 +21,13 @@ const colors = [
 type Props = {
   col: number;
   row: number;
-  layout: Layout;
   onClose?: () => void;
 };
 
-const DictView: React.FC<Props> = ({ layout, col, row }) => {
+const DictView: React.FC<Props> = ({ col, row }) => {
   const [lemmas, setLemmas] = useState<string[]>([]);
-  const {
-    targetWord,
-    setTargetWord,
-    layouts,
-    targetHistory,
-    setTargetHistory,
-    saveSetting,
-  } = useContext(AppContext);
+  const { targetWord, setTargetWord, targetHistory, updateTargetHistory } =
+    useContext(AppContext);
   const { text: wordText, lemma, morph, fixed } = targetWord;
   const lang = lemma[0] === 'H' ? 'he' : 'grc';
 
@@ -68,16 +61,7 @@ const DictView: React.FC<Props> = ({ layout, col, row }) => {
 
   const setTarget = () => {
     const mode = targetHistory.addHistory(lemma);
-    setTargetHistory(targetHistory.dup());
-    saveSetting(targetHistory.history, layouts);
-    if (mode === 'word') {
-      setTargetWord({
-        lemma,
-        morph: '',
-        text: '',
-        fixed: true,
-      });
-    }
+    if (mode) updateTargetHistory(targetHistory.dup(), true);
   };
 
   return (

@@ -9,7 +9,7 @@ type Props = {
 };
 
 const ArticlePreview: React.FC<Props> = ({ article, className }) => {
-  const { targetWord, setTargetWord, targetHistory, setTargetHistory } =
+  const { targetWord, setTargetWord, targetHistory, updateTargetHistory } =
     useContext(AppContext);
 
   useEffect(() => {
@@ -46,7 +46,7 @@ const ArticlePreview: React.FC<Props> = ({ article, className }) => {
       const position = target.getAttribute('data-bible');
       if (target && position) {
         if (targetHistory.addHistory(position)) {
-          setTargetHistory(targetHistory.dup());
+          updateTargetHistory(targetHistory.dup(), false);
         }
       }
     };
@@ -62,7 +62,7 @@ const ArticlePreview: React.FC<Props> = ({ article, className }) => {
         );
       };
     }
-  }, [article, targetHistory, setTargetHistory]);
+  }, [article, targetHistory]);
 
   const item = [article?.part, article?.chapter, article?.section]
     .filter((n) => n !== undefined)

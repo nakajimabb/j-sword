@@ -119,7 +119,7 @@ const Modal: ModalType = ({
         <div
           className={clsx(
             'inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all',
-            size !== 'none' && `w-${size}`,
+            size !== 'none' && `max-w-${size}`,
             className
           )}
         >

@@ -90,11 +90,11 @@ const AppBar: React.FC = () => {
     interlocked,
     setInterlocked,
     targetHistory,
-    setTargetHistory,
     osisLocations,
     setTargetOsisRefs,
     saveSetting,
     loadSetting,
+    updateTargetHistory,
   } = useContext(AppContext);
   const emptyBibles = Object.keys(bibles).length === 0;
   const emptyLayout = layouts?.length === 0;
@@ -291,7 +291,7 @@ const AppBar: React.FC = () => {
               disabled={!enablePrev}
               onClick={() => {
                 if (targetHistory.moveHistory(-1)) {
-                  setTargetHistory(targetHistory.dup());
+                  updateTargetHistory(targetHistory.dup(), true);
                 }
               }}
               className={clsx(
@@ -311,7 +311,7 @@ const AppBar: React.FC = () => {
               title={target.search}
               onClick={() => {
                 if (targetHistory.moveHistory(-index - 1)) {
-                  setTargetHistory(targetHistory.dup());
+                  updateTargetHistory(targetHistory.dup(), true);
                 }
               }}
             />
@@ -326,7 +326,7 @@ const AppBar: React.FC = () => {
               disabled={!enableNext}
               onClick={() => {
                 if (targetHistory.moveHistory(1)) {
-                  setTargetHistory(targetHistory.dup());
+                  updateTargetHistory(targetHistory.dup(), true);
                 }
               }}
               className={clsx(
@@ -346,7 +346,7 @@ const AppBar: React.FC = () => {
               title={target.search}
               onClick={() => {
                 if (targetHistory.moveHistory(index + 1)) {
-                  setTargetHistory(targetHistory.dup());
+                  updateTargetHistory(targetHistory.dup(), true);
                 }
               }}
             />

@@ -14,11 +14,11 @@ import {
 import { canons } from './sword/Canon';
 import canon_jp from './sword/canons/locale/ja.json';
 import { parseBibleTarget } from './sword/parseTarget';
+import { OsisLocation } from './sword/types';
 import DictPassage from './DictPassage';
 import AppContext from './AppContext';
 
 import './App.css';
-import TargetHistory from './TargetHistory';
 
 type FoldingProps = {
   height: number;
@@ -58,6 +58,109 @@ const Folding: React.FC<FoldingProps> = ({
   );
 };
 
+type TextSearchProps = {
+  onClose: () => void;
+  className?: string;
+};
+
+const TextSearch: React.FC<TextSearchProps> = ({ onClose, className }) => {
+  const [search, setSearch] = useState('');
+  const [progress, setProgress] = useState(0);
+  const [showProgress, setShowProgress] = useState(false);
+  const [modnames, setModnames] = useState<string[]>([]);
+  const { bibles, targetHistory, setOsisLocations, setTargetHistory } =
+    useContext(AppContext);
+
+  useEffect(() => {
+    const current = targetHistory.current();
+    if (current && current.mode === 'text') {
+      setSearch(current.search);
+    }
+  }, [targetHistory]);
+
+  const searchBibles = async () => {
+    const str = search.trim();
+    if (str && modnames.length > 0) {
+      setProgress(0);
+      setShowProgress(true);
+      const tasks = modnames.map(async (modname) => {
+        const dict = bibles[modname];
+        const raws = await dict.search(str, (inc: number) =>
+          setProgress((prev) => prev + inc / modnames.length)
+        );
+        return { modname, raws };
+      });
+      const results = await Promise.all(tasks);
+      console.log({ results });
+
+      const locations: { [modname: string]: OsisLocation } = {};
+      results.forEach(({ modname, raws }) => {
+        if (!locations[modname]) locations[modname] = {};
+        raws.forEach(({ key }) => {
+          const m = key.match(/^(\w+)\.(\d+):(\d+)$/);
+          if (m && m[1] && m[2] && m[3]) {
+            if (!locations[modname][m[1]]) locations[modname][m[1]] = {};
+            if (!locations[modname][m[1]][+m[2]])
+              locations[modname][m[1]][+m[2]] = {};
+            if (!locations[modname][m[1]][+m[2]][+m[3]])
+              locations[modname][m[1]][+m[2]][+m[3]] = 0;
+            if (!locations[modname][m[1]][+m[2]][+m[3]])
+              locations[modname][m[1]][+m[2]][+m[3]] += 1;
+          }
+        });
+      });
+      setOsisLocations(locations);
+      const mode = targetHistory.addHistory(str);
+      setTargetHistory(targetHistory.dup());
+      setShowProgress(false);
+      onClose();
+    }
+  };
+
+  const switchModname = (modname: string) => () => {
+    if (modnames.includes(modname)) {
+      setModnames(modnames.filter((name) => name !== modname));
+    } else {
+      setModnames([...modnames, modname]);
+    }
+  };
+
+  return (
+    <div className={className}>
+      <Flex className="my-2">
+        <Form.Text
+          value={search}
+          placeholder="例) H2091,H3701"
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1 mr-1"
+        />
+        <Button
+          color="primary"
+          disabled={showProgress}
+          onClick={searchBibles}
+          className="mx-1"
+        >
+          聖書検索
+        </Button>
+      </Flex>
+      {Object.keys(bibles).map((modname, index) => (
+        <div key={index}>
+          <Form.Checkbox
+            checked={modnames.includes(modname)}
+            size="md"
+            label={bibles[modname].title}
+            onChange={switchModname(modname)}
+            className="my-2"
+          />
+        </div>
+      ))}
+      {showProgress && (
+        <Progress label={`${Math.round(progress)}%`} value={progress} />
+      )}
+    </div>
+  );
+};
+
 type WordResult = {
   modname: string;
   raws: {
@@ -78,14 +181,8 @@ const WordSearch: React.FC<WordSearchProps> = ({ onClose, className }) => {
   const [showProgress, setShowProgress] = useState(false);
   const [modnames, setModnames] = useState<string[]>([]);
   const [wordResults, setWordResults] = useState<WordResult[]>([]);
-  const {
-    layouts,
-    dictionaries,
-    targetHistory,
-    setTargetHistory,
-    saveSetting,
-    setTargetWord,
-  } = useContext(AppContext);
+  const { dictionaries, targetHistory, updateTargetHistory } =
+    useContext(AppContext);
   const [tab, setTab] = useState('');
 
   useEffect(() => {
@@ -138,22 +235,15 @@ const WordSearch: React.FC<WordSearchProps> = ({ onClose, className }) => {
 
   const searchBible = () => {
     const mode = targetHistory.addHistory(search);
-    setTargetHistory(targetHistory.dup());
-    saveSetting(targetHistory.history, layouts);
-    if (mode === 'word') {
-      setTargetWord({
-        lemma: search,
-        morph: '',
-        text: '',
-        fixed: true,
-      });
+    if (mode) {
+      updateTargetHistory(targetHistory.dup(), true);
       onClose();
     }
   };
 
   return (
     <div className={className}>
-      <Flex className="mb-2">
+      <Flex className="mb-2 w-96">
         <Form.Text
           value={word}
           placeholder="検索ワード"
@@ -257,7 +347,7 @@ const WordSearch: React.FC<WordSearchProps> = ({ onClose, className }) => {
                         <Icon
                           name="plus-circle"
                           variant="solid"
-                          className="w-5 h-5 text-blue-500 cursor-pointer ml-1  hover:text-gray-300"
+                          className="w-5 h-5 text-blue-500 cursor-pointer ml-1 hover:text-gray-300"
                         />
                       </span>
                       <b className="px-2">{raw.key}</b>
@@ -302,8 +392,7 @@ const BibleOpener: React.FC<BibleOpenerProps> = ({
   const [modname, setModname] = useState('');
   const [chapter, setChapter] = useState(0);
   const [maxChapter, setMaxChapter] = useState<number>(canon.ot[0].maxChapter);
-  const { targetHistory, setTargetHistory, layouts, saveSetting } =
-    useContext(AppContext);
+  const { targetHistory, updateTargetHistory } = useContext(AppContext);
 
   useEffect(() => {
     const current = targetHistory.current();
@@ -368,8 +457,7 @@ const BibleOpener: React.FC<BibleOpenerProps> = ({
                 onClick={() => {
                   setChapter(chap);
                   if (targetHistory.addHistory(`${modname}.${String(chap)}`)) {
-                    setTargetHistory(targetHistory.dup());
-                    saveSetting(targetHistory.history, layouts);
+                    updateTargetHistory(targetHistory.dup(), true);
                   }
                   onClose();
                 }}
@@ -392,7 +480,7 @@ type DialogProps = {
   onClose: () => void;
 };
 
-type SearchType = 'bible' | 'word' | 'full';
+type SearchType = 'bible' | 'word' | 'text';
 
 const Dialog: React.FC<DialogProps> = ({ open, onClose }) => {
   const [tab, setTab] = useState('0');
@@ -411,12 +499,7 @@ const Dialog: React.FC<DialogProps> = ({ open, onClose }) => {
   }, [targetHistory]);
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      size={searchType === 'bible' ? '7xl' : 'none'}
-      className={clsx(searchType !== 'bible' && 'sm:w-max md:w-2/3')}
-    >
+    <Modal open={open} onClose={onClose} size="2xl">
       <Modal.Header padding={0} onClose={onClose}>
         <Flex className="w-96">
           <div className="mx-4 my-1">
@@ -426,7 +509,7 @@ const Dialog: React.FC<DialogProps> = ({ open, onClose }) => {
               options={[
                 { label: '聖書', value: 'bible' },
                 { label: '辞書検索', value: 'word' },
-                { label: '全文検索', value: 'full' },
+                { label: '全文検索', value: 'text' },
               ]}
               onChange={(e) => setSearchType(e.target.value as SearchType)}
             />
@@ -457,6 +540,10 @@ const Dialog: React.FC<DialogProps> = ({ open, onClose }) => {
           onClose={onClose}
           className={clsx(searchType !== 'word' && 'hidden')}
         />
+        <TextSearch
+          onClose={onClose}
+          className={clsx(searchType !== 'text' && 'hidden')}
+        />
       </Modal.Body>
     </Modal>
   );
@@ -467,13 +554,7 @@ type Props = {
 };
 
 const BookOpener: React.FC<Props> = ({ className }) => {
-  const {
-    targetHistory,
-    setTargetHistory,
-    layouts,
-    saveSetting,
-    setTargetWord,
-  } = useContext(AppContext);
+  const { targetHistory, updateTargetHistory } = useContext(AppContext);
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState('');
 
@@ -486,7 +567,7 @@ const BookOpener: React.FC<Props> = ({ className }) => {
 
   const increment = (increment: number) => () => {
     if (targetHistory.incrementCurent(increment)) {
-      changeTargetHistory(targetHistory.dup());
+      updateTargetHistory(targetHistory.dup(), true);
     }
   };
 
@@ -497,22 +578,6 @@ const BookOpener: React.FC<Props> = ({ className }) => {
       else if (current.mode === 'word') return 'document-search';
     }
     return 'book-open';
-  };
-
-  const changeTargetHistory = (history: TargetHistory) => {
-    setTargetHistory(history);
-    saveSetting(history.history, layouts);
-    const current = history.current();
-    if (current) {
-      if (history.current()?.mode === 'word') {
-        setTargetWord({
-          lemma: current.search,
-          morph: '',
-          text: '',
-          fixed: true,
-        });
-      }
-    }
   };
 
   return (
@@ -551,12 +616,10 @@ const BookOpener: React.FC<Props> = ({ className }) => {
         onChange={(e) => {
           setPosition(e.target.value);
         }}
-        onKeyPress={(e) => {
+        onKeyPress={async (e) => {
           if (e.charCode === 13 && position) {
             const mode = targetHistory.addHistory(position);
-            if (mode) {
-              changeTargetHistory(targetHistory.dup());
-            }
+            if (mode) updateTargetHistory(targetHistory.dup(), true);
           }
         }}
         className="absolute top-0 left-0 w-full h-full pl-8 pr-5"
